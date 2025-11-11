@@ -11,7 +11,6 @@ import { usePathname } from 'next/navigation';
 const navLinks = [
   { href: '/events', label: 'Events' },
   { href: '/tours', label: 'Tours' },
-  { href: '/nightlife', label: 'Nightlife' },
   { href: '/shop', label: 'Shop' },
 ];
 

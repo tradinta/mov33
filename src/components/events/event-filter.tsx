@@ -36,7 +36,7 @@ export function EventFilter() {
                   <SelectItem value="festivals">Festivals</SelectItem>
                   <SelectItem value="sports">Sports</SelectItem>
                   <SelectItem value="community">Community</SelectItem>
-                  <SelectItem value="nightlife">Nightlife</SelectItem>
+                  <SelectItem value="party">Party</SelectItem>
                 </SelectContent>
               </Select>
     

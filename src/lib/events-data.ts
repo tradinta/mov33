@@ -124,7 +124,7 @@ export const eventsData: Event[] = [
     date: "Tue, 31 Dec 2024",
     location: "Forty Thieves, Diani",
     price: "7,500",
-    tags: ["Nightlife", "VIP"],
+    tags: ["Party", "VIP"],
     image: PlaceHolderImages.find(p => p.id === 'hero-3') || defaultImage,
     description: "Usher in the new year with the ultimate beach party on the beautiful shores of Diani.",
     organizerId: "mov33-presents"

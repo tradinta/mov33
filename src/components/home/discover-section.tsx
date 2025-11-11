@@ -18,10 +18,10 @@ const discoverItems = [
     href: "/tours"
   },
   {
-    title: "Nightlife",
-    description: "The best clubs, parties, and DJ sets.",
-    image: PlaceHolderImages.find(p => p.id === 'discover-nightlife')!,
-    href: "/nightlife"
+    title: "Shop",
+    description: "Rep your love for live experiences.",
+    image: PlaceHolderImages.find(p => p.id === 'shop-1')!,
+    href: "/shop"
   }
 ];
 
