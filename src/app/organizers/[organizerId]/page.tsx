@@ -3,9 +3,11 @@ import { organizersData, type Organizer } from '@/lib/organizers-data';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { EventCard } from '@/components/events/event-card';
+import { TourCard } from '@/components/tours/tour-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Globe, Mail, Phone } from 'lucide-react';
+import { Globe, Mail, Phone, Ticket, Map } from 'lucide-react';
 import type { Metadata } from 'next';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type OrganizerProfilePageProps = {
     params: { organizerId: string };
@@ -21,8 +23,8 @@ export async function generateMetadata({ params }: OrganizerProfilePageProps): P
   }
 
   return {
-    title: `${organizer.name} | Event Organizer | Mov33`,
-    description: `Browse events hosted by ${organizer.name}. ${organizer.description}`,
+    title: `${organizer.name} | Organizer | Mov33`,
+    description: `Browse events and tours hosted by ${organizer.name}. ${organizer.description}`,
   };
 }
 
@@ -33,6 +35,10 @@ export default function OrganizerProfilePage({ params }: OrganizerProfilePagePro
     if (!organizer) {
         notFound();
     }
+
+    const hasEvents = organizer.events.length > 0;
+    const hasTours = organizer.tours.length > 0;
+    const defaultTab = hasEvents ? "events" : "tours";
 
     return (
         <div className="bg-background text-foreground">
@@ -63,18 +69,39 @@ export default function OrganizerProfilePage({ params }: OrganizerProfilePagePro
                 </div>
             </section>
             
-            {/* Events Section */}
+            {/* Content Section */}
             <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <h2 className="font-headline text-3xl font-bold mb-8">Events by {organizer.name}</h2>
-                {organizer.events.length > 0 ? (
-                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                        {organizer.events.map((event) => (
-                            <EventCard key={event.id} event={event} />
-                        ))}
-                    </div>
-                ) : (
+                 <Tabs defaultValue={defaultTab} className="w-full">
+                    <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+                        {hasEvents && <TabsTrigger value="events">Events ({organizer.events.length})</TabsTrigger>}
+                        {hasTours && <TabsTrigger value="tours">Tours ({organizer.tours.length})</TabsTrigger>}
+                    </TabsList>
+                    
+                    {hasEvents && (
+                        <TabsContent value="events">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-8">
+                                {organizer.events.map((event) => (
+                                    <EventCard key={event.id} event={event} />
+                                ))}
+                            </div>
+                        </TabsContent>
+                    )}
+
+                    {hasTours && (
+                        <TabsContent value="tours">
+                             <div className="space-y-12 mt-8">
+                                {organizer.tours.map(tour => (
+                                    <TourCard key={tour.id} tour={tour} />
+                                ))}
+                            </div>
+                        </TabsContent>
+                    )}
+                </Tabs>
+
+
+                {!hasEvents && !hasTours && (
                     <div className="text-center py-16 border-2 border-dashed rounded-lg">
-                        <p className="text-muted-foreground font-poppins">No upcoming events from {organizer.name} at the moment.</p>
+                        <p className="text-muted-foreground font-poppins">No upcoming activities from {organizer.name} at the moment.</p>
                         <p className="text-sm text-muted-foreground/80 mt-2">Check back soon!</p>
                     </div>
                 )}
