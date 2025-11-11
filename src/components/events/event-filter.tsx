@@ -25,6 +25,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "
 import { counties } from "@/lib/counties";
 
 const categories = ["Concert", "Festival", "Sports", "Community", "Party", "Tech", "Adventure"];
+const ageGroups = ["All Ages", "Kids", "Teenagers", "Young Adults", "Youths", "Seniors", "All"];
 
 export function EventFilter() {
   const [date, setDate] = useState<Date>();
@@ -164,6 +165,18 @@ export function EventFilter() {
                                 <SelectItem value="date_desc">Date: Latest</SelectItem>
                                 <SelectItem value="price_asc">Price: Low to High</SelectItem>
                                 <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Separator />
+                     <div>
+                        <Label className="font-poppins text-sm font-semibold">Age Group</Label>
+                         <Select>
+                            <SelectTrigger className="w-full font-poppins mt-2">
+                                <SelectValue placeholder="All Ages" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ageGroups.map(age => <SelectItem key={age} value={age.toLowerCase().replace(' ', '-')}>{age}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
