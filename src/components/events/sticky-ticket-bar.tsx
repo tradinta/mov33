@@ -15,8 +15,8 @@ export function StickyTicketbar({ eventName, ticketPrice }: StickyTicketbarProps
 
   useEffect(() => {
     const toggleVisibility = () => {
-      // Show bar after scrolling 600px down
-      if (window.scrollY > 600) {
+      const heroSectionHeight = 550; 
+      if (window.scrollY > heroSectionHeight) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
@@ -31,7 +31,7 @@ export function StickyTicketbar({ eventName, ticketPrice }: StickyTicketbarProps
   return (
     <div
       className={cn(
-        'sticky top-0 z-40 w-full bg-background/80 py-3 backdrop-blur-lg shadow-lg transition-transform duration-300 ease-in-out',
+        'sticky top-16 z-40 w-full bg-background/80 py-3 backdrop-blur-lg shadow-lg transition-transform duration-300 ease-in-out',
         isVisible ? 'translate-y-0' : '-translate-y-full'
       )}
     >
