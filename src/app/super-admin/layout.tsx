@@ -2,7 +2,7 @@
 'use client';
 import * as React from "react";
 import { usePathname } from 'next/navigation';
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarInset, SidebarMenuSub, SidebarMenuSubButton, useSidebar } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarInset, SidebarMenuSub, SidebarMenuSubButton, useSidebar, SidebarTrigger } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Users, Settings, Shield, BarChart3, LogOut, Ticket, UserCheck, LayoutDashboard, Megaphone, Banknote, Building, ExternalLink } from "lucide-react";
 import { Logo } from "@/components/logo";
@@ -17,6 +17,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { cn } from "@/lib/utils";
 
 function UserManagementSubMenu() {
     const { Sub, isSubOpen } = useCollapsible("user-management");
@@ -52,7 +53,7 @@ function UserManagementSubMenu() {
 
 function AdminSidebar({children}: {children: React.ReactNode}) {
   const pathname = usePathname();
-  const { setOpenMobile, toggleSidebar } = useSidebar();
+  const { setOpenMobile, toggleSidebar, state } = useSidebar();
 
   const breadcrumbItems = React.useMemo(() => {
     const segments = pathname.split('/').filter(Boolean);
@@ -75,7 +76,10 @@ function AdminSidebar({children}: {children: React.ReactNode}) {
     <>
       <Sidebar>
           <SidebarHeader>
-          <Logo />
+            <div className={cn("flex items-center justify-between", state === "collapsed" && "justify-center")}>
+              <Logo className={cn(state === "collapsed" && "hidden")}/>
+              <SidebarTrigger />
+            </div>
           </SidebarHeader>
           <SidebarContent>
           <SidebarMenu>
