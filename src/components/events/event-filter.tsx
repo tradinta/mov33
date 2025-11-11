@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, MapPin, Tag, SlidersHorizontal, Search, X } from "lucide-react";
+import { Calendar as CalendarIcon, MapPin, Tag, SlidersHorizontal, Search, Check, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import {
@@ -16,17 +17,19 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Separator } from "../ui/separator";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { counties } from "@/lib/counties";
 
-const locations = ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Lamu", "Diani", "Naivasha"];
 const categories = ["Concert", "Festival", "Sports", "Community", "Party", "Tech", "Adventure"];
 
 export function EventFilter() {
   const [date, setDate] = useState<Date>();
   const [priceRange, setPriceRange] = useState([500, 20000]);
+  const [comboboxOpen, setComboboxOpen] = useState(false)
+  const [county, setCounty] = useState("")
 
   return (
     <div className="sticky top-[65px] z-40 bg-background/90 backdrop-blur-md border-b">
@@ -61,14 +64,52 @@ export function EventFilter() {
                 </PopoverContent>
               </Popover>
 
-              <Select>
-                <SelectTrigger className="min-w-[150px] font-poppins rounded-full">
-                  <SelectValue placeholder={<div className="flex items-center gap-2"><MapPin className="h-4 w-4"/> Location</div>} />
-                </SelectTrigger>
-                <SelectContent>
-                  {locations.map(loc => <SelectItem key={loc} value={loc.toLowerCase()}>{loc}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={comboboxOpen}
+                    className="w-[200px] justify-between font-poppins rounded-full"
+                  >
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">
+                        {county
+                          ? counties.find((c) => c.toLowerCase() === county)?.trim()
+                          : "Select county..."}
+                      </span>
+                    </div>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search county..." />
+                    <CommandEmpty>No county found.</CommandEmpty>
+                    <CommandGroup>
+                      {counties.map((c) => (
+                        <CommandItem
+                          key={c}
+                          value={c}
+                          onSelect={(currentValue) => {
+                            setCounty(currentValue === county ? "" : currentValue)
+                            setComboboxOpen(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              county === c.toLowerCase() ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {c}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
     
               <Select>
                 <SelectTrigger className="min-w-[150px] font-poppins rounded-full">
@@ -138,3 +179,4 @@ export function EventFilter() {
     </div>
   );
 }
+
