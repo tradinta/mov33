@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Users, Settings, Shield, BarChart3, LogOut, Ticket, UserCheck, LayoutDashboard, Megaphone, Banknote, Building } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import { useCollapsible } from '@/hooks/use-collapsible';
+import { useCollapsible } from '@/hooks/use-collapsible.tsx';
 
 function UserManagementSubMenu() {
     const { Sub, isSubOpen } = useCollapsible("user-management");
