@@ -146,7 +146,7 @@ export async function generateMetadata({ params }: EventDetailPageProps): Promis
 
   return {
     title: `${event.name} | Mov33`,
-    description: `Book tickets for ${event.name} in ${event.location}. ${event.description}`,
+    description: `Book tickets for ${event.name} at ${event.venue}, ${event.location}. ${event.description}`,
   };
 }
 
@@ -221,7 +221,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                             </div>
                             <div className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4 text-accent" />
-                                <span>{event.location}</span>
+                                <span>{event.venue}, {event.location}</span>
                             </div>
                         </div>
                         <div className="mt-6 flex gap-2">

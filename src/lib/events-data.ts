@@ -3,6 +3,7 @@ import { PlaceHolderImages, type ImagePlaceholder } from "./placeholder-images";
 export type Event = {
   id: string;
   name: string;
+  venue: string;
   date: string;
   location: string;
   price: string;
@@ -19,8 +20,9 @@ export const eventsData: Event[] = [
   {
     id: "sauti-sol-live",
     name: "Sauti Sol: Live in Nairobi",
+    venue: "Uhuru Gardens",
     date: "Sat, 24 Dec 2024",
-    location: "Uhuru Gardens, Nairobi",
+    location: "Nairobi",
     price: "5,000",
     tags: ["Concert", "Trending"],
     image: PlaceHolderImages.find(p => p.id === 'hero-1') || defaultImage,
@@ -30,8 +32,9 @@ export const eventsData: Event[] = [
   {
     id: "lamu-festival",
     name: "Lamu Cultural Festival",
+    venue: "Lamu Old Town",
     date: "15-18 Nov 2024",
-    location: "Lamu Old Town, Lamu",
+    location: "Lamu",
     price: "1,500",
     tags: ["Festival", "Culture"],
     image: {
@@ -46,8 +49,9 @@ export const eventsData: Event[] = [
   {
     id: "safari-sevens",
     name: "Safari Sevens Rugby",
+    venue: "RFUEA Ground",
     date: "20-22 Oct 2024",
-    location: "RFUEA Ground, Nairobi",
+    location: "Nairobi",
     price: "2,500",
     tags: ["Sports", "Popular"],
     image: {
@@ -62,8 +66,9 @@ export const eventsData: Event[] = [
   {
     id: "mombasa-food-fest",
     name: "Mombasa Food Festival",
+    venue: "Mama Ngina Waterfront",
     date: "Sat, 12 Oct 2024",
-    location: "Mama Ngina Waterfront, Mombasa",
+    location: "Mombasa",
     price: "1,000",
     tags: ["Food", "Community"],
     image: {
@@ -78,8 +83,9 @@ export const eventsData: Event[] = [
   {
     id: "rhino-charge",
     name: "The Rhino Charge",
+    venue: "Undisclosed Location",
     date: "Sun, 01 Jun 2025",
-    location: "Undisclosed, Kenya",
+    location: "Kenya",
     price: "15,000",
     tags: ["Sports", "Adventure", "VIP"],
     image: {
@@ -94,8 +100,9 @@ export const eventsData: Event[] = [
   {
     id: "blankets-and-wine",
     name: "Blankets & Wine Festival",
+    venue: "Laurette Garden",
     date: "Sun, 08 Dec 2024",
-    location: "Laurette Garden, Nairobi",
+    location: "Nairobi",
     price: "4,500",
     tags: ["Festival", "Music"],
     image: PlaceHolderImages.find(p => p.id === 'discover-events') || defaultImage,
@@ -105,8 +112,9 @@ export const eventsData: Event[] = [
   {
     id: "nairobi-tech-week",
     name: "Nairobi Tech Week",
+    venue: "iHub",
     date: "04-08 Nov 2024",
-    location: "iHub, Nairobi",
+    location: "Nairobi",
     price: "Free",
     tags: ["Tech", "Community"],
     image: {
@@ -121,8 +129,9 @@ export const eventsData: Event[] = [
   {
     id: "diani-beach-party",
     name: "Diani New Year Beach Party",
+    venue: "Forty Thieves, Diani",
     date: "Tue, 31 Dec 2024",
-    location: "Forty Thieves, Diani",
+    location: "Diani",
     price: "7,500",
     tags: ["Party", "VIP"],
     image: PlaceHolderImages.find(p => p.id === 'hero-3') || defaultImage,

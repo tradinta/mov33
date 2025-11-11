@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Event } from "@/lib/events-data";
 import { organizersData } from "@/lib/organizers-data";
-import { Heart, UserCheck } from "lucide-react";
+import { Heart, MapPin, UserCheck } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 
@@ -47,14 +47,15 @@ export function EventCard({ event }: { event: Event }) {
             />
              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
           </div>
-          <div className="absolute bottom-0 left-0 p-4 space-y-1 text-white">
+          <div className="absolute bottom-0 left-0 p-4 space-y-1 text-white w-full">
             <h3 className="font-headline text-lg font-bold text-white group-hover:text-accent transition-colors leading-tight">
               {event.name}
             </h3>
-            <p className="text-xs text-white/90 font-body flex-grow min-h-[30px]">
-              {event.description}
-            </p>
-            <div className="flex justify-between items-end font-poppins pt-1">
+             <div className="flex items-center text-xs text-white/90 font-body gap-1.5">
+                <MapPin className="h-3 w-3" />
+                <span>{event.venue}, {event.location}</span>
+            </div>
+            <div className="flex justify-between items-end font-poppins pt-2">
                 <span className="block font-semibold text-base text-accent">
                    KES {event.price}
                 </span>
