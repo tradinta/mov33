@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <>
       <HeroSection />
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-20 md:space-y-28 py-16 md:py-24">
           <DiscoverSection />
           <VipHighlights />
