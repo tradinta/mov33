@@ -8,15 +8,14 @@ export const metadata: Metadata = {
   description: 'Discover and book tickets for the best events in Kenya. From vibrant concerts in Nairobi to cultural festivals in Lamu, find your next unforgettable experience with Mov33.',
 };
 
-
 export default function EventsPage() {
   return (
-    <>
+    <div className="bg-background">
       <HeroSection />
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <EventFilter />
+      <EventFilter />
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <EventGrid />
       </div>
-    </>
+    </div>
   );
 }

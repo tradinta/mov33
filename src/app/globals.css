@@ -4,39 +4,39 @@
 
 @layer base {
   :root {
-    --background: 210 44% 11%; /* Deep Blue */
-    --foreground: 30 27% 96%; /* Light Sand */
+    --background: 210 40% 98%; /* Almost white (Sand) */
+    --foreground: 210 20% 15%; /* Charcoal */
 
-    --card: 210 44% 15%;
-    --card-foreground: 30 27% 96%;
+    --card: 210 40% 100%;
+    --card-foreground: 210 20% 15%;
 
-    --popover: 210 44% 11%;
-    --popover-foreground: 30 27% 96%;
+    --popover: 210 40% 100%;
+    --popover-foreground: 210 20% 15%;
 
-    --primary: 30 27% 96%;
-    --primary-foreground: 210 44% 11%;
+    --primary: 210 20% 15%;
+    --primary-foreground: 30 27% 96%;
 
-    --secondary: 210 44% 20%;
-    --secondary-foreground: 30 27% 96%;
+    --secondary: 210 20% 90%;
+    --secondary-foreground: 210 20% 15%;
+    
+    --muted: 210 20% 90%;
+    --muted-foreground: 210 20% 40%;
 
-    --muted: 210 44% 20%;
-    --muted-foreground: 210 30% 60%;
-
-    --accent: 14 78% 62%; /* Burnt Orange */
+    --accent: 14 78% 57%; /* Burnt Orange */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 210 44% 25%;
-    --input: 210 44% 25%;
-    --ring: 14 78% 62%; /* Burnt Orange */
+    --border: 210 20% 85%;
+    --input: 210 20% 92%;
+    --ring: 14 78% 57%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     /* Custom colors */
-    --sand-background: 30 27% 96%;
-    --charcoal-foreground: 0 0% 18%;
+    --deep-blue-background: 210 44% 11%;
+    --deep-blue-foreground: 30 27% 96%;
     --muted-gold: 34 44% 64%;
   }
 
@@ -68,6 +68,10 @@
     --border: 210 44% 25%;
     --input: 210 44% 25%;
     --ring: 14 78% 62%; /* Burnt Orange */
+    
+    --deep-blue-background: 210 44% 11%;
+    --deep-blue-foreground: 30 27% 96%;
+    --muted-gold: 34 44% 64%;
   }
 }
 
