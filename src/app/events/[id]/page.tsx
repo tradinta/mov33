@@ -4,15 +4,18 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { 
-  ArrowRight, 
   Calendar, 
   ChevronRight, 
   Clock, 
+  Facebook,
   Heart, 
+  Instagram,
+  Linkedin,
   MapPin, 
   Share2, 
   Star, 
   Ticket,
+  Twitter,
   Users
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +23,20 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+
 
 // Dummy data that would normally come from a CMS or database
 const eventDetails = {
@@ -34,7 +51,7 @@ const eventDetails = {
     organizer: {
       name: "Kenya Rugby Union",
       logoUrl: "https://picsum.photos/seed/kru/100/100",
-      description: "The official governing body of rugby in Kenya.",
+      description: "The official governing body of rugby in Kenya, dedicated to promoting the sport and organizing world-class tournaments.",
     },
     artists: [],
     schedule: [
@@ -62,13 +79,12 @@ const eventDetails = {
         { q: "Are children allowed?", a: "Yes, this is a family-friendly event. Children under 12 enter free." },
     ],
     tickets: [
-        { tier: "Early Bird", price: 1500, perks: ["Full weekend pass", "Access to all group matches"], status: "Sold Out" },
-        { tier: "Advance", price: 2500, perks: ["Full weekend pass", "Access to all matches including finals"], status: "Available" },
-        { tier: "VIP", price: 7500, perks: ["Express entry", "Access to VIP lounge", "Complimentary drinks & snacks"], status: "Available" },
-        { tier: "Premium VIP", price: 15000, perks: ["All VIP perks", "Meet & Greet with players", "Exclusive merchandise"], status: "Almost Gone" },
+        { tier: "Early Bird", price: 1500, description: "Get in early and save! Access for the full weekend.", perks: ["Full weekend pass", "Access to all group matches"], status: "Sold Out", remaining: 0 },
+        { tier: "Advance", price: 2500, description: "The complete weekend experience for any rugby fan.", perks: ["Full weekend pass", "Access to all matches including finals"], status: "Available", remaining: null, discount: "Group discount available" },
+        { tier: "VIP", price: 7500, description: "Elevate your weekend with exclusive perks.", perks: ["Express entry", "Access to VIP lounge", "Complimentary drinks & snacks"], status: "Available", remaining: null },
+        { tier: "Premium VIP", price: 15000, description: "The ultimate fan package with player access.", perks: ["All VIP perks", "Meet & Greet with players", "Exclusive merchandise"], status: "Almost Gone", remaining: 15 },
     ]
   },
-  // Add other event details here...
   "sauti-sol-live": {
      gallery: [
       PlaceHolderImages.find(p => p.id === 'hero-1')!,
@@ -80,7 +96,7 @@ const eventDetails = {
      organizer: {
       name: "Mov33 Presents",
       logoUrl: "https://picsum.photos/seed/mov33/100/100",
-      description: "Curators of premium live experiences in Kenya.",
+      description: "Curators of premium live experiences in Kenya, bringing the world's best artists to the local stage.",
     },
     artists: [
         { name: "Sauti Sol", role: "Main Act", imageUrl: "https://picsum.photos/seed/sautisolband/100/100" },
@@ -101,9 +117,9 @@ const eventDetails = {
         { q: "What's the refund policy?", a: "Tickets are non-refundable." },
     ],
      tickets: [
-        { tier: "Advance", price: 5000, perks: ["Full access to the concert grounds"], status: "Available" },
-        { tier: "VIP", price: 15000, perks: ["Express entry", "Access to VIP lounge with private bar", "Premium viewing area"], status: "Available" },
-        { tier: "VVIP", price: 30000, perks: ["All VIP perks", "Meet & Greet with Sauti Sol", "Signed merchandise"], status: "Almost Gone" },
+        { tier: "Advance", price: 5000, description: "Secure your spot for this historic final show.", perks: ["Full access to the concert grounds"], status: "Available", remaining: null },
+        { tier: "VIP", price: 15000, description: "Enjoy the show from the best seats with premium service.", perks: ["Express entry", "Access to VIP lounge with private bar", "Premium viewing area"], status: "Available", remaining: null, discount: "Buy 4, get 1 free!" },
+        { tier: "VVIP", price: 30000, description: "An unforgettable night with exclusive artist access.", perks: ["All VIP perks", "Meet & Greet with Sauti Sol", "Signed merchandise"], status: "Almost Gone", remaining: 25 },
     ]
   }
 };
@@ -112,6 +128,37 @@ const eventDetails = {
 type EventDetailPageProps = {
   params: { id: string };
 };
+
+function ShareModal() {
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full bg-background/70 hover:bg-background h-10 w-10">
+                    <Share2 className="h-5 w-5 text-foreground" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[250px]">
+                <DialogHeader>
+                    <DialogTitle className="text-center font-headline">Share this Event</DialogTitle>
+                </DialogHeader>
+                <div className="flex justify-center gap-4 py-4">
+                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                        <Facebook className="h-6 w-6 text-[#1877F2]" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                        <Twitter className="h-6 w-6 text-[#1DA1F2]" />
+                    </Button>
+                     <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                        <Instagram className="h-6 w-6 text-[#E4405F]" />
+                    </Button>
+                     <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                        <Linkedin className="h-6 w-6 text-[#0A66C2]" />
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 export default function EventDetailPage({ params }: EventDetailPageProps) {
   const event = eventsData.find((e) => e.id === params.id);
@@ -210,6 +257,22 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                          </div>
                     </section>
 
+                     {/* Organizer Section */}
+                    <section id="organizer">
+                        <h2 className="font-headline text-2xl font-bold">Organizer</h2>
+                        <Card className="mt-4 flex items-center gap-4 p-4 bg-card/50">
+                            <Avatar className="h-16 w-16 border">
+                                <AvatarImage src={details.organizer.logoUrl} alt={details.organizer.name}/>
+                                <AvatarFallback>{details.organizer.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <h3 className="font-poppins font-semibold text-lg">{details.organizer.name}</h3>
+                                <p className="text-sm text-muted-foreground">{details.organizer.description}</p>
+                            </div>
+                        </Card>
+                    </section>
+
+
                     {/* FAQs */}
                      <section id="faq">
                         <h2 className="font-headline text-2xl font-bold">Frequently Asked Questions</h2>
@@ -224,7 +287,6 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                           ))}
                         </Accordion>
                     </section>
-
                 </div>
             </main>
 
@@ -233,7 +295,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                 <div className="sticky top-24 space-y-6">
                     {/* Image */}
                     <Card className="overflow-hidden border-0 shadow-2xl shadow-black/30">
-                      <div className="relative aspect-square w-full">
+                      <div className="relative aspect-video w-full">
                           <Image
                               src={event.image.imageUrl}
                               alt={event.name}
@@ -244,11 +306,12 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                           <div className="absolute top-3 right-3 flex gap-2">
-                              <Button variant="ghost" size="icon" className="rounded-full bg-background/70 hover:bg-background h-10 w-10">
-                                <Share2 className="h-5 w-5 text-foreground" />
-                              </Button>
+                              <ShareModal />
                               <Button variant="ghost" size="icon" className="rounded-full bg-background/70 hover:bg-background h-10 w-10">
                                 <Heart className="h-5 w-5 text-foreground" />
+                              </Button>
+                               <Button variant="ghost" size="icon" className="rounded-full bg-background/70 hover:bg-background h-10 w-10">
+                                <Calendar className="h-5 w-5 text-foreground" />
                               </Button>
                           </div>
                       </div>
@@ -260,21 +323,50 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                             <CardTitle className="font-headline text-2xl">Book Your Tickets</CardTitle>
                             <CardDescription>Select a tier to proceed.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-3">
+                        <CardContent className="space-y-4">
+                            <TooltipProvider>
                             {details.tickets.map(ticket => (
-                                <button key={ticket.tier} disabled={ticket.status === 'Sold Out'} className="w-full text-left">
-                                <Card  className="bg-background/70 hover:bg-background hover:ring-2 hover:ring-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:ring-0">
-                                    <CardHeader className="flex flex-row items-center justify-between p-4">
-                                        <div>
+                                <button key={ticket.tier} disabled={ticket.status === 'Sold Out'} className="w-full text-left group">
+                                <Card  className="bg-background/70 group-hover:bg-background group-hover:ring-2 group-hover:ring-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:ring-0">
+                                    <CardHeader className="p-4">
+                                        <div className="flex items-center justify-between">
                                             <h4 className="font-poppins font-semibold text-lg">{ticket.tier}</h4>
-                                             {ticket.status === 'Sold Out' && <Badge variant="destructive" className="mt-1">Sold Out</Badge>}
-                                             {ticket.status === 'Almost Gone' && <Badge variant="outline" className="mt-1 border-amber-500 text-amber-500">Almost Gone</Badge>}
+                                            <p className="font-headline text-xl font-bold text-accent">KES {ticket.price.toLocaleString()}</p>
                                         </div>
-                                        <p className="font-headline text-xl font-bold text-accent">KES {ticket.price.toLocaleString()}</p>
+                                         <p className="text-sm text-muted-foreground font-body">{ticket.description}</p>
                                     </CardHeader>
+                                    <CardContent className="px-4 pb-4 space-y-2">
+                                        <Separator />
+                                        <ul className="text-sm text-muted-foreground space-y-1 pt-2">
+                                            {ticket.perks.map(perk => (
+                                                <Tooltip key={perk} delayDuration={100}>
+                                                    <TooltipTrigger asChild>
+                                                        <li className="flex items-center gap-2 underline decoration-dashed decoration-muted-foreground/50 cursor-help">
+                                                            <Star className="h-4 w-4 text-amber-500" />
+                                                            <span>{perk}</span>
+                                                        </li>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>More details about "{perk}"</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            ))}
+                                        </ul>
+                                        <div className='pt-2'>
+                                            {ticket.status === 'Sold Out' && <Badge variant="destructive">Sold Out</Badge>}
+                                            {ticket.remaining && ticket.remaining > 0 && <Badge variant="outline" className="border-amber-500 text-amber-500">Only {ticket.remaining} tickets left!</Badge>}
+                                            {ticket.discount && <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700 mt-1">{ticket.discount}</Badge>}
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="p-2">
+                                        <Button className="w-full font-poppins" disabled={ticket.status === 'Sold Out'}>
+                                            Select Tier
+                                        </Button>
+                                    </CardFooter>
                                 </Card>
                                 </button>
                             ))}
+                            </TooltipProvider>
                         </CardContent>
                     </Card>
                 </div>
