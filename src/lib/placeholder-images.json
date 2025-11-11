@@ -57,56 +57,86 @@
     {
       "id": "partner-2",
       "description": "A creative portrait of a male influencer",
-      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjI3Mzg5NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjI3Mzg5NzR8MA&ixlibrb-4.1.0&q=80&w=1080",
       "imageHint": "man portrait"
     },
     {
       "id": "partner-3",
       "description": "A profile picture of a DJ",
-      "imageUrl": "https://images.unsplash.com/photo-1529995049601-ef63465a463f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwZXJzb24lMjBwcm9maWxlfGVufDB8fHx8MTc2Mjc1NzI2OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1529995049601-ef63465a463f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwZXJzb24lMjBwcm9maWxlfGVufDB8fHx8MTc2Mjc1NzI2OHww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "person profile"
     },
     {
       "id": "partner-4",
       "description": "A friendly photo of a tour guide",
-      "imageUrl": "https://images.unsplash.com/photo-1595152452543-e5fc28ebc2b8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFuJTIwZmFjZXxlbnwwfHx8fDE3NjI4MjQ1NzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1595152452543-e5fc28ebc2b8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFuJTIwZmFjZXxlbnwwfHx8fDE3NjI4MjQ1NzB8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "man face"
     },
     {
       "id": "testimonial-1",
       "description": "Avatar of a happy customer",
-      "imageUrl": "https://images.unsplash.com/photo-1710974481447-fb001ad9ad5a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBmYWNlfGVufDB8fHx8MTc2Mjc3NzAxMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1710974481447-fb001ad9ad5a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBmYWNlfGVufDB8fHx8MTc2Mjc3NzAxMXww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "person face"
     },
     {
       "id": "testimonial-2",
       "description": "Avatar of a smiling woman",
-      "imageUrl": "https://images.unsplash.com/photo-1604072366595-e75dc92d6bdc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d29tYW4lMjBmYWNlfGVufDB8fHx8MTc2MjczMDUzMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1604072366595-e75dc92d6bdc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d29tYW4lMjBmYWNlfGVufDB8fHx8MTc2MjczMDUzMHww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "woman face"
     },
     {
       "id": "testimonial-3",
       "description": "Avatar of a man giving a thumbs up",
-      "imageUrl": "https://images.unsplash.com/photo-1492447166138-50c3889fccb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYW4lMjBzbWlsZXxlbnwwfHx8fDE3NjI3NzQ3MzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1492447166138-50c3889fccb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYW4lMjBzbWlsZXxlbnwwfHx8fDE3NjI3NzQ3MzB8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "man smile"
     },
     {
       "id": "shop-1",
       "description": "A black t-shirt with the Mov33 logo",
-      "imageUrl": "https://images.unsplash.com/photo-1732414601271-0b63b575a795?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx0LXNoaXJ0fGVufDB8fHx8MTc2Mjc4MzQ2Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1732414601271-0b63b575a795?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx0LXNoaXJ0fGVufDB8fHx8MTc2Mjc4MzQ2Nnww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "t-shirt"
     },
     {
       "id": "shop-2",
       "description": "A branded baseball cap",
-      "imageUrl": "https://images.unsplash.com/photo-1622445275576-721325763afe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxiYXNlYmFsbCUyMGNhcHxlbnwwfHx8fDE3NjI3NTg5ODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1622445275576-721325763afe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxiYXNlYmFsbCUyMGNhcHxlbnwwfHx8fDE3NjI3NTg5ODh8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "baseball cap"
     },
     {
       "id": "shop-3",
       "description": "A stylish branded water bottle",
-      "imageUrl": "https://images.unsplash.com/photo-1523362628745-0c100150b504?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3YXRlciUyMGJvdHRsZXxlbnwwfHx8fDE3NjI3ODYzODZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1523362628745-0c100150b504?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3YXRlciUyMGJvdHRsZXxlbnwwfHx8fDE3NjI3ODYzODZ8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "water bottle"
+    },
+    {
+      "id": "tour-hero",
+      "description": "A safari vehicle driving across the Maasai Mara at sunset",
+      "imageUrl": "https://images.unsplash.com/photo-1521401614725-055a415f6045?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "safari vehicle"
+    },
+    {
+      "id": "mara-tour",
+      "description": "A giraffe standing in the Maasai Mara savanna",
+      "imageUrl": "https://images.unsplash.com/photo-1563608227395-f459e9f39b44?q=80&w=1964&auto=format&fit=crop",
+      "imageHint": "giraffe savanna"
+    },
+    {
+      "id": "amboseli-tour",
+      "description": "Elephants walking with Mount Kilimanjaro in the background",
+      "imageUrl": "https://images.unsplash.com/photo-1516483638261-7657b5258380?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "elephants kilimanjaro"
+    },
+    {
+      "id": "coast-tour",
+      "description": "A beautiful white sand beach with palm trees in Diani",
+      "imageUrl": "https://images.unsplash.com/photo-1534343249195-2313b28b61c9?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "diani beach"
+    },
+    {
+      "id": "nairobi-tour",
+      "description": "The skyline of Nairobi city at dusk",
+      "imageUrl": "https://images.unsplash.com/photo-1590487349997-76781ad2b7fb?q=80&w=1974&auto=format&fit=crop",
+      "imageHint": "nairobi skyline"
     }
   ]
 }
