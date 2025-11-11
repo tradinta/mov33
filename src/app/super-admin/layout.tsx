@@ -1,4 +1,6 @@
 
+'use client';
+import { usePathname } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarInset } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Users, Settings, Shield, BarChart3, LogOut } from "lucide-react";
@@ -10,6 +12,8 @@ export default function SuperAdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -19,31 +23,31 @@ export default function SuperAdminLayout({
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/super-admin" isActive tooltip="Dashboard">
+              <SidebarMenuButton href="/super-admin" isActive={pathname === '/super-admin'} tooltip="Dashboard">
                 <Home />
                 <span>Dashboard</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/super-admin/admins" tooltip="Admin Management">
+              <SidebarMenuButton href="/super-admin/admins" isActive={pathname === '/super-admin/admins'} tooltip="Admin Management">
                 <Users />
                 <span>Admin Management</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <SidebarMenuButton href="/super-admin/analytics" tooltip="Analytics">
+              <SidebarMenuButton href="/super-admin/analytics" isActive={pathname === '/super-admin/analytics'} tooltip="Analytics">
                 <BarChart3 />
                 <span>Analytics</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/super-admin/settings" tooltip="Platform Settings">
+              <SidebarMenuButton href="/super-admin/settings" isActive={pathname === '/super-admin/settings'} tooltip="Platform Settings">
                 <Settings />
                 <span>Platform Settings</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/super-admin/security" tooltip="Security Logs">
+              <SidebarMenuButton href="/super-admin/security" isActive={pathname === '/super-admin/security'} tooltip="Security Logs">
                 <Shield />
                 <span>Security Logs</span>
               </SidebarMenuButton>
