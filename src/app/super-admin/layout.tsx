@@ -8,6 +8,14 @@ import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { useCollapsible } from '@/hooks/use-collapsible.tsx';
 import Link from 'next/link';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 
 function UserManagementSubMenu() {
     const { Sub, isSubOpen } = useCollapsible("user-management");
@@ -45,14 +53,22 @@ function AdminSidebar({children}: {children: React.ReactNode}) {
   const pathname = usePathname();
   const { setOpenMobile, toggleSidebar } = useSidebar();
 
-  const getPageTitle = () => {
-    if (pathname === '/super-admin') return 'Dashboard';
-    if (pathname === '/super-admin/admins') return 'Admin Management';
-    if (pathname === '/super-admin/analytics') return 'Analytics';
-    if (pathname === '/super-admin/settings') return 'Platform Settings';
-    if (pathname === '/super-admin/security') return 'Security Logs';
-    return 'Super Admin';
-  }
+  const breadcrumbItems = React.useMemo(() => {
+    const segments = pathname.split('/').filter(Boolean);
+    const items = [{ href: '/super-admin', label: 'Super Admin' }];
+
+    if (segments.length > 1) {
+        const page = segments[1].charAt(0).toUpperCase() + segments[1].slice(1);
+        if (page !== 'Super-admin') {
+            items.push({ href: `/${segments[0]}/${segments[1]}`, label: page });
+        }
+    }
+     if (items.length === 1) {
+        items.push({ href: '/super-admin', label: 'Dashboard' });
+    }
+
+    return items;
+  }, [pathname]);
 
   return (
     <>
@@ -107,7 +123,26 @@ function AdminSidebar({children}: {children: React.ReactNode}) {
           </div>
           </SidebarFooter>
       </Sidebar>
-      <SidebarInset pageTitle={getPageTitle()}>
+      <SidebarInset breadcrumb={
+            <Breadcrumb>
+              <BreadcrumbList>
+                {breadcrumbItems.map((item, index) => (
+                  <React.Fragment key={item.href}>
+                    <BreadcrumbItem>
+                      {index < breadcrumbItems.length - 1 ? (
+                        <BreadcrumbLink asChild>
+                          <Link href={item.href}>{item.label}</Link>
+                        </BreadcrumbLink>
+                      ) : (
+                        <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                      )}
+                    </BreadcrumbItem>
+                    {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
+                  </React.Fragment>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
+      }>
           <main className="p-4 md:p-6 lg:p-8 bg-muted/40 min-h-[calc(100vh-4rem)]">
           {children}
           </main>

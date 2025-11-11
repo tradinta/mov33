@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -319,8 +320,8 @@ SidebarRail.displayName = "SidebarRail"
 
 const SidebarInset = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div"> & { pageTitle?: string }
->(({ className, pageTitle, children, ...props }, ref) => {
+  React.ComponentProps<"div"> & { breadcrumb?: React.ReactNode }
+>(({ className, breadcrumb, children, ...props }, ref) => {
   const { isMobile, toggleSidebar } = useSidebar();
   
   return (
@@ -329,7 +330,7 @@ const SidebarInset = React.forwardRef<
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background",
         "md:peer-data-[state=expanded]:pl-[--sidebar-width]",
-        "md:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-[calc(var(--sidebar-width-icon)_+1px)]",
+        "md:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-[calc(var(--sidebar-width-icon)_+2px)]",
         "transition-[padding] duration-200 ease-linear",
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
         className
@@ -344,7 +345,7 @@ const SidebarInset = React.forwardRef<
             <span className="sr-only">Toggle Menu</span>
           </Button>
         )}
-        <h1 className="flex-1 text-xl font-semibold font-headline">{pageTitle}</h1>
+        <div className="flex-1">{breadcrumb}</div>
         <Button variant="outline" size="sm" asChild>
             <Link href="/">
                 <ExternalLink className="mr-2 h-4 w-4" />
