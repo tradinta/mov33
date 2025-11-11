@@ -7,7 +7,8 @@ import { ArrowRight, Heart, Calendar } from "lucide-react";
 import { Button } from "../ui/button";
 
 export function EventCard({ event }: { event: Event }) {
-  const [day, month] = event.date.split(',')[1]?.trim().split(' ') || ["", ""];
+  const [dayOfWeek, datePart] = event.date.split(',');
+  const [day, month] = datePart?.trim().split(' ') || ["", ""];
   
   return (
     <Card className="group overflow-hidden rounded-xl bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-accent/10 hover:-translate-y-1 relative">
@@ -19,6 +20,7 @@ export function EventCard({ event }: { event: Event }) {
       </div>
 
       <div className="absolute top-3 left-3 z-10 bg-background/80 rounded-lg p-2 text-center w-14 shadow-md backdrop-blur-sm">
+        <span className="block text-xs uppercase text-foreground/80 leading-none font-poppins">{dayOfWeek}</span>
         <span className="block font-bold text-lg text-accent leading-none font-headline">{day}</span>
         <span className="block text-xs uppercase text-foreground/80 leading-none font-poppins">{month}</span>
       </div>
