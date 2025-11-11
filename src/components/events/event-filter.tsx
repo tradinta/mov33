@@ -35,7 +35,7 @@ export function EventFilter() {
 
   return (
     <div className="sticky top-[65px] z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex items-center gap-4 py-3">
+      <div className="container mx-auto flex items-center gap-2 py-3">
         <div className="relative flex-grow">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input 
@@ -43,13 +43,13 @@ export function EventFilter() {
             className="pl-11 h-11 w-full rounded-full bg-input text-base" 
           />
         </div>
-        <div className="hidden md:flex items-center gap-2">
+        <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
                   className={cn(
-                    "w-[180px] justify-start text-left font-normal font-poppins rounded-full h-11",
+                    "w-[180px] justify-start text-left font-normal font-poppins rounded-full h-11 hidden md:flex",
                     !date && "text-muted-foreground"
                   )}
                 >
@@ -73,7 +73,7 @@ export function EventFilter() {
                   variant="outline"
                   role="combobox"
                   aria-expanded={comboboxOpen}
-                  className="w-[200px] justify-between font-poppins rounded-full h-11"
+                  className="w-[200px] justify-between font-poppins rounded-full h-11 hidden md:flex"
                 >
                   <div className="flex items-center gap-2 overflow-hidden">
                     <MapPin className="h-4 w-4 flex-shrink-0" />
@@ -115,7 +115,7 @@ export function EventFilter() {
             </Popover>
   
             <Select>
-              <SelectTrigger className="min-w-[150px] font-poppins rounded-full h-11">
+              <SelectTrigger className="min-w-[150px] font-poppins rounded-full h-11 hidden md:flex">
                  <SelectValue placeholder={<div className="flex items-center gap-2"><Tag className="h-4 w-4"/> Category</div>} />
               </SelectTrigger>
               <SelectContent>
@@ -127,7 +127,7 @@ export function EventFilter() {
               <DialogTrigger asChild>
                  <Button variant="outline" className="font-poppins rounded-full h-11">
                   <SlidersHorizontal className="mr-2 h-4 w-4" />
-                  Filters
+                  <span className="hidden md:inline">Filters</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
@@ -135,7 +135,55 @@ export function EventFilter() {
                   <DialogTitle className="font-headline">Advanced Filters</DialogTitle>
                 </DialogHeader>
                 <div className="py-4 grid gap-6">
-                    <div>
+                    <div className="md:hidden">
+                        <Label className="font-poppins text-sm font-semibold">Date</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full justify-start text-left font-normal font-poppins mt-2",
+                                !date && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {date ? format(date, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={date}
+                              onSelect={setDate}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                    </div>
+                     <div className="md:hidden">
+                        <Label className="font-poppins text-sm font-semibold">County</Label>
+                         <Select onValueChange={setCounty} value={county}>
+                            <SelectTrigger className="w-full font-poppins mt-2">
+                                <SelectValue placeholder="Select county..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {counties.map(c => <SelectItem key={c} value={c.toLowerCase()}>{c}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="md:hidden">
+                        <Label className="font-poppins text-sm font-semibold">Category</Label>
+                         <Select>
+                            <SelectTrigger className="w-full font-poppins mt-2">
+                                <SelectValue placeholder="Select category..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {categories.map(cat => <SelectItem key={cat} value={cat.toLowerCase()}>{cat}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="hidden md:block">
                         <Label className="font-poppins text-sm font-semibold">Price Range (KES)</Label>
                         <Slider
                             min={0}
@@ -151,7 +199,7 @@ export function EventFilter() {
                             <Input className="w-24 h-8" value={priceRange[1].toLocaleString()} onChange={(e) => setPriceRange([priceRange[0], +e.target.value.replace(/,/g, '')])}/>
                         </div>
                     </div>
-                    <Separator />
+                    <Separator className="hidden md:block"/>
                     <div>
                         <Label className="font-poppins text-sm font-semibold">Sort by</Label>
                          <Select>
