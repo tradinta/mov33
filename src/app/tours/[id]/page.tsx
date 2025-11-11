@@ -7,7 +7,7 @@ import { TourBookingCard } from '@/components/tours/tour-booking-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Check, X } from 'lucide-react';
+import { Check, Star, X } from 'lucide-react';
 
 
 type TourDetailPageProps = {
