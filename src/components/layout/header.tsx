@@ -18,8 +18,8 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 h-[65px]">
+      <div className="container flex h-full items-center">
         <Logo />
         <nav className="ml-10 hidden md:flex items-center space-x-6 text-sm font-medium">
           {navLinks.map((link) => (
@@ -28,7 +28,7 @@ export function Header() {
               href={link.href}
               className={cn(
                 'font-poppins font-semibold text-muted-foreground transition-colors hover:text-foreground',
-                pathname === link.href && 'text-foreground'
+                pathname.startsWith(link.href) && 'text-foreground'
               )}
             >
               {link.label}
