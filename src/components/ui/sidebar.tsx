@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { ChevronDown, PanelLeft } from "lucide-react"
+import { ChevronDown, PanelLeft, Menu, ExternalLink } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -315,23 +316,44 @@ const SidebarRail = React.forwardRef<
 })
 SidebarRail.displayName = "SidebarRail"
 
+
 const SidebarInset = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div">
->(({ className, ...props }, ref) => {
+  React.ComponentProps<"div"> & { pageTitle?: string }
+>(({ className, pageTitle, children, ...props }, ref) => {
+  const { isMobile, toggleSidebar } = useSidebar();
+  
   return (
     <div
       ref={ref}
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background",
         "md:peer-data-[state=expanded]:pl-[--sidebar-width]",
-        "md:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-[--sidebar-width-icon]",
+        "md:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-[calc(var(--sidebar-width-icon)_+1px)]",
         "transition-[padding] duration-200 ease-linear",
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
         className
       )}
       {...props}
-    />
+    >
+       {/* Admin Header */}
+      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
+        {isMobile && (
+          <Button variant="outline" size="icon" onClick={toggleSidebar}>
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle Menu</span>
+          </Button>
+        )}
+        <h1 className="flex-1 text-xl font-semibold font-headline">{pageTitle}</h1>
+        <Button variant="outline" size="sm" asChild>
+            <Link href="/">
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Go to Site
+            </Link>
+        </Button>
+      </header>
+      {children}
+    </div>
   )
 })
 SidebarInset.displayName = "SidebarInset"

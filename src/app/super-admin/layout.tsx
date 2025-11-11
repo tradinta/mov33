@@ -3,10 +3,11 @@
 import { usePathname } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarInset, SidebarMenuSub, SidebarMenuSubButton, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Users, Settings, Shield, BarChart3, LogOut, Ticket, UserCheck, LayoutDashboard, Megaphone, Banknote, Building } from "lucide-react";
+import { Home, Users, Settings, Shield, BarChart3, LogOut, Ticket, UserCheck, LayoutDashboard, Megaphone, Banknote, Building, ExternalLink } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { useCollapsible } from '@/hooks/use-collapsible.tsx';
+import Link from 'next/link';
 
 function UserManagementSubMenu() {
     const { Sub, isSubOpen } = useCollapsible("user-management");
@@ -42,7 +43,16 @@ function UserManagementSubMenu() {
 
 function AdminSidebar({children}: {children: React.ReactNode}) {
   const pathname = usePathname();
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, toggleSidebar } = useSidebar();
+
+  const getPageTitle = () => {
+    if (pathname === '/super-admin') return 'Dashboard';
+    if (pathname === '/super-admin/admins') return 'Admin Management';
+    if (pathname === '/super-admin/analytics') return 'Analytics';
+    if (pathname === '/super-admin/settings') return 'Platform Settings';
+    if (pathname === '/super-admin/security') return 'Security Logs';
+    return 'Super Admin';
+  }
 
   return (
     <>
@@ -97,8 +107,8 @@ function AdminSidebar({children}: {children: React.ReactNode}) {
           </div>
           </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
-          <main className="p-4 md:p-6 lg:p-8 bg-muted/40 min-h-[calc(100vh-65px)]">
+      <SidebarInset pageTitle={getPageTitle()}>
+          <main className="p-4 md:p-6 lg:p-8 bg-muted/40 min-h-[calc(100vh-4rem)]">
           {children}
           </main>
       </SidebarInset>
