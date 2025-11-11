@@ -27,7 +27,7 @@ export function EventCard({ event }: { event: Event }) {
 
       <CardContent className="p-0">
         <Link href={`/events/${event.id}`} className="block">
-          <div className="relative aspect-[3/4] w-full overflow-hidden">
+          <div className="relative aspect-[3/5] w-full overflow-hidden">
             <Image
               src={event.image.imageUrl}
               alt={event.image.description}
@@ -60,7 +60,7 @@ export function EventCard({ event }: { event: Event }) {
 export function EventCardSkeleton() {
   return (
     <div className="space-y-3 rounded-xl border bg-card p-0 shadow-sm overflow-hidden">
-      <Skeleton className="aspect-[3/4] w-full" />
+      <Skeleton className="aspect-[3/5] w-full" />
     </div>
   );
 }
