@@ -1,6 +1,7 @@
+'use client';
 
 import { notFound } from 'next/navigation';
-import { shopData } from '@/lib/shop-data';
+import { shopData, type Product } from '@/lib/shop-data';
 import type { Metadata } from 'next';
 import { ProductCard } from '@/components/shop/product-card';
 import { ImageGallery } from '@/components/events/image-gallery';
@@ -15,14 +16,14 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
+} from "@/components/ui/accordion";
+import { useState } from 'react';
+import { useCart } from '@/context/cart-context';
+import { useToast } from '@/hooks/use-toast';
 
-
-type ProductDetailPageProps = {
-  params: { id: string };
-};
-
-export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
+// We can't use generateMetadata in a client component, but we can export this.
+// Next.js will use it for static generation.
+export function generateMetadata({ params }: ProductDetailPageProps): Metadata {
   const product = shopData.find((p) => p.id === params.id);
 
   if (!product) {
@@ -37,12 +38,39 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
   };
 }
 
+type ProductDetailPageProps = {
+  params: { id: string };
+};
+
 export default function ProductDetailPage({ params }: ProductDetailPageProps) {
     const product = shopData.find(p => p.id === params.id);
+    const { addToCart } = useCart();
+    const { toast } = useToast();
 
-    if (!product) {
+    const [quantity, setQuantity] = useState(1);
+    const [selectedColor, setSelectedColor] = useState(product?.colors[0]);
+    const [selectedSize, setSelectedSize] = useState(product?.sizes[0]);
+
+
+    if (!product || !selectedColor || !selectedSize) {
         notFound();
     }
+
+    const handleAddToCart = () => {
+        addToCart({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image.imageUrl,
+            quantity: quantity,
+            color: selectedColor.name,
+            size: selectedSize,
+        });
+        toast({
+            title: "Added to Cart",
+            description: `${product.name} (${selectedSize}, ${selectedColor.name}) has been added to your cart.`,
+        });
+    };
 
     const relatedProducts = shopData.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
 
@@ -84,8 +112,8 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
 
                             {/* Color Selector */}
                             <div>
-                                <Label className="font-poppins text-base font-semibold">Color</Label>
-                                <RadioGroup defaultValue={product.colors[0]} className="flex gap-2 mt-2">
+                                <Label className="font-poppins text-base font-semibold">Color: {selectedColor.name}</Label>
+                                <RadioGroup defaultValue={selectedColor.name} onValueChange={(value) => setSelectedColor(product.colors.find(c => c.name === value)!)} className="flex gap-2 mt-2">
                                     {product.colors.map(color => (
                                         <RadioGroupItem
                                             key={color.name}
@@ -101,7 +129,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                             {/* Size Selector */}
                             <div>
                                  <Label className="font-poppins text-base font-semibold">Size</Label>
-                                 <RadioGroup defaultValue={product.sizes[0]} className="flex gap-2 mt-2">
+                                 <RadioGroup defaultValue={selectedSize} onValueChange={setSelectedSize} className="flex gap-2 mt-2">
                                     {product.sizes.map(size => (
                                         <Label key={size} htmlFor={`size-${size}`} className="relative flex items-center justify-center rounded-md border-2 h-12 w-12 cursor-pointer has-[:checked]:bg-primary has-[:checked]:text-primary-foreground has-[:checked]:border-primary transition-colors">
                                             <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
@@ -116,15 +144,15 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                              {/* Quantity & Add to Cart */}
                             <div className='flex flex-col sm:flex-row gap-4'>
                                 <div className='flex items-center gap-3 rounded-full border px-3 py-2'>
-                                    <Button variant="ghost" size="icon" className='h-8 w-8 rounded-full'>
+                                    <Button variant="ghost" size="icon" className='h-8 w-8 rounded-full' onClick={() => setQuantity(Math.max(1, quantity - 1))}>
                                         <Minus className="h-4 w-4" />
                                     </Button>
-                                    <span className='text-lg font-bold w-4 text-center'>1</span>
-                                    <Button variant="ghost" size="icon" className='h-8 w-8 rounded-full'>
+                                    <span className='text-lg font-bold w-4 text-center'>{quantity}</span>
+                                    <Button variant="ghost" size="icon" className='h-8 w-8 rounded-full' onClick={() => setQuantity(quantity + 1)}>
                                         <Plus className="h-4 w-4" />
                                     </Button>
                                 </div>
-                                <Button size="lg" className="w-full sm:w-auto flex-1 font-poppins text-lg rounded-full">
+                                <Button size="lg" className="w-full sm:w-auto flex-1 font-poppins text-lg rounded-full" onClick={handleAddToCart}>
                                     <ShoppingCart className="mr-2 h-5 w-5" /> Add to Cart
                                 </Button>
                             </div>

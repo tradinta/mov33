@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import { Cart } from '@/components/cart/cart';
 
 const navLinks = [
   { href: '/events', label: 'Events' },
@@ -40,6 +41,7 @@ export function Header() {
             <Search className="h-4 w-4" />
             <span className="sr-only">Search</span>
           </Button>
+          <Cart />
           <Button variant="ghost" className="hidden sm:inline-flex font-poppins">
             Sign In
           </Button>
