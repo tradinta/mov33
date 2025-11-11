@@ -19,7 +19,6 @@ export const organizersData: Organizer[] = [
         description: "The official governing body of rugby in Kenya, dedicated to promoting the sport and organizing world-class tournaments.",
         events: eventsData.filter(event => event.organizerId === 'kenya-rugby-union'),
         tours: [],
-        isFollowed: true,
     },
     {
         id: 'mov33-presents',

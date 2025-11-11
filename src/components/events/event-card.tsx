@@ -3,25 +3,16 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Event } from "@/lib/events-data";
-import { organizersData } from "@/lib/organizers-data";
-import { Heart, MapPin, UserCheck } from "lucide-react";
+import { Heart, MapPin } from "lucide-react";
 import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
 
 export function EventCard({ event }: { event: Event }) {
   const [dayOfWeek, datePart] = event.date.split(',');
   const [day, month] = datePart?.trim().split(' ') || ["", ""];
-  const organizer = organizersData.find(o => o.id === event.organizerId);
   
   return (
     <Card className="group overflow-hidden rounded-xl bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-accent/10 hover:-translate-y-1 relative">
       <div className="absolute top-3 right-3 z-10 flex gap-2">
-        {organizer?.isFollowed && (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700 font-poppins gap-1 pl-1.5 pr-2">
-            <UserCheck className="h-3 w-3"/>
-            Following
-          </Badge>
-        )}
         <Button variant="ghost" size="icon" className="rounded-full bg-background/70 hover:bg-background h-8 w-8">
           <Heart className="h-4 w-4 text-foreground" />
           <span className="sr-only">Bookmark event</span>
