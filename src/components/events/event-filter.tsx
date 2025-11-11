@@ -144,9 +144,9 @@ export function EventFilter() {
                               className="my-4"
                           />
                           <div className="flex justify-between items-center text-sm text-muted-foreground font-poppins">
-                              <Input className="w-24 h-8" value={priceRange[0]} onChange={(e) => setPriceRange([+e.target.value, priceRange[1]])} />
+                              <Input className="w-24 h-8" value={priceRange[0].toLocaleString()} onChange={(e) => setPriceRange([+e.target.value.replace(/,/g, ''), priceRange[1]])} />
                               <span className="px-2">-</span>
-                              <Input className="w-24 h-8" value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], +e.target.value])}/>
+                              <Input className="w-24 h-8" value={priceRange[1].toLocaleString()} onChange={(e) => setPriceRange([priceRange[0], +e.target.value.replace(/,/g, '')])}/>
                           </div>
                       </div>
                       <Separator />
