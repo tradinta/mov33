@@ -27,6 +27,8 @@ const dashboardLinks = [
     { href: '/admin', label: 'Admin Portal' },
     { href: '/organizer', label: 'Organizer Portal' },
     { href: '/super-admin', label: 'Super Admin Portal' },
+    { href: '/influencer', label: 'Influencer Dashboard' },
+    { href: '/verification', label: 'Verification Portal' },
 ];
 
 export function Header() {
