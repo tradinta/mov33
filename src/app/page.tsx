@@ -5,10 +5,11 @@ import { FeaturedPartners } from "@/components/home/featured-partners";
 import { Testimonials } from "@/components/home/testimonials";
 import { ShopHighlights } from "@/components/home/shop-highlights";
 import { AIRecommendations } from "@/components/home/ai-recommendations";
+import { MainLayout } from "@/components/layout/main-layout";
 
 export default function Home() {
   return (
-    <>
+    <MainLayout>
       <HeroSection />
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-20 md:space-y-28 py-16 md:py-24">
@@ -20,6 +21,6 @@ export default function Home() {
           <ShopHighlights />
         </div>
       </div>
-    </>
+    </MainLayout>
   );
 }
