@@ -215,37 +215,23 @@ const Sidebar = React.forwardRef<
     }
 
     return (
-      <div
-        ref={ref}
-        className="group peer hidden md:block text-sidebar-foreground"
-        data-state={state}
-        data-collapsible={state === "collapsed" ? collapsible : ""}
-        data-variant={variant}
-        data-side={side}
-      >
         <div
-          className={cn(
-            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
-            "top-0", // Ensure sidebar is at the top
-            side === "left"
-              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
-              : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-            // Adjust the padding for floating and inset variants.
-            variant === "floating" || variant === "inset"
-              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
-            className
-          )}
-          {...props}
+            ref={ref}
+            className={cn(
+                "hidden md:flex h-full flex-col bg-sidebar text-sidebar-foreground group",
+                state === 'expanded' ? 'w-[--sidebar-width]' : 'w-[--sidebar-width-icon]',
+                'transition-all duration-200 ease-in-out',
+                 side === "left" ? "border-r" : "border-l",
+                 className
+                )}
+            data-state={state}
+            data-collapsible={state === "collapsed" ? collapsible : ""}
+            data-variant={variant}
+            data-side={side}
+            {...props}
         >
-          <div
-            data-sidebar="sidebar"
-            className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
-          >
-            {children}
-          </div>
+        {children}
         </div>
-      </div>
     )
   }
 )
@@ -317,11 +303,7 @@ const SidebarInset = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background",
-        "md:peer-data-[state=expanded]:pl-[--sidebar-width]",
-        "md:peer-data-[state=collapsed]:peer-data-[collapsible=icon]:pl-[var(--sidebar-width-icon)]",
-        "transition-[padding] duration-200 ease-linear",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        "flex flex-1 flex-col",
         className
       )}
       {...props}
@@ -574,24 +556,24 @@ const SidebarMenuButton = React.forwardRef<
     const { isMobile, state } = useSidebar()
 
     const button = (
-        <Comp
-            ref={ref}
-            data-sidebar="menu-button"
-            data-size={size}
-            data-active={isActive}
-            className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
-            {...props}
-        >
-            {props.children}
-            {props.hasOwnProperty('href') && state === 'expanded' && (
-            <ChevronDown
-                className={cn(
-                "ml-auto h-4 w-4 shrink-0 text-sidebar-foreground/50 transition-transform ease-in-out",
-                "group-data-[state=open]:rotate-180"
-                )}
-            />
+      <Comp
+        ref={ref}
+        data-sidebar="menu-button"
+        data-size={size}
+        data-active={isActive}
+        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        {...props}
+      >
+        {props.children}
+        {props.hasOwnProperty('href') && state === 'expanded' && (
+          <ChevronDown
+            className={cn(
+              "ml-auto h-4 w-4 shrink-0 text-sidebar-foreground/50 transition-transform ease-in-out",
+              "group-data-[state=open]:rotate-180"
             )}
-        </Comp>
+          />
+        )}
+      </Comp>
     )
 
     if (!tooltip) {

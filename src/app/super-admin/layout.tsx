@@ -73,7 +73,7 @@ function AdminSidebar({children}: {children: React.ReactNode}) {
   }, [pathname]);
 
   return (
-    <>
+    <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <Sidebar>
           <SidebarHeader>
             <div className={cn("flex items-center justify-between", state === "collapsed" && "justify-center")}>
@@ -148,11 +148,11 @@ function AdminSidebar({children}: {children: React.ReactNode}) {
               </BreadcrumbList>
             </Breadcrumb>
       }>
-          <main className="p-4 md:p-6 lg:p-8 bg-muted/40 min-h-[calc(100vh-4rem)]">
+          <main className="p-4 md:p-6 lg:p-8">
           {children}
           </main>
       </SidebarInset>
-    </>
+    </div>
   );
 }
 
