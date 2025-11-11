@@ -16,6 +16,14 @@ export function Footer() {
             </p>
           </div>
           <div>
+            <h3 className="font-poppins font-semibold text-foreground">Navigate</h3>
+            <ul className="mt-4 space-y-2 text-sm">
+              <li><Link href="/events" className="text-muted-foreground hover:text-foreground">Events</Link></li>
+              <li><Link href="/tours" className="text-muted-foreground hover:text-foreground">Tours</Link></li>
+              <li><Link href="/shop" className="text-muted-foreground hover:text-foreground">Shop</Link></li>
+            </ul>
+          </div>
+          <div>
             <h3 className="font-poppins font-semibold text-foreground">Company</h3>
             <ul className="mt-4 space-y-2 text-sm">
               <li><Link href="#" className="text-muted-foreground hover:text-foreground">About Us</Link></li>
@@ -31,7 +39,7 @@ export function Footer() {
               <li><Link href="#" className="text-muted-foreground hover:text-foreground">Terms of Service</Link></li>
             </ul>
           </div>
-          <div className="col-span-2 lg:col-span-2">
+          <div className="col-span-2 md:col-span-2 lg:col-span-1">
             <h3 className="font-poppins font-semibold text-foreground">Stay Connected</h3>
             <p className="mt-2 text-sm text-muted-foreground">Get the latest events and updates in your inbox.</p>
             <form className="mt-4 flex w-full max-w-sm items-center space-x-2">
