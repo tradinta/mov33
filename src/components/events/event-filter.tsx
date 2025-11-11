@@ -48,19 +48,18 @@ export function EventFilter() {
 
   return (
     <div className="sticky top-[65px] z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex items-center gap-2 py-3">
-        <div className="relative flex-grow">
-           <Button
-            variant="outline"
-            className="h-11 w-full justify-start rounded-full bg-input text-base text-muted-foreground font-normal pl-11"
-            onClick={() => setOpenCommand(true)}
-          >
-             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            Search events, artists, or venues...
-             <kbd className="pointer-events-none absolute right-3 hidden h-6 select-none items-center gap-1 rounded border bg-muted px-2 font-mono text-sm font-medium opacity-100 sm:flex">
-              <span className="text-lg">⌘</span>K
-            </kbd>
-          </Button>
+      <div className="container mx-auto flex items-center gap-2 py-3 overflow-x-auto">
+        <div className="flex items-center gap-2 flex-grow">
+          <div className="relative flex-grow" onClick={() => setOpenCommand(true)}>
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+             <Input 
+                placeholder="Search events, artists..."
+                className="pl-10 h-11 rounded-full cursor-pointer w-full"
+              />
+               <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 hidden h-6 select-none items-center gap-1 rounded border bg-muted px-2 font-mono text-sm font-medium opacity-100 sm:flex">
+                <span className="text-lg">⌘</span>K
+              </kbd>
+          </div>
         </div>
         <div className="hidden md:flex items-center gap-2">
             <Popover>
@@ -144,117 +143,117 @@ export function EventFilter() {
               </SelectContent>
             </Select>
         </div>    
-            <Dialog>
-              <DialogTrigger asChild>
-                 <Button variant="outline" className="font-poppins rounded-full h-11">
-                  <SlidersHorizontal className="mr-2 h-4 w-4" />
-                  <span className="hidden md:inline">Filters</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle className="font-headline">Advanced Filters</DialogTitle>
-                </DialogHeader>
-                <div className="py-4 grid gap-6">
-                    <div className="md:hidden">
-                        <Label className="font-poppins text-sm font-semibold">Date</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full justify-start text-left font-normal font-poppins mt-2",
-                                !date && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {date ? format(date, "PPP") : <span>Pick a date</span>}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={date}
-                              onSelect={setDate}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                    </div>
-                     <div className="md:hidden">
-                        <Label className="font-poppins text-sm font-semibold">County</Label>
-                         <Select onValueChange={setCounty} value={county}>
-                            <SelectTrigger className="w-full font-poppins mt-2">
-                                <SelectValue placeholder="Select county..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {counties.map(c => <SelectItem key={c} value={c.toLowerCase()}>{c}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <div className="md:hidden">
-                        <Label className="font-poppins text-sm font-semibold">Category</Label>
-                         <Select>
-                            <SelectTrigger className="w-full font-poppins mt-2">
-                                <SelectValue placeholder="Select category..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {categories.map(cat => <SelectItem key={cat} value={cat.toLowerCase()}>{cat}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label className="font-poppins text-sm font-semibold">Price Range (KES)</Label>
-                        <Slider
-                            min={0}
-                            max={50000}
-                            step={1000}
-                            value={priceRange}
-                            onValueChange={setPriceRange}
-                            className="my-2"
+        <Dialog>
+          <DialogTrigger asChild>
+              <Button variant="outline" className="font-poppins rounded-full h-11 shrink-0">
+              <SlidersHorizontal className="mr-0 md:mr-2 h-4 w-4" />
+              <span className="hidden md:inline">Filters</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="font-headline">Advanced Filters</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 grid gap-6">
+                <div className="md:hidden">
+                    <Label className="font-poppins text-sm font-semibold">Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal font-poppins mt-2",
+                            !date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          initialFocus
                         />
-                        <div className="flex justify-between items-center text-sm text-muted-foreground font-poppins">
-                            <Input className="w-24 h-8" value={priceRange[0].toLocaleString()} onChange={(e) => setPriceRange([+e.target.value.replace(/,/g, ''), priceRange[1]])} />
-                            <span className="px-2">-</span>
-                            <Input className="w-24 h-8" value={priceRange[1].toLocaleString()} onChange={(e) => setPriceRange([priceRange[0], +e.target.value.replace(/,/g, '')])}/>
-                        </div>
-                    </div>
-                    <Separator/>
-                    <div className="grid gap-2">
-                        <Label className="font-poppins text-sm font-semibold">Sort by</Label>
-                         <Select>
-                            <SelectTrigger className="w-full font-poppins">
-                                <SelectValue placeholder="Recommended" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="recommended">Recommended</SelectItem>
-                                <SelectItem value="popularity">Popularity</SelectItem>
-                                <SelectItem value="date_asc">Date: Soonest</SelectItem>
-                                <SelectItem value="date_desc">Date: Latest</SelectItem>
-                                <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                                <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <Separator />
-                     <div className="grid gap-2">
-                        <Label className="font-poppins text-sm font-semibold">Age Group</Label>
-                         <Select>
-                            <SelectTrigger className="w-full font-poppins">
-                                <SelectValue placeholder="All Ages" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {ageGroups.map(age => <SelectItem key={age} value={age.toLowerCase().replace(' ', '-')}>{age}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
+                      </PopoverContent>
+                    </Popover>
+                </div>
+                  <div className="md:hidden">
+                    <Label className="font-poppins text-sm font-semibold">County</Label>
+                      <Select onValueChange={setCounty} value={county}>
+                        <SelectTrigger className="w-full font-poppins mt-2">
+                            <SelectValue placeholder="Select county..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {counties.map(c => <SelectItem key={c} value={c.toLowerCase()}>{c}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                  <div className="md:hidden">
+                    <Label className="font-poppins text-sm font-semibold">Category</Label>
+                      <Select>
+                        <SelectTrigger className="w-full font-poppins mt-2">
+                            <SelectValue placeholder="Select category..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {categories.map(cat => <SelectItem key={cat} value={cat.toLowerCase()}>{cat}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="grid gap-2">
+                    <Label className="font-poppins text-sm font-semibold">Price Range (KES)</Label>
+                    <Slider
+                        min={0}
+                        max={50000}
+                        step={1000}
+                        value={priceRange}
+                        onValueChange={setPriceRange}
+                        className="my-2"
+                    />
+                    <div className="flex justify-between items-center text-sm text-muted-foreground font-poppins">
+                        <Input className="w-24 h-8" value={priceRange[0].toLocaleString()} onChange={(e) => setPriceRange([+e.target.value.replace(/,/g, ''), priceRange[1]])} />
+                        <span className="px-2">-</span>
+                        <Input className="w-24 h-8" value={priceRange[1].toLocaleString()} onChange={(e) => setPriceRange([priceRange[0], +e.target.value.replace(/,/g, '')])}/>
                     </div>
                 </div>
-                <DialogFooter>
-                  <Button variant="ghost">Clear Filters</Button>
-                  <Button type="submit" className="bg-accent hover:bg-accent/90">Apply Filters</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                <Separator/>
+                <div className="grid gap-2">
+                    <Label className="font-poppins text-sm font-semibold">Sort by</Label>
+                      <Select>
+                        <SelectTrigger className="w-full font-poppins">
+                            <SelectValue placeholder="Recommended" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="recommended">Recommended</SelectItem>
+                            <SelectItem value="popularity">Popularity</SelectItem>
+                            <SelectItem value="date_asc">Date: Soonest</SelectItem>
+                            <SelectItem value="date_desc">Date: Latest</SelectItem>
+                            <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                            <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <Separator />
+                  <div className="grid gap-2">
+                    <Label className="font-poppins text-sm font-semibold">Age Group</Label>
+                      <Select>
+                        <SelectTrigger className="w-full font-poppins">
+                            <SelectValue placeholder="All Ages" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {ageGroups.map(age => <SelectItem key={age} value={age.toLowerCase().replace(' ', '-')}>{age}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost">Clear Filters</Button>
+              <Button type="submit" className="bg-accent hover:bg-accent/90">Apply Filters</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
        <CommandDialog open={openCommand} onOpenChange={setOpenCommand}>
@@ -289,3 +288,5 @@ export function EventFilter() {
     </div>
   );
 }
+
+    
