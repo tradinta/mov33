@@ -39,7 +39,7 @@ export const useCollapsible = (id: string) => {
             );
         }
         return null;
-    }, [isOpen, toggle, children]);
+    }, [isOpen, toggle]);
 
     return {
         isSubOpen: isOpen,
