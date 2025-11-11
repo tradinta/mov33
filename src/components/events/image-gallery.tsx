@@ -13,6 +13,8 @@ interface ImageGalleryProps {
 export function ImageGallery({ gallery }: ImageGalleryProps) {
   const [mainImage, setMainImage] = React.useState(gallery[0]);
 
+  if (!mainImage) return null
+
   return (
     <section className="container mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="relative h-[300px] md:h-[550px] w-full overflow-hidden rounded-2xl shadow-2xl shadow-black/20">

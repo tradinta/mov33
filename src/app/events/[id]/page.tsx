@@ -36,6 +36,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { ImageGallery } from '@/components/events/image-gallery';
 
 
 // Dummy data that would normally come from a CMS or database
@@ -173,10 +174,12 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
 
   return (
     <div className="bg-background text-foreground">
+        <ImageGallery gallery={details.gallery} />
+
         {/* Main Grid Layout */}
         <div className="container mx-auto grid grid-cols-1 lg:grid-cols-[1fr,450px] gap-12 px-4 py-8">
             {/* Left Column: Event Info */}
-            <main className="order-2 lg:order-1">
+            <main>
                 <div className="space-y-12">
                     {/* Event Header */}
                     <header>
@@ -290,33 +293,9 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                 </div>
             </main>
 
-            {/* Right Column: Image & Tickets */}
-            <aside className="order-1 lg:order-2">
+            {/* Right Column: Tickets */}
+            <aside>
                 <div className="sticky top-24 space-y-6">
-                    {/* Image */}
-                    <Card className="overflow-hidden border-0 shadow-2xl shadow-black/30">
-                      <div className="relative aspect-video w-full">
-                          <Image
-                              src={event.image.imageUrl}
-                              alt={event.name}
-                              fill
-                              priority
-                              className="object-cover"
-                              data-ai-hint={event.image.imageHint}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                          <div className="absolute top-3 right-3 flex gap-2">
-                              <ShareModal />
-                              <Button variant="ghost" size="icon" className="rounded-full bg-background/70 hover:bg-background h-10 w-10">
-                                <Heart className="h-5 w-5 text-foreground" />
-                              </Button>
-                               <Button variant="ghost" size="icon" className="rounded-full bg-background/70 hover:bg-background h-10 w-10">
-                                <Calendar className="h-5 w-5 text-foreground" />
-                              </Button>
-                          </div>
-                      </div>
-                    </Card>
-
                     {/* Ticket Cards */}
                     <Card className="bg-card/50 backdrop-blur-lg">
                         <CardHeader>
@@ -368,6 +347,16 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                             ))}
                             </TooltipProvider>
                         </CardContent>
+                    </Card>
+                    <Card className="bg-card/50 backdrop-blur-lg flex items-center p-4 gap-4">
+                        <Avatar className="h-12 w-12 border">
+                            <AvatarImage src={details.organizer.logoUrl} alt={details.organizer.name}/>
+                            <AvatarFallback>{details.organizer.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="text-xs text-muted-foreground">Organized by</p>
+                            <h3 className="font-poppins font-semibold">{details.organizer.name}</h3>
+                        </div>
                     </Card>
                 </div>
             </aside>
