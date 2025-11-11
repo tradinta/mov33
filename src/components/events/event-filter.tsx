@@ -18,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Separator } from "../ui/separator";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
@@ -179,4 +180,3 @@ export function EventFilter() {
     </div>
   );
 }
-
