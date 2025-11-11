@@ -37,6 +37,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { ImageGallery } from '@/components/events/image-gallery';
+import type { Metadata } from 'next';
 
 
 // Dummy data that would normally come from a CMS or database
@@ -130,12 +131,30 @@ type EventDetailPageProps = {
   params: { id: string };
 };
 
+export async function generateMetadata({ params }: EventDetailPageProps): Promise<Metadata> {
+  const event = eventsData.find((e) => e.id === params.id);
+
+  if (!event) {
+    return {
+      title: "Event Not Found | Mov33",
+      description: "The event you are looking for could not be found.",
+    };
+  }
+
+  return {
+    title: `${event.name} | Mov33`,
+    description: `Book tickets for ${event.name} in ${event.location}. ${event.description}`,
+  };
+}
+
+
 function ShareModal() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full bg-background/70 hover:bg-background h-10 w-10">
-                    <Share2 className="h-5 w-5 text-foreground" />
+                <Button variant="outline" size="sm" className="font-poppins">
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[250px]">
@@ -163,7 +182,8 @@ function ShareModal() {
 
 export default function EventDetailPage({ params }: EventDetailPageProps) {
   const event = eventsData.find((e) => e.id === params.id);
-  const details = eventDetails[params.id as keyof typeof eventDetails] || eventDetails['safari-sevens']; // Fallback to default details
+  // Fallback to default details if specific ones aren't found for simplicity
+  const details = eventDetails[params.id as keyof typeof eventDetails] || eventDetails['safari-sevens']; 
 
   if (!event) {
     notFound();
@@ -183,7 +203,12 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                 <div className="space-y-12">
                     {/* Event Header */}
                     <header>
-                        <h1 className="font-headline text-4xl md:text-5xl font-extrabold text-foreground">
+                        <div className="flex items-center gap-2">
+                            {event.tags.map(tag => (
+                                <Badge key={tag} variant="secondary" className="font-poppins">{tag}</Badge>
+                            ))}
+                        </div>
+                        <h1 className="font-headline text-4xl md:text-5xl font-extrabold text-foreground mt-4">
                             {event.name}
                         </h1>
                         <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-muted-foreground font-poppins">
@@ -196,10 +221,12 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                 <span>{event.location}</span>
                             </div>
                         </div>
-                        <div className="mt-4 flex items-center gap-2">
-                            {event.tags.map(tag => (
-                                <Badge key={tag} variant="secondary" className="font-poppins">{tag}</Badge>
-                            ))}
+                        <div className="mt-6 flex gap-2">
+                            <Button variant="outline" size="sm" className="font-poppins">
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Add to Calendar
+                            </Button>
+                            <ShareModal />
                         </div>
                     </header>
 
@@ -347,16 +374,6 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                             ))}
                             </TooltipProvider>
                         </CardContent>
-                    </Card>
-                    <Card className="bg-card/50 backdrop-blur-lg flex items-center p-4 gap-4">
-                        <Avatar className="h-12 w-12 border">
-                            <AvatarImage src={details.organizer.logoUrl} alt={details.organizer.name}/>
-                            <AvatarFallback>{details.organizer.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <p className="text-xs text-muted-foreground">Organized by</p>
-                            <h3 className="font-poppins font-semibold">{details.organizer.name}</h3>
-                        </div>
                     </Card>
                 </div>
             </aside>
