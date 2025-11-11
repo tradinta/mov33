@@ -3,38 +3,50 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Event } from "@/lib/events-data";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Heart, Calendar } from "lucide-react";
+import { Button } from "../ui/button";
 
 export function EventCard({ event }: { event: Event }) {
+  const [day, month] = event.date.split(',')[1]?.trim().split(' ') || ["", ""];
+  
   return (
-    <Card className="group overflow-hidden rounded-xl bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-accent/10 hover:-translate-y-1">
+    <Card className="group overflow-hidden rounded-xl bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-accent/10 hover:-translate-y-1 relative">
+      <div className="absolute top-3 right-3 z-10">
+        <Button variant="ghost" size="icon" className="rounded-full bg-background/70 hover:bg-background h-9 w-9">
+          <Heart className="h-4 w-4 text-foreground" />
+          <span className="sr-only">Bookmark event</span>
+        </Button>
+      </div>
+
+      <div className="absolute top-3 left-3 z-10 bg-background/80 rounded-lg p-2 text-center w-14 shadow-md backdrop-blur-sm">
+        <span className="block font-bold text-lg text-accent leading-none font-headline">{day}</span>
+        <span className="block text-xs uppercase text-foreground/80 leading-none font-poppins">{month}</span>
+      </div>
+
       <CardContent className="p-0">
         <Link href={`/events/${event.id}`} className="block">
-          <div className="relative aspect-[4/3] w-full overflow-hidden">
+          <div className="relative aspect-[3/4] w-full overflow-hidden">
             <Image
               src={event.image.imageUrl}
               alt={event.image.description}
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               data-ai-hint={event.image.imageHint}
             />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
           </div>
-          <div className="p-5 space-y-3 flex flex-col flex-grow">
-            <h3 className="font-headline text-xl font-bold truncate text-foreground group-hover:text-accent transition-colors">
+          <div className="absolute bottom-0 left-0 p-5 space-y-2 text-white">
+            <h3 className="font-headline text-xl font-bold text-white group-hover:text-accent transition-colors">
               {event.name}
             </h3>
-            <p className="text-sm text-muted-foreground font-body flex-grow min-h-[40px]">
+            <p className="text-sm text-white/90 font-body flex-grow min-h-[40px]">
               {event.description}
             </p>
             <div className="flex justify-between items-end font-poppins pt-2">
-              <div>
-                <span className="text-xs text-muted-foreground">From</span>
-                <span className="block font-semibold text-xl text-accent">
+                <span className="block font-semibold text-lg text-accent">
                    KES {event.price}
                 </span>
-              </div>
-              <ArrowRight className="h-6 w-6 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-accent" />
             </div>
           </div>
         </Link>
@@ -46,19 +58,7 @@ export function EventCard({ event }: { event: Event }) {
 export function EventCardSkeleton() {
   return (
     <div className="space-y-3 rounded-xl border bg-card p-0 shadow-sm overflow-hidden">
-      <Skeleton className="h-56 w-full" />
-      <div className="p-5 space-y-3">
-        <Skeleton className="h-6 w-3/4" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-5/6" />
-        <div className="flex justify-between items-end pt-4">
-            <div className="w-1/3 space-y-1">
-                <Skeleton className="h-3 w-1/2" />
-                <Skeleton className="h-5 w-full" />
-            </div>
-          <Skeleton className="h-6 w-6 rounded-full" />
-        </div>
-      </div>
+      <Skeleton className="aspect-[3/4] w-full" />
     </div>
   );
 }
