@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/tooltip"
 import { ImageGallery } from '@/components/events/image-gallery';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 
 // Dummy data that would normally come from a CMS or database
@@ -51,6 +52,7 @@ const eventDetails = {
     ],
     about: "Africa's premier seven-a-side rugby tournament returns to Nairobi for a weekend of thrilling action, vibrant entertainment, and international camaraderie. Experience the fast-paced, high-scoring matches as top teams from around the globe compete for the coveted Safari Sevens trophy. More than just a rugby tournament, it's a festival celebrating sport, music, and Kenyan culture.",
     organizer: {
+      id: "kenya-rugby-union",
       name: "Kenya Rugby Union",
       logoUrl: "https://picsum.photos/seed/kru/100/100",
       description: "The official governing body of rugby in Kenya, dedicated to promoting the sport and organizing world-class tournaments.",
@@ -96,6 +98,7 @@ const eventDetails = {
     ],
     about: "Join Kenya's biggest Afro-pop band, Sauti Sol, for their final homecoming concert. Celebrate a decade of incredible music, iconic hits, and unforgettable performances. This will be a night to remember, filled with energy, dancing, and a journey through their greatest hits.",
      organizer: {
+      id: "mov33-presents",
       name: "Mov33 Presents",
       logoUrl: "https://picsum.photos/seed/mov33/100/100",
       description: "Curators of premium live experiences in Kenya, bringing the world's best artists to the local stage.",
@@ -290,16 +293,18 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                      {/* Organizer Section */}
                     <section id="organizer">
                         <h2 className="font-headline text-2xl font-bold">Organizer</h2>
-                        <Card className="mt-4 flex items-center gap-4 p-4 bg-card/50">
-                            <Avatar className="h-16 w-16 border">
-                                <AvatarImage src={details.organizer.logoUrl} alt={details.organizer.name}/>
-                                <AvatarFallback>{details.organizer.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <h3 className="font-poppins font-semibold text-lg">{details.organizer.name}</h3>
-                                <p className="text-sm text-muted-foreground">{details.organizer.description}</p>
-                            </div>
-                        </Card>
+                        <Link href={`/organizers/${details.organizer.id}`} className="block group">
+                            <Card className="mt-4 flex items-center gap-4 p-4 bg-card/50 group-hover:bg-accent/10 transition-colors">
+                                <Avatar className="h-16 w-16 border">
+                                    <AvatarImage src={details.organizer.logoUrl} alt={details.organizer.name}/>
+                                    <AvatarFallback>{details.organizer.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <h3 className="font-poppins font-semibold text-lg group-hover:text-accent">{details.organizer.name}</h3>
+                                    <p className="text-sm text-muted-foreground">{details.organizer.description}</p>
+                                </div>
+                            </Card>
+                        </Link>
                     </section>
 
 

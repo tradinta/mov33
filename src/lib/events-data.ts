@@ -9,6 +9,7 @@ export type Event = {
   tags: string[];
   image: ImagePlaceholder;
   description: string;
+  organizerId: string;
 };
 
 // Replace with more specific images if they exist in placeholder-images.json
@@ -23,7 +24,8 @@ export const eventsData: Event[] = [
     price: "5,000",
     tags: ["Concert", "Trending"],
     image: PlaceHolderImages.find(p => p.id === 'hero-1') || defaultImage,
-    description: "Experience the vibrant sounds of Kenya with top local and international artists."
+    description: "Experience the vibrant sounds of Kenya with top local and international artists.",
+    organizerId: "mov33-presents"
   },
   {
     id: "lamu-festival",
@@ -38,7 +40,8 @@ export const eventsData: Event[] = [
       imageUrl: "https://images.unsplash.com/photo-1590391471343-98780c7a5f64?q=80&w=1974&auto=format&fit=crop",
       imageHint: "kenyan festival"
     },
-    description: "Immerse yourself in the unique Swahili heritage of one of Kenya's oldest towns."
+    description: "Immerse yourself in the unique Swahili heritage of one of Kenya's oldest towns.",
+    organizerId: "mov33-presents"
   },
   {
     id: "safari-sevens",
@@ -53,7 +56,8 @@ export const eventsData: Event[] = [
       imageUrl: "https://images.unsplash.com/photo-1544298133-03c86c13a486?q=80&w=2070&auto=format&fit=crop",
       imageHint: "rugby match"
     },
-    description: "Experience the thrill of Africa's premier seven-a-side rugby tournament."
+    description: "Experience the thrill of Africa's premier seven-a-side rugby tournament.",
+    organizerId: "kenya-rugby-union"
   },
   {
     id: "mombasa-food-fest",
@@ -68,7 +72,8 @@ export const eventsData: Event[] = [
       imageUrl: "https://images.unsplash.com/photo-1594935422899-b91a34341938?q=80&w=2070&auto=format&fit=crop",
       imageHint: "kenyan food"
     },
-    description: "Taste the authentic flavors of the Kenyan coast in this guided street food adventure."
+    description: "Taste the authentic flavors of the Kenyan coast in this guided street food adventure.",
+    organizerId: "mov33-presents"
   },
   {
     id: "rhino-charge",
@@ -83,7 +88,8 @@ export const eventsData: Event[] = [
       imageUrl: "https://images.unsplash.com/photo-1551648352-4934443657b9?q=80&w=2070&auto=format&fit=crop",
       imageHint: "offroad vehicle"
     },
-    description: "An exhilarating off-road challenge to raise funds for rhino conservation in Kenya."
+    description: "An exhilarating off-road challenge to raise funds for rhino conservation in Kenya.",
+    organizerId: "kenya-rugby-union"
   },
   {
     id: "blankets-and-wine",
@@ -93,7 +99,8 @@ export const eventsData: Event[] = [
     price: "4,500",
     tags: ["Festival", "Music"],
     image: PlaceHolderImages.find(p => p.id === 'discover-events') || defaultImage,
-    description: "Nairobi's premier picnic-style music festival celebrating African talent."
+    description: "Nairobi's premier picnic-style music festival celebrating African talent.",
+    organizerId: "mov33-presents"
   },
   {
     id: "nairobi-tech-week",
@@ -108,7 +115,8 @@ export const eventsData: Event[] = [
       imageUrl: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&w=2070&auto=format&fit=crop",
       imageHint: "tech conference"
     },
-    description: "Connect with the brightest minds in African tech and innovation."
+    description: "Connect with the brightest minds in African tech and innovation.",
+    organizerId: "mov33-presents"
   },
   {
     id: "diani-beach-party",
@@ -118,6 +126,7 @@ export const eventsData: Event[] = [
     price: "7,500",
     tags: ["Nightlife", "VIP"],
     image: PlaceHolderImages.find(p => p.id === 'hero-3') || defaultImage,
-    description: "Usher in the new year with the ultimate beach party on the beautiful shores of Diani."
+    description: "Usher in the new year with the ultimate beach party on the beautiful shores of Diani.",
+    organizerId: "mov33-presents"
   },
 ];
