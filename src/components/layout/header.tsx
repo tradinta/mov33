@@ -1,18 +1,32 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, Search } from 'lucide-react';
+import { ChevronDown, Menu, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { Cart } from '@/components/cart/cart';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const navLinks = [
   { href: '/events', label: 'Events' },
   { href: '/tours', label: 'Tours' },
   { href: '/shop', label: 'Shop' },
+];
+
+const dashboardLinks = [
+    { href: '/admin', label: 'Admin Portal' },
+    { href: '/organizer', label: 'Organizer Portal' },
+    { href: '/super-admin', label: 'Super Admin Portal' },
 ];
 
 export function Header() {
@@ -35,6 +49,23 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-1 font-poppins font-semibold text-muted-foreground transition-colors hover:text-foreground focus:outline-none">
+                Dashboards
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuLabel>Portals</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {dashboardLinks.map(link => (
+                    <DropdownMenuItem key={link.href} asChild>
+                         <Link href={link.href}>{link.label}</Link>
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
         <div className="flex flex-1 items-center justify-end space-x-2">
           <Button variant="ghost" size="icon" className="hidden md:inline-flex">
@@ -70,6 +101,20 @@ export function Header() {
                       {link.label}
                     </Link>
                   ))}
+                  <div className="pt-2">
+                    <h3 className="px-1 text-sm font-semibold text-muted-foreground">Dashboards</h3>
+                     <div className="mt-2 flex flex-col gap-4">
+                        {dashboardLinks.map((link) => (
+                            <Link
+                            key={link.href}
+                            href={link.href}
+                            className="font-poppins text-muted-foreground hover:text-foreground"
+                            >
+                            {link.label}
+                            </Link>
+                        ))}
+                    </div>
+                  </div>
                 </nav>
               </div>
             </SheetContent>
