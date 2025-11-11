@@ -10,7 +10,7 @@ export function ProductCard({ product }: { product: Product }) {
     <Card className="group overflow-hidden rounded-xl bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-accent/10 hover:-translate-y-1">
       <CardHeader className="p-0">
         <div className="relative aspect-square w-full overflow-hidden">
-          <Link href="#">
+          <Link href={`/shop/${product.id}`}>
             <Image
               src={product.image.imageUrl}
               alt={product.name}
@@ -25,7 +25,7 @@ export function ProductCard({ product }: { product: Product }) {
       <CardContent className="p-4 pb-2">
         <p className="text-sm text-muted-foreground">{product.category}</p>
         <CardTitle className="mt-1 font-poppins text-lg font-semibold leading-tight">
-            <Link href="#">{product.name}</Link>
+            <Link href={`/shop/${product.id}`}>{product.name}</Link>
         </CardTitle>
       </CardContent>
       <CardFooter className="p-4 pt-2 flex justify-between items-center">
