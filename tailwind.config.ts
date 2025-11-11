@@ -8,15 +8,25 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
-        code: ['monospace'],
+        headline: ['Montserrat', 'sans-serif'],
+        body: ['Lato', 'sans-serif'],
+        poppins: ['Poppins', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        sand: 'hsl(var(--sand-background))',
+        charcoal: 'hsl(var(--charcoal-foreground))',
+        'muted-gold': 'hsl(var(--muted-gold))',
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
