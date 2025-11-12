@@ -58,7 +58,7 @@ export default function OrganizerDashboard() {
         <div className="flex items-center justify-between">
             <div>
                 <h1 className="text-3xl font-bold font-headline">Welcome, Kenya Rugby Union</h1>
-                <p className="text-muted-foreground">Here's a summary of your activities.</p>
+                <p className="text-muted-foreground">Here's your performance overview.</p>
             </div>
         </div>
 

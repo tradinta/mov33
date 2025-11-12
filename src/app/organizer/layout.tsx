@@ -28,10 +28,13 @@ function OrganizerHeader() {
   const pathname = usePathname();
 
   const navLinks = [
-    { href: '/organizer', label: 'Dashboard' },
-    { href: '/organizer/events', label: 'Events' },
-    { href: '/organizer/analytics', label: 'Analytics' },
+    { href: '/organizer', label: 'Overview' },
+    { href: '/organizer/events', label: 'Listings' },
+    { href: '/organizer/attendance', label: 'Attendance' },
+    { href: '/organizer/promocodes', label: 'Promocodes' },
     { href: '/organizer/payouts', label: 'Payouts' },
+    { href: '/organizer/guide', label: 'Guide' },
+    { href: '/organizer/profile', label: 'Profile' },
   ];
 
 

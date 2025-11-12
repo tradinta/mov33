@@ -31,7 +31,7 @@ export default function OrganizerEventsPage() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Your Events</CardTitle>
+          <CardTitle>Your Listings</CardTitle>
           <CardDescription>
             View and manage all your event listings.
           </CardDescription>
