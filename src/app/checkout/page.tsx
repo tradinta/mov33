@@ -3,35 +3,54 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { useCart } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, CreditCard, Lock, Mail, User } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CreditCard, Lock, Mail, User, Phone, MapPin, Landmark } from 'lucide-react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
+const checkoutSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(10, 'A valid phone number is required'),
+  address: z.string().min(1, 'Address is required'),
+  city: z.string().min(1, 'City is required'),
+  postalCode: z.string().min(1, 'Postal code is required'),
+  country: z.string().min(1, 'Country is required'),
+  cardName: z.string().min(1, 'Name on card is required'),
+  cardNumber: z.string().min(16, 'Card number must be 16 digits').max(19, 'Invalid card number'),
+  cardExpiry: z.string().regex(/^(0[1-9]|1[0-2])\/?([0-9]{4}|[0-9]{2})$/, 'Invalid expiry date (MM/YY)'),
+  cardCvc: z.string().min(3, 'CVC must be 3-4 digits').max(4, 'CVC must be 3-4 digits'),
+});
+
+type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 // Dummy Component for the animated credit card
-function AnimatedCreditCard({ isFlipped, cardDetails }: { isFlipped: boolean, cardDetails: any }) {
+function AnimatedCreditCard({ isFlipped, cardDetails }: { isFlipped: boolean, cardDetails: Partial<CheckoutFormValues> }) {
   return (
-    <div className="w-full max-w-sm h-56 [transform-style:preserve-3d] transition-transform duration-500" style={{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
+    <div className="w-full max-w-sm h-56 [transform-style:preserve-3d] transition-transform duration-500 mx-auto" style={{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
       {/* Front */}
       <div className="absolute w-full h-full [backface-visibility:hidden] bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 flex flex-col justify-between text-white shadow-2xl">
         <div className="flex justify-between">
           <div className="w-12 h-8 bg-gray-600 rounded"></div>
           <p className="font-semibold text-lg">VISA</p>
         </div>
-        <p className="font-mono tracking-widest text-xl">{cardDetails.number || '#### #### #### ####'}</p>
+        <p className="font-mono tracking-widest text-xl">{cardDetails.cardNumber || '#### #### #### ####'}</p>
         <div className="flex justify-between">
           <div>
             <p className="text-xs">Card Holder</p>
-            <p className="font-medium">{cardDetails.name || 'FULL NAME'}</p>
+            <p className="font-medium uppercase">{cardDetails.cardName || 'FULL NAME'}</p>
           </div>
           <div>
             <p className="text-xs">Expires</p>
-            <p className="font-medium">{cardDetails.expiry || 'MM/YY'}</p>
+            <p className="font-medium">{cardDetails.cardExpiry || 'MM/YY'}</p>
           </div>
         </div>
       </div>
@@ -39,7 +58,7 @@ function AnimatedCreditCard({ isFlipped, cardDetails }: { isFlipped: boolean, ca
       <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2 flex flex-col justify-center text-white shadow-2xl">
         <div className="w-full h-10 bg-black"></div>
         <div className="bg-gray-200 mt-4 p-2 text-right">
-          <p className="text-black font-mono text-sm">{cardDetails.cvc || '123'}</p>
+          <p className="text-black font-mono text-sm">{cardDetails.cardCvc || '123'}</p>
         </div>
       </div>
     </div>
@@ -50,103 +69,95 @@ function AnimatedCreditCard({ isFlipped, cardDetails }: { isFlipped: boolean, ca
 function CheckoutPage() {
     const { cartItems, totalPrice, cartCount } = useCart();
     const router = useRouter();
-    const [currentStep, setCurrentStep] = useState(1);
+    const [promoCode, setPromoCode] = useState('');
+    const [discount, setDiscount] = useState(0);
     const [isCardFlipped, setIsCardFlipped] = useState(false);
-    const [cardDetails, setCardDetails] = useState({ name: '', number: '', expiry: '', cvc: '' });
+    
+    const form = useForm<CheckoutFormValues>({
+        resolver: zodResolver(checkoutSchema),
+        defaultValues: {
+            firstName: '', lastName: '', email: '', phone: '', address: '',
+            city: '', postalCode: '', country: 'Kenya', cardName: '', cardNumber: '',
+            cardExpiry: '', cardCvc: '',
+        }
+    });
+    
+    const cardDetails = form.watch(['cardName', 'cardNumber', 'cardExpiry', 'cardCvc']);
 
     if (cartCount === 0 && typeof window !== 'undefined') {
         router.push('/shop');
         return null;
     }
 
-    const subtotal = totalPrice;
-    const shipping = 500; // Example shipping cost
-    const total = subtotal + shipping;
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        
-        let formattedValue = value;
-        if (name === 'number') {
-            formattedValue = value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 ');
+    const handleApplyPromo = () => {
+        if (promoCode.toUpperCase() === 'MOV33') {
+            setDiscount(0.10); // 10% discount
+        } else {
+            setDiscount(0);
         }
-        if (name === 'expiry') {
-            formattedValue = value.replace(/\D/g, '').replace(/(\d{2})(?=\d)/g, '$1/');
-        }
-
-        setCardDetails(prev => ({ ...prev, [name]: formattedValue }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const subtotal = totalPrice;
+    const shipping = 500; // Example shipping cost
+    const discountAmount = subtotal * discount;
+    const total = subtotal - discountAmount + shipping;
+
+    const onSubmit = (data: CheckoutFormValues) => {
+        console.log('Form submitted:', data);
         // In a real app, process payment here
         router.push('/order-success');
     }
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <h1 className="font-headline text-3xl font-extrabold mb-8">Checkout</h1>
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             
             {/* Left side: Form */}
-            <div className="order-2 lg:order-1">
-                 <div className="flex items-center gap-4 mb-8">
-                     <Button variant="outline" size="icon" disabled={currentStep === 1} onClick={() => setCurrentStep(s => s - 1)}>
-                        <ArrowLeft />
-                     </Button>
-                     <h1 className="font-headline text-3xl font-extrabold">Checkout</h1>
-                </div>
-                <div className="relative">
-                     <div className={cn("transition-opacity duration-300", currentStep === 1 ? "opacity-100" : "opacity-0 absolute inset-0 pointer-events-none")}>
-                        <h2 className="font-poppins text-lg font-semibold mb-4">Contact Information</h2>
-                         <div className="space-y-4">
-                            <div>
-                                <Label htmlFor="email">Email Address</Label>
-                                <div className="relative mt-1">
-                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                                    <Input id="email" type="email" placeholder="you@example.com" className="pl-10"/>
-                                </div>
-                            </div>
-                            <Button onClick={() => setCurrentStep(2)} className="w-full" size="lg">Continue</Button>
-                         </div>
-                    </div>
-                     <div className={cn("transition-opacity duration-300", currentStep === 2 ? "opacity-100" : "opacity-0 absolute inset-0 pointer-events-none")}>
-                        <h2 className="font-poppins text-lg font-semibold mb-4">Payment Details</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                           <AnimatedCreditCard isFlipped={isCardFlipped} cardDetails={cardDetails} />
-                            <div>
-                                <Label htmlFor="name">Name on Card</Label>
-                                <Input id="name" name="name" placeholder="John M. Doe" value={cardDetails.name} onChange={handleInputChange} onFocus={() => setIsCardFlipped(false)} required/>
-                            </div>
-                            <div>
-                                <Label htmlFor="number">Card Number</Label>
-                                <Input id="number" name="number" placeholder="0000 0000 0000 0000" maxLength={19} value={cardDetails.number} onChange={handleInputChange} onFocus={() => setIsCardFlipped(false)} required/>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="flex-1">
-                                    <Label htmlFor="expiry">Expiry</Label>
-                                    <Input id="expiry" name="expiry" placeholder="MM/YY" maxLength={5} value={cardDetails.expiry} onChange={handleInputChange} onFocus={() => setIsCardFlipped(false)} required/>
-                                </div>
-                                <div className="flex-1">
-                                    <Label htmlFor="cvc">CVC</Label>
-                                    <Input id="cvc" name="cvc" placeholder="123" maxLength={4} value={cardDetails.cvc} onChange={handleInputChange} onFocus={() => setIsCardFlipped(true)} required/>
-                                </div>
-                            </div>
-                            <Button type="submit" className="w-full bg-accent hover:bg-accent/90" size="lg">
-                                <Lock className="mr-2 h-4 w-4" /> Pay KES {total.toLocaleString()}
-                            </Button>
-                        </form>
-                    </div>
-                </div>
+            <div className="order-2 lg:order-1 space-y-8">
+                <Card>
+                    <CardHeader><CardTitle>Contact Information</CardTitle></CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                            <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        </div>
+                        <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader><CardTitle>Payment Details</CardTitle></CardHeader>
+                    <CardContent className="space-y-6">
+                        <AnimatedCreditCard isFlipped={isCardFlipped} cardDetails={{
+                            cardName: cardDetails[0],
+                            cardNumber: cardDetails[1],
+                            cardExpiry: cardDetails[2],
+                            cardCvc: cardDetails[3],
+                        }}/>
+                        <FormField control={form.control} name="cardName" render={({ field }) => ( <FormItem><FormLabel>Name on Card</FormLabel><FormControl><Input {...field} onFocus={() => setIsCardFlipped(false)} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="cardNumber" render={({ field }) => ( <FormItem><FormLabel>Card Number</FormLabel><FormControl><Input {...field} maxLength={19} onChange={e => field.onChange(e.target.value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 '))} onFocus={() => setIsCardFlipped(false)} /></FormControl><FormMessage /></FormItem> )} />
+                        <div className="flex gap-4">
+                             <FormField control={form.control} name="cardExpiry" render={({ field }) => ( <FormItem className="flex-1"><FormLabel>Expiry</FormLabel><FormControl><Input {...field} placeholder="MM/YY" maxLength={5} onChange={e => field.onChange(e.target.value.replace(/\D/g, '').replace(/(\d{2})(?=\d)/g, '$1/'))} onFocus={() => setIsCardFlipped(false)} /></FormControl><FormMessage /></FormItem> )} />
+                             <FormField control={form.control} name="cardCvc" render={({ field }) => ( <FormItem className="flex-1"><FormLabel>CVC</FormLabel><FormControl><Input {...field} maxLength={4} onFocus={() => setIsCardFlipped(true)} /></FormControl><FormMessage /></FormItem> )} />
+                        </div>
+                    </CardContent>
+                </Card>
+                <Button type="submit" className="w-full bg-accent hover:bg-accent/90" size="lg">
+                    <Lock className="mr-2 h-4 w-4" /> Pay KES {total.toLocaleString()}
+                </Button>
             </div>
 
              {/* Right side: Order Summary */}
             <div className="order-1 lg:order-2">
-                 <Card className="bg-card/50">
-                    <CardContent className="p-6">
-                        <h2 className="font-poppins text-lg font-semibold mb-4">Order Summary</h2>
-                         <div className="space-y-4">
+                 <div className="sticky top-24 space-y-6">
+                     <Card className="bg-card/50">
+                        <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
                             {cartItems.map(item => (
-                                <div key={`${item.id}-${item.variant.size}-${item.variant.color}`} className="flex items-center gap-4">
+                                <div key={item.id} className="flex items-center gap-4">
                                     <div className="relative h-16 w-16 rounded-md overflow-hidden border">
                                         <Image src={item.image} alt={item.name} fill className="object-cover"/>
                                         <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">{item.quantity}</span>
@@ -158,9 +169,16 @@ function CheckoutPage() {
                                     <p className="font-semibold">KES {(item.price * item.quantity).toLocaleString()}</p>
                                 </div>
                             ))}
-                         </div>
-                        <Separator className="my-6" />
-                        <div className="space-y-2">
+                        </CardContent>
+                        <Separator />
+                        <CardContent className="space-y-4">
+                             <div className="flex gap-2">
+                                <Input placeholder="Promo code" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
+                                <Button type="button" variant="outline" onClick={handleApplyPromo}>Apply</Button>
+                            </div>
+                        </CardContent>
+                        <Separator />
+                        <CardContent className="space-y-2">
                             <div className="flex justify-between">
                                 <p className="text-muted-foreground">Subtotal</p>
                                 <p className="font-semibold">KES {subtotal.toLocaleString()}</p>
@@ -169,17 +187,26 @@ function CheckoutPage() {
                                 <p className="text-muted-foreground">Shipping</p>
                                 <p className="font-semibold">KES {shipping.toLocaleString()}</p>
                             </div>
-                        </div>
-                        <Separator className="my-6" />
-                        <div className="flex justify-between font-bold text-lg">
-                            <p>Total</p>
-                            <p>KES {total.toLocaleString()}</p>
-                        </div>
-                    </CardContent>
-                 </Card>
+                            {discount > 0 && (
+                                <div className="flex justify-between text-green-600 dark:text-green-400">
+                                    <p>Discount ({promoCode})</p>
+                                    <p className="font-semibold">-KES {discountAmount.toLocaleString()}</p>
+                                </div>
+                            )}
+                        </CardContent>
+                        <Separator />
+                        <CardContent>
+                            <div className="flex justify-between font-bold text-lg">
+                                <p>Total</p>
+                                <p>KES {total.toLocaleString()}</p>
+                            </div>
+                        </CardContent>
+                     </Card>
+                 </div>
             </div>
 
-        </div>
+        </form>
+        </Form>
     </div>
   )
 }
