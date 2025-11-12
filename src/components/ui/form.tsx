@@ -80,7 +80,7 @@ const FormItem = React.forwardRef<
 
   return (
     <FormItemContext.Provider value={{ id }}>
-      <div ref={ref} className={cn("space-y-2", className)} {...props} />
+      <div ref={ref} className={cn("space-y-1", className)} {...props} />
     </FormItemContext.Provider>
   )
 })
@@ -95,7 +95,7 @@ const FormLabel = React.forwardRef<
   return (
     <Label
       ref={ref}
-      className={cn(error && "text-destructive", className)}
+      className={cn("font-poppins text-sm", error && "text-destructive", className)}
       htmlFor={formItemId}
       {...props}
     />
@@ -135,7 +135,7 @@ const FormDescription = React.forwardRef<
     <p
       ref={ref}
       id={formDescriptionId}
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn("text-xs text-muted-foreground", className)}
       {...props}
     />
   )
@@ -147,7 +147,7 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message ?? "") : children
+  const body = error ? String(error?.message) : children
 
   if (!body) {
     return null
