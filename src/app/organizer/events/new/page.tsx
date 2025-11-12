@@ -51,6 +51,20 @@ import {
 import Link from 'next/link';
 import { TicketsSection } from '@/components/organizer/event-form/tickets-section';
 
+const discountSchema = z.object({
+  quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
+  percentage: z.coerce.number().min(1, 'Percentage must be at least 1.').max(100, 'Percentage cannot exceed 100.'),
+});
+
+const ticketSchema = z.object({
+    tier: z.string().min(2, 'Tier name is required.'),
+    price: z.coerce.number().min(0, 'Price must be a positive number.'),
+    description: z.string().optional(),
+    perks: z.string().min(3, 'Please list at least one perk.'),
+    discounts: z.array(discountSchema).optional(),
+});
+
+
 const formSchema = z.object({
   name: z.string().min(3, 'Event name must be at least 3 characters.'),
   date: z.date({
@@ -66,15 +80,7 @@ const formSchema = z.object({
   mainImage: z.string().url('Please enter a valid image URL.'),
   
   // Tickets
-  tickets: z.array(z.object({
-    tier: z.string().min(2, 'Tier name is required.'),
-    price: z.coerce.number().min(0, 'Price must be a positive number.'),
-    description: z.string().optional(),
-    perks: z.string().min(3, 'Please list at least one perk.'),
-    status: z.string().optional(),
-    remaining: z.coerce.number().optional(),
-    discount: z.string().optional(),
-  })).min(1, "You must add at least one ticket tier."),
+  tickets: z.array(ticketSchema).min(1, "You must add at least one ticket tier."),
 
   // Schedule
   schedule: z.array(z.object({
@@ -118,7 +124,7 @@ export default function NewEventPage() {
       about: '',
       tags: '',
       mainImage: '',
-      tickets: [{ tier: 'Regular', price: 0, perks: 'General Access', description: '' }],
+      tickets: [{ tier: 'Regular', price: 0, perks: 'General Access', description: '', discounts: [] }],
       schedule: [{ day: 'Day 1', items: [{ time: '06:00 PM', title: 'Doors Open'}] }],
       artists: [],
       gallery: [],
