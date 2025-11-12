@@ -143,7 +143,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+              "group/sidebar-wrapper",
               className
             )}
             ref={ref}
@@ -218,7 +218,7 @@ const Sidebar = React.forwardRef<
         <div
             ref={ref}
             className={cn(
-                "hidden md:flex h-full flex-col bg-sidebar text-sidebar-foreground group",
+                "hidden md:flex h-screen sticky top-0 flex-col bg-sidebar text-sidebar-foreground group",
                 state === 'expanded' ? 'w-[--sidebar-width]' : 'w-[--sidebar-width-icon]',
                 'transition-all duration-200 ease-in-out',
                  side === "left" ? "border-r" : "border-l",
@@ -297,13 +297,13 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & { breadcrumb?: React.ReactNode }
 >(({ className, breadcrumb, children, ...props }, ref) => {
-  const { isMobile, toggleSidebar } = useSidebar();
+  const { isMobile, toggleSidebar, state } = useSidebar();
   
   return (
     <div
       ref={ref}
       className={cn(
-        "flex flex-1 flex-col",
+        "flex-1 flex flex-col",
         className
       )}
       {...props}
@@ -324,7 +324,9 @@ const SidebarInset = React.forwardRef<
             </Link>
         </Button>
       </header>
-      {children}
+       <div className="flex-1 overflow-auto">
+        {children}
+       </div>
     </div>
   )
 })
@@ -357,7 +359,7 @@ const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn("flex h-16 items-center gap-2 p-2 group-data-[collapsible=icon]:group-data-[state=collapsed]:justify-center", className)}
+      className={cn("flex h-16 items-center gap-2 p-2", state === 'collapsed' ? "justify-center" : "justify-between", className)}
       {...props}
     />
   )
