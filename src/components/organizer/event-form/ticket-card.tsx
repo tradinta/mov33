@@ -18,7 +18,7 @@ interface TicketCardProps {
 }
 
 export function TicketCard({ index, remove, isAdvanced }: TicketCardProps) {
-  const { control, getValues } = useFormContext<EventFormValues>();
+  const { control, getValues, formState } = useFormContext<EventFormValues>();
 
   const { fields: discountFields, append: appendDiscount, remove: removeDiscount } = useFieldArray({
     control,
@@ -134,7 +134,7 @@ export function TicketCard({ index, remove, isAdvanced }: TicketCardProps) {
             >
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Discount Tier
             </Button>
-             <FormMessage>{control.formState.errors.tickets?.[index]?.discounts?.message}</FormMessage>
+             <FormMessage>{formState.errors.tickets?.[index]?.discounts?.message}</FormMessage>
           </div>
         )}
       </div>
