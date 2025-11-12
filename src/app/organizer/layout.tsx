@@ -20,11 +20,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { LogOut, Settings, User } from 'lucide-react';
+import { LogOut, Settings, User, Menu } from 'lucide-react';
 import { Logo } from '@/components/logo';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 function OrganizerHeader() {
   const pathname = usePathname();
+
+  const navLinks = [
+    { href: '/organizer', label: 'Dashboard' },
+    { href: '/organizer/events', label: 'Events' },
+    { href: '/organizer/analytics', label: 'Analytics' },
+    { href: '/organizer/payouts', label: 'Payouts' },
+  ];
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -32,46 +41,18 @@ function OrganizerHeader() {
         <Logo />
         <NavigationMenu className="hidden md:flex mx-6">
           <NavigationMenuList>
-            <NavigationMenuItem>
-              <Link href="/organizer" legacyBehavior passHref>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  active={pathname === '/organizer'}
-                >
-                  Dashboard
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-               <Link href="/organizer/events" legacyBehavior passHref>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  active={pathname.startsWith('/organizer/events')}
-                >
-                  Events
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/organizer/analytics" legacyBehavior passHref>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  active={pathname === '/organizer/analytics'}
-                >
-                  Analytics
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-             <NavigationMenuItem>
-              <Link href="/organizer/payouts" legacyBehavior passHref>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  active={pathname === '/organizer/payouts'}
-                >
-                  Payouts
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
+            {navLinks.map((link) => (
+                <NavigationMenuItem key={link.href}>
+                <Link href={link.href} legacyBehavior passHref>
+                    <NavigationMenuLink
+                    className={navigationMenuTriggerStyle()}
+                    active={pathname.startsWith(link.href) && (link.href !== '/organizer' || pathname === '/organizer')}
+                    >
+                    {link.label}
+                    </NavigationMenuLink>
+                </Link>
+                </NavigationMenuItem>
+            ))}
           </NavigationMenuList>
         </NavigationMenu>
 
@@ -118,6 +99,32 @@ function OrganizerHeader() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+           <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <div className="flex flex-col h-full">
+                <div className="p-4 border-b">
+                  <Logo />
+                </div>
+                <nav className="flex flex-col gap-4 p-4 text-lg font-medium">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="font-poppins text-muted-foreground hover:text-foreground"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>
