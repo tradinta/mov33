@@ -20,6 +20,10 @@ import { ScrollArea } from '../ui/scroll-area';
 function CartItemCard({ item }: { item: CartItem }) {
   const { updateQuantity, removeFromCart } = useCart();
 
+  const handleUpdate = (newQuantity: number) => {
+    updateQuantity(item.id, newQuantity, item.variant);
+  };
+
   return (
     <div className="flex items-start gap-4 py-4">
       <Image
@@ -32,7 +36,7 @@ function CartItemCard({ item }: { item: CartItem }) {
       <div className="flex-1">
         <h4 className="font-semibold text-base">{item.name}</h4>
         <p className="text-sm text-muted-foreground">
-          {item.size} / {item.color}
+          {item.variant?.name}
         </p>
         <p className="font-semibold text-base mt-1">KES {item.price.toLocaleString()}</p>
         <div className="flex items-center gap-2 mt-2">
@@ -40,7 +44,7 @@ function CartItemCard({ item }: { item: CartItem }) {
                 variant="outline"
                 size="icon"
                 className="h-7 w-7"
-                onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity - 1)}
+                onClick={() => handleUpdate(item.quantity - 1)}
             >
                 <Minus className="h-3 w-3" />
             </Button>
@@ -49,13 +53,13 @@ function CartItemCard({ item }: { item: CartItem }) {
                 variant="outline"
                 size="icon"
                 className="h-7 w-7"
-                onClick={() => updateQuantity(item.id, item.size, item.color, item.quantity + 1)}
+                onClick={() => handleUpdate(item.quantity + 1)}
             >
                 <Plus className="h-3 w-3" />
             </Button>
         </div>
       </div>
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(item.id, item.size, item.color)}>
+      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFromCart(item.id, item.variant)}>
         <X className="h-4 w-4 text-muted-foreground" />
       </Button>
     </div>
@@ -88,7 +92,7 @@ export function Cart() {
             <ScrollArea className="flex-1 overflow-y-auto">
                 <div className="px-6">
                     {cartItems.map(item => (
-                        <CartItemCard key={`${item.id}-${item.size}-${item.color}`} item={item} />
+                        <CartItemCard key={`${item.id}-${item.variant.name}`} item={item} />
                     ))}
                 </div>
             </ScrollArea>

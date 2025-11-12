@@ -43,8 +43,11 @@ export function ProductDetailPageClient({ product }: ProductDetailPageClientProp
             price: product.price,
             image: product.image.imageUrl,
             quantity: quantity,
-            color: selectedColor.name,
-            size: selectedSize,
+            variant: {
+                name: `${selectedSize} / ${selectedColor.name}`,
+                size: selectedSize,
+                color: selectedColor.name,
+            }
         });
         toast({
             title: "Added to Cart",

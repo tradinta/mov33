@@ -146,14 +146,14 @@ function CheckoutPage() {
                         <h2 className="font-poppins text-lg font-semibold mb-4">Order Summary</h2>
                          <div className="space-y-4">
                             {cartItems.map(item => (
-                                <div key={`${item.id}-${item.size}-${item.color}`} className="flex items-center gap-4">
+                                <div key={`${item.id}-${item.variant.size}-${item.variant.color}`} className="flex items-center gap-4">
                                     <div className="relative h-16 w-16 rounded-md overflow-hidden border">
                                         <Image src={item.image} alt={item.name} fill className="object-cover"/>
                                         <span className="absolute -top-2 -right-2 bg-accent text-accent-foreground text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">{item.quantity}</span>
                                     </div>
                                     <div className="flex-1">
                                         <p className="font-semibold">{item.name}</p>
-                                        <p className="text-sm text-muted-foreground">{item.size} / {item.color}</p>
+                                         <p className="text-sm text-muted-foreground">{item.variant.name}</p>
                                     </div>
                                     <p className="font-semibold">KES {(item.price * item.quantity).toLocaleString()}</p>
                                 </div>

@@ -1,3 +1,6 @@
+'use client';
+
+import React, { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { eventsData, type Event } from '@/lib/events-data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -12,7 +15,10 @@ import {
   Instagram,
   Linkedin,
   MapPin, 
+  Minus, 
+  Plus, 
   Share2, 
+  ShoppingCart, 
   Star, 
   Ticket,
   Twitter,
@@ -37,9 +43,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { ImageGallery } from '@/components/events/image-gallery';
-import type { Metadata } from 'next';
 import Link from 'next/link';
-
+import { useCart } from '@/context/cart-context';
+import { useToast } from '@/hooks/use-toast';
 
 // Dummy data that would normally come from a CMS or database
 const eventDetails = {
@@ -83,10 +89,10 @@ const eventDetails = {
         { q: "Are children allowed?", a: "Yes, this is a family-friendly event. Children under 12 enter free." },
     ],
     tickets: [
-        { tier: "Early Bird", price: 1500, description: "Get in early and save! Access for the full weekend.", perks: ["Full weekend pass", "Access to all group matches"], status: "Sold Out", remaining: 0 },
-        { tier: "Advance", price: 2500, description: "The complete weekend experience for any rugby fan.", perks: ["Full weekend pass", "Access to all matches including finals"], status: "Available", remaining: null, discount: "Group discount available" },
-        { tier: "VIP", price: 7500, description: "Elevate your weekend with exclusive perks.", perks: ["Express entry", "Access to VIP lounge", "Complimentary drinks & snacks"], status: "Available", remaining: null },
-        { tier: "Premium VIP", price: 15000, description: "The ultimate fan package with player access.", perks: ["All VIP perks", "Meet & Greet with players", "Exclusive merchandise"], status: "Almost Gone", remaining: 15 },
+        { id: 'early-bird', tier: "Early Bird", price: 1500, description: "Get in early and save! Access for the full weekend.", perks: ["Full weekend pass", "Access to all group matches"], status: "Sold Out", remaining: 0 },
+        { id: 'advance', tier: "Advance", price: 2500, description: "The complete weekend experience for any rugby fan.", perks: ["Full weekend pass", "Access to all matches including finals"], status: "Available", remaining: null, discount: "Group discount available" },
+        { id: 'vip', tier: "VIP", price: 7500, description: "Elevate your weekend with exclusive perks.", perks: ["Express entry", "Access to VIP lounge", "Complimentary drinks & snacks"], status: "Available", remaining: null },
+        { id: 'vvip', tier: "Premium VIP", price: 15000, description: "The ultimate fan package with player access.", perks: ["All VIP perks", "Meet & Greet with players", "Exclusive merchandise"], status: "Almost Gone", remaining: 15 },
     ]
   },
   "sauti-sol-live": {
@@ -122,9 +128,9 @@ const eventDetails = {
         { q: "What's the refund policy?", a: "Tickets are non-refundable." },
     ],
      tickets: [
-        { tier: "Advance", price: 5000, description: "Secure your spot for this historic final show.", perks: ["Full access to the concert grounds"], status: "Available", remaining: null },
-        { tier: "VIP", price: 15000, description: "Enjoy the show from the best seats with premium service.", perks: ["Express entry", "Access to VIP lounge with private bar", "Premium viewing area"], status: "Available", remaining: null, discount: "Buy 4, get 1 free!" },
-        { tier: "VVIP", price: 30000, description: "An unforgettable night with exclusive artist access.", perks: ["All VIP perks", "Meet & Greet with Sauti Sol", "Signed merchandise"], status: "Almost Gone", remaining: 25 },
+        { id: 'advance', tier: "Advance", price: 5000, description: "Secure your spot for this historic final show.", perks: ["Full access to the concert grounds"], status: "Available", remaining: null },
+        { id: 'vip', tier: "VIP", price: 15000, description: "Enjoy the show from the best seats with premium service.", perks: ["Express entry", "Access to VIP lounge with private bar", "Premium viewing area"], status: "Available", remaining: null, discount: "Buy 4, get 1 free!" },
+        { id: 'vvip', tier: "VVIP", price: 30000, description: "An unforgettable night with exclusive artist access.", perks: ["All VIP perks", "Meet & Greet with Sauti Sol", "Signed merchandise"], status: "Almost Gone", remaining: 25 },
     ]
   }
 };
@@ -133,23 +139,6 @@ const eventDetails = {
 type EventDetailPageProps = {
   params: { id: string };
 };
-
-export async function generateMetadata({ params }: EventDetailPageProps): Promise<Metadata> {
-  const event = eventsData.find((e) => e.id === params.id);
-
-  if (!event) {
-    return {
-      title: "Event Not Found | Mov33",
-      description: "The event you are looking for could not be found.",
-    };
-  }
-
-  return {
-    title: `${event.name} | Mov33`,
-    description: `Book tickets for ${event.name} at ${event.venue}, ${event.location}. ${event.description}`,
-  };
-}
-
 
 function ShareModal() {
     return (
@@ -185,24 +174,69 @@ function ShareModal() {
 
 export default function EventDetailPage({ params }: EventDetailPageProps) {
   const event = eventsData.find((e) => e.id === params.id);
-  // Fallback to default details if specific ones aren't found for simplicity
   const details = eventDetails[params.id as keyof typeof eventDetails] || eventDetails['safari-sevens']; 
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+
+  const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
 
   if (!event) {
     notFound();
   }
-  
-  const [dayOfWeek, datePart] = event.date.split(',');
-  const [day, month] = datePart?.trim().split(' ') || ["", ""];
+
+  const handleQuantityChange = (ticketId: string, change: number) => {
+    setTicketQuantities(prev => {
+        const currentQuantity = prev[ticketId] || 0;
+        const newQuantity = Math.max(0, currentQuantity + change);
+        return {
+            ...prev,
+            [ticketId]: newQuantity,
+        };
+    });
+  };
+
+  const handleAddToCart = () => {
+    let itemsAdded = 0;
+    Object.entries(ticketQuantities).forEach(([ticketId, quantity]) => {
+      if (quantity > 0) {
+        const ticketInfo = details.tickets.find(t => t.id === ticketId);
+        if (ticketInfo) {
+          addToCart({
+            id: `${event.id}-${ticketId}`,
+            name: event.name,
+            price: ticketInfo.price,
+            image: event.image.imageUrl,
+            quantity,
+            variant: { name: ticketInfo.tier },
+          });
+          itemsAdded += quantity;
+        }
+      }
+    });
+
+    if (itemsAdded > 0) {
+      toast({
+        title: "Tickets Added to Cart",
+        description: `Successfully added ${itemsAdded} ticket(s) to your cart.`,
+      });
+      setTicketQuantities({});
+    } else {
+       toast({
+        variant: "destructive",
+        title: "No tickets selected",
+        description: "Please select a quantity for at least one ticket tier.",
+      });
+    }
+  };
+
+  const totalSelectedTickets = Object.values(ticketQuantities).reduce((sum, qty) => sum + qty, 0);
 
   return (
     <div className="bg-background text-foreground">
         <ImageGallery gallery={details.gallery} />
 
-        {/* Main Grid Layout */}
-        <div className="container mx-auto grid grid-cols-1 lg:grid-cols-[1fr,450px] gap-12 px-4 py-8">
-            {/* Left Column: Event Info */}
-            <main>
+        <div className="container mx-auto px-4 py-8">
+            <main className="max-w-4xl mx-auto">
                 <div className="space-y-12">
                     {/* Event Header */}
                     <header>
@@ -232,6 +266,54 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                             <ShareModal />
                         </div>
                     </header>
+                    
+                    {/* Ticket Booking Section */}
+                    <section id="tickets">
+                        <Card className="bg-card/50 backdrop-blur-lg shadow-xl">
+                            <CardHeader>
+                                <CardTitle className="font-headline text-2xl">Book Your Tickets</CardTitle>
+                                <CardDescription>Select your desired ticket tiers and quantities.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <TooltipProvider>
+                                {details.tickets.map(ticket => (
+                                    <Card key={ticket.id} className="bg-background/70">
+                                        <div className="p-4 flex flex-col sm:flex-row justify-between sm:items-center">
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between">
+                                                    <h4 className="font-poppins font-semibold text-lg">{ticket.tier}</h4>
+                                                    <p className="font-headline text-xl font-bold text-accent">KES {ticket.price.toLocaleString()}</p>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground font-body mt-1">{ticket.description}</p>
+                                                 <div className='pt-2'>
+                                                    {ticket.status === 'Sold Out' && <Badge variant="destructive">Sold Out</Badge>}
+                                                    {ticket.remaining && ticket.remaining > 0 && <Badge variant="outline" className="border-amber-500 text-amber-500">Only {ticket.remaining} tickets left!</Badge>}
+                                                    {ticket.discount && <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700 mt-1">{ticket.discount}</Badge>}
+                                                </div>
+                                            </div>
+                                             <div className='flex items-center gap-3 rounded-full border px-3 py-2 mt-4 sm:mt-0 sm:ml-6'>
+                                                <Button variant="ghost" size="icon" className='h-8 w-8 rounded-full' onClick={() => handleQuantityChange(ticket.id, -1)} disabled={ticket.status === 'Sold Out'}>
+                                                    <Minus className="h-4 w-4" />
+                                                </Button>
+                                                <span className='text-lg font-bold w-6 text-center'>{ticketQuantities[ticket.id] || 0}</span>
+                                                <Button variant="ghost" size="icon" className='h-8 w-8 rounded-full' onClick={() => handleQuantityChange(ticket.id, 1)} disabled={ticket.status === 'Sold Out' || ticket.remaining === ticketQuantities[ticket.id]}>
+                                                    <Plus className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                ))}
+                                </TooltipProvider>
+                            </CardContent>
+                            <CardFooter>
+                                <Button size="lg" className="w-full font-poppins text-lg" onClick={handleAddToCart} disabled={totalSelectedTickets === 0}>
+                                    <ShoppingCart className="mr-2 h-5 w-5" />
+                                    Add to Cart ({totalSelectedTickets})
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    </section>
+
 
                     {/* About Section */}
                     <section id="about">
@@ -324,64 +406,6 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                     </section>
                 </div>
             </main>
-
-            {/* Right Column: Tickets */}
-            <aside>
-                <div className="sticky top-24 space-y-6">
-                    {/* Ticket Cards */}
-                    <Card className="bg-card/50 backdrop-blur-lg">
-                        <CardHeader>
-                            <CardTitle className="font-headline text-2xl">Book Your Tickets</CardTitle>
-                            <CardDescription>Select a tier to proceed.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <TooltipProvider>
-                            {details.tickets.map(ticket => (
-                                <button key={ticket.tier} disabled={ticket.status === 'Sold Out'} className="w-full text-left group">
-                                <Card  className="bg-background/70 group-hover:bg-background group-hover:ring-2 group-hover:ring-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:ring-0">
-                                    <CardHeader className="p-4">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="font-poppins font-semibold text-lg">{ticket.tier}</h4>
-                                            <p className="font-headline text-xl font-bold text-accent">KES {ticket.price.toLocaleString()}</p>
-                                        </div>
-                                         <p className="text-sm text-muted-foreground font-body">{ticket.description}</p>
-                                    </CardHeader>
-                                    <CardContent className="px-4 pb-4 space-y-2">
-                                        <Separator />
-                                        <ul className="text-sm text-muted-foreground space-y-1 pt-2">
-                                            {ticket.perks.map(perk => (
-                                                <Tooltip key={perk} delayDuration={100}>
-                                                    <TooltipTrigger asChild>
-                                                        <li className="flex items-center gap-2 underline decoration-dashed decoration-muted-foreground/50 cursor-help">
-                                                            <Star className="h-4 w-4 text-amber-500" />
-                                                            <span>{perk}</span>
-                                                        </li>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>More details about "{perk}"</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            ))}
-                                        </ul>
-                                        <div className='pt-2'>
-                                            {ticket.status === 'Sold Out' && <Badge variant="destructive">Sold Out</Badge>}
-                                            {ticket.remaining && ticket.remaining > 0 && <Badge variant="outline" className="border-amber-500 text-amber-500">Only {ticket.remaining} tickets left!</Badge>}
-                                            {ticket.discount && <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700 mt-1">{ticket.discount}</Badge>}
-                                        </div>
-                                    </CardContent>
-                                    <CardFooter className="p-2">
-                                        <Button className="w-full font-poppins" disabled={ticket.status === 'Sold Out'}>
-                                            Select Tier
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
-                                </button>
-                            ))}
-                            </TooltipProvider>
-                        </CardContent>
-                    </Card>
-                </div>
-            </aside>
         </div>
     </div>
   );

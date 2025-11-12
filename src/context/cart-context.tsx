@@ -2,21 +2,28 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
+// A generic variant type that can be used for products (size, color) or tickets (tier name)
+export type CartItemVariant = {
+  name: string;
+  size?: string;
+  color?: string;
+}
+
 export interface CartItem {
-  id: string;
+  id: string; // Composite ID for products: `productId-size-color`, for tickets: `eventId-ticketId`
   name: string;
   price: number;
   image: string;
   quantity: number;
-  color: string;
-  size: string;
+  variant: CartItemVariant;
 }
+
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (itemId: string, size: string, color: string) => void;
-  updateQuantity: (itemId: string, size: string, color: string, quantity: number) => void;
+  addToCart: (item: Omit<CartItem, 'id'> & { id: string }) => void;
+  removeFromCart: (itemId: string, variant: CartItemVariant) => void;
+  updateQuantity: (itemId: string, quantity: number, variant: CartItemVariant) => void;
   clearCart: () => void;
   cartCount: number;
   totalPrice: number;
@@ -27,36 +34,40 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const addToCart = (itemToAdd: CartItem) => {
+  const generateItemId = (productId: string, variant: CartItemVariant) => {
+    return `${productId}-${variant.name.replace(/\s+/g, '-')}`;
+  }
+
+  const addToCart = (itemToAdd: Omit<CartItem, 'id'> & { id: string }) => {
+    const itemId = generateItemId(itemToAdd.id, itemToAdd.variant);
+    
     setCartItems(prevItems => {
-      const existingItem = prevItems.find(
-        item => item.id === itemToAdd.id && item.size === itemToAdd.size && item.color === itemToAdd.color
-      );
+      const existingItem = prevItems.find(item => item.id === itemId);
 
       if (existingItem) {
         return prevItems.map(item =>
-          item.id === itemToAdd.id && item.size === itemToAdd.size && item.color === itemToAdd.color
+          item.id === itemId
             ? { ...item, quantity: item.quantity + itemToAdd.quantity }
             : item
         );
       }
-      return [...prevItems, itemToAdd];
+      return [...prevItems, { ...itemToAdd, id: itemId }];
     });
   };
 
-  const removeFromCart = (itemId: string, size: string, color: string) => {
-    setCartItems(prevItems =>
-      prevItems.filter(item => !(item.id === itemId && item.size === size && item.color === color))
-    );
+  const removeFromCart = (productId: string, variant: CartItemVariant) => {
+    const itemId = generateItemId(productId, variant);
+    setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
   };
 
-  const updateQuantity = (itemId: string, size: string, color: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, variant: CartItemVariant) => {
+     const itemId = generateItemId(productId, variant);
     if (quantity <= 0) {
-      removeFromCart(itemId, size, color);
+      removeFromCart(productId, variant);
     } else {
       setCartItems(prevItems =>
         prevItems.map(item =>
-          item.id === itemId && item.size === size && item.color === color
+          item.id === itemId
             ? { ...item, quantity }
             : item
         )
