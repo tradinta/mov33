@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCart, CartItem } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,6 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetFooter,
+  SheetClose,
 } from '@/components/ui/sheet';
 import { Minus, Plus, ShoppingCart, Trash2, X } from 'lucide-react';
 import { Separator } from '../ui/separator';
@@ -96,9 +98,11 @@ export function Cart() {
                     <p>Subtotal</p>
                     <p>KES {totalPrice.toLocaleString()}</p>
                 </div>
-                <Button size="lg" className="w-full text-lg font-poppins">
-                    Proceed to Checkout
-                </Button>
+                <SheetClose asChild>
+                    <Button asChild size="lg" className="w-full text-lg font-poppins">
+                        <Link href="/checkout">Proceed to Checkout</Link>
+                    </Button>
+                </SheetClose>
                 <Button variant="outline" className="w-full" onClick={clearCart}>
                     <Trash2 className="mr-2 h-4 w-4" /> Clear Cart
                 </Button>
