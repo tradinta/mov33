@@ -6,9 +6,11 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   NavigationMenu,
+  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
+  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,6 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { LogOut, Settings, User } from 'lucide-react';
 import { Logo } from '@/components/logo';
+import { cn } from '@/lib/utils';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -32,24 +35,24 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 
-function SuperAdminHeader() {
+function AdminHeader() {
   const pathname = usePathname();
 
   const breadcrumbItems = React.useMemo(() => {
     const segments = pathname.split('/').filter(Boolean);
-    const items = [{ href: '/super-admin', label: 'Super Admin' }];
+    const items = [{ href: '/admin', label: 'Admin' }];
 
     if (segments.length > 1) {
       const page = segments[1]
         .split('-')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
-      if (page !== 'Super-admin') {
+      if (page !== 'Admin') {
         items.push({ href: `/${segments[0]}/${segments[1]}`, label: page });
       }
     }
-    if (items.length === 1 && pathname === '/super-admin') {
-      items.push({ href: '/super-admin', label: 'Dashboard' });
+    if (items.length === 1 && pathname === '/admin') {
+      items.push({ href: '/admin', label: 'Dashboard' });
     }
 
     return items;
@@ -62,32 +65,41 @@ function SuperAdminHeader() {
         <NavigationMenu className="hidden md:flex mx-6">
           <NavigationMenuList>
             <NavigationMenuItem>
-              <Link href="/super-admin" legacyBehavior passHref>
+              <Link href="/admin" legacyBehavior passHref>
                 <NavigationMenuLink
                   className={navigationMenuTriggerStyle()}
-                  active={pathname === '/super-admin'}
+                  active={pathname === '/admin'}
                 >
                   Dashboard
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/super-admin/settings" legacyBehavior passHref>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  active={pathname === '/super-admin/settings'}
-                >
-                  Platform Settings
-                </NavigationMenuLink>
-              </Link>
+              <NavigationMenuTrigger>User Management</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                  <ListItem href="/admin/admins" title="Admins">
+                    Manage platform administrators.
+                  </ListItem>
+                  <ListItem href="#" title="Organizers">
+                    View and approve event organizers.
+                  </ListItem>
+                  <ListItem href="#" title="Influencers">
+                    Manage influencer partnerships.
+                  </ListItem>
+                  <ListItem href="#" title="Standard Users">
+                    Browse all registered users.
+                  </ListItem>
+                </ul>
+              </NavigationMenuContent>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/super-admin/security" legacyBehavior passHref>
+              <Link href="/admin/analytics" legacyBehavior passHref>
                 <NavigationMenuLink
                   className={navigationMenuTriggerStyle()}
-                  active={pathname === '/super-admin/security'}
+                  active={pathname === '/admin/analytics'}
                 >
-                  Security Logs
+                  Analytics
                 </NavigationMenuLink>
               </Link>
             </NavigationMenuItem>
@@ -103,10 +115,10 @@ function SuperAdminHeader() {
               >
                 <Avatar className="h-10 w-10">
                   <AvatarImage
-                    src="https://picsum.photos/seed/superadmin/100/100"
-                    alt="Catherine Williams"
+                    src="https://picsum.photos/seed/admin/100/100"
+                    alt="Admin User"
                   />
-                  <AvatarFallback>CW</AvatarFallback>
+                  <AvatarFallback>AU</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -114,10 +126,10 @@ function SuperAdminHeader() {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    Catherine Williams
+                    Admin User
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    super.admin@mov33.com
+                    admin@mov33.com
                   </p>
                 </div>
               </DropdownMenuLabel>
@@ -167,14 +179,40 @@ function SuperAdminHeader() {
   );
 }
 
-export default function SuperAdminLayout({
+const ListItem = React.forwardRef<
+  React.ElementRef<'a'>,
+  React.ComponentPropsWithoutRef<'a'>
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  );
+});
+ListItem.displayName = 'ListItem';
+
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <SuperAdminHeader />
+      <AdminHeader />
       <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
     </div>
   );
