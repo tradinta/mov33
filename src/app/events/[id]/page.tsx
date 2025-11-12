@@ -1,7 +1,8 @@
+
 'use client';
 
 import React, { useState } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import { eventsData, type Event } from '@/lib/events-data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
@@ -177,6 +178,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   const details = eventDetails[params.id as keyof typeof eventDetails] || eventDetails['safari-sevens']; 
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
 
@@ -195,7 +197,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     });
   };
 
-  const handleAddToCart = () => {
+  const addTicketsToCart = (): number => {
     let itemsAdded = 0;
     Object.entries(ticketQuantities).forEach(([ticketId, quantity]) => {
       if (quantity > 0) {
@@ -213,7 +215,11 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         }
       }
     });
+    return itemsAdded;
+  }
 
+  const handleAddToCart = () => {
+    const itemsAdded = addTicketsToCart();
     if (itemsAdded > 0) {
       toast({
         title: "Tickets Added to Cart",
@@ -228,6 +234,19 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
       });
     }
   };
+
+  const handleProceedToCheckout = () => {
+    const itemsAdded = addTicketsToCart();
+     if (itemsAdded > 0) {
+      router.push('/checkout');
+    } else {
+       toast({
+        variant: "destructive",
+        title: "No tickets selected",
+        description: "Please select tickets before proceeding to checkout.",
+      });
+    }
+  }
 
   const totalSelectedTickets = Object.values(ticketQuantities).reduce((sum, qty) => sum + qty, 0);
 
@@ -305,10 +324,13 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                 ))}
                                 </TooltipProvider>
                             </CardContent>
-                            <CardFooter>
-                                <Button size="lg" className="w-full font-poppins text-lg" onClick={handleAddToCart} disabled={totalSelectedTickets === 0}>
+                            <CardFooter className="flex-col sm:flex-row gap-2">
+                                <Button size="lg" variant="outline" className="w-full sm:w-auto font-poppins text-lg" onClick={handleAddToCart} disabled={totalSelectedTickets === 0}>
                                     <ShoppingCart className="mr-2 h-5 w-5" />
                                     Add to Cart ({totalSelectedTickets})
+                                </Button>
+                                 <Button size="lg" className="w-full sm:flex-1 font-poppins text-lg" onClick={handleProceedToCheckout} disabled={totalSelectedTickets === 0}>
+                                    Proceed to Checkout
                                 </Button>
                             </CardFooter>
                         </Card>
