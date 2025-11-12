@@ -1,7 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
-import { useEffect } from "react";
+import { useFormStatus } from "react-dom";
+import { useEffect, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,7 +24,7 @@ const initialState: FormState = {
 };
 
 export function AIRecommendations() {
-  const [state, formAction] = useFormState(getAIRecommendations, initialState);
+  const [state, formAction] = useActionState(getAIRecommendations, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
