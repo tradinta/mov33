@@ -26,7 +26,7 @@ const navLinks = [
 ];
 
 const dashboardLinks = [
-    { href: '/super-admin', label: 'Admin Portal' },
+    { href: '/super-admin', label: 'Super Admin Portal' },
     { href: '/organizer', label: 'Organizer Portal' },
     { href: '/influencer', label: 'Influencer Dashboard' },
     { href: '/verification', label: 'Verification Portal' },
