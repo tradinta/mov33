@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronDown, Menu, Search } from 'lucide-react';
+import { ChevronDown, Menu, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const navLinks = [
   { href: '/events', label: 'Events' },
@@ -30,6 +31,52 @@ const dashboardLinks = [
     { href: '/influencer', label: 'Influencer Dashboard' },
     { href: '/verification', label: 'Verification Portal' },
 ];
+
+function UserNav() {
+    const user = { name: "John Doe", email: "john.doe@example.com", avatar: "https://picsum.photos/seed/profilepic/100/100" }; // Mock user
+    const isLoggedIn = true;
+
+    if (!isLoggedIn) {
+        return (
+             <>
+                <Button variant="ghost" className="hidden sm:inline-flex font-poppins">
+                    Sign In
+                </Button>
+                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-poppins">
+                    Sign Up
+                </Button>
+            </>
+        )
+    }
+
+    return (
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel>
+                    <div className="font-bold">{user.name}</div>
+                    <div className="text-xs text-muted-foreground">{user.email}</div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/profile"><User className="mr-2 h-4 w-4" /> My Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>Logout</DropdownMenuItem>
+                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/super-admin">Go to Super Admin</Link>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
 
 export function Header() {
   const pathname = usePathname();
@@ -75,12 +122,7 @@ export function Header() {
             <span className="sr-only">Search</span>
           </Button>
           <Cart />
-          <Button variant="ghost" className="hidden sm:inline-flex font-poppins">
-            Sign In
-          </Button>
-          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-poppins">
-            Sign Up
-          </Button>
+          <UserNav />
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">

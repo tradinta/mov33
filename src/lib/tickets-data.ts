@@ -1,0 +1,38 @@
+export const ticketsData = [
+  {
+    id: "tkt-001",
+    eventName: "Sauti Sol: Live in Nairobi",
+    imageUrl: "https://images.unsplash.com/photo-1533137098665-47ca60257cec?q=80&w=800",
+    location: "Uhuru Gardens, Nairobi",
+    date: "Dec 24 2024",
+    ticketType: "VIP",
+    quantity: 2,
+  },
+  {
+    id: "tkt-002",
+    eventName: "Safari Sevens Rugby",
+    imageUrl: "https://images.unsplash.com/photo-1544298133-03c86c13a486?q=80&w=800",
+    location: "RFUEA Ground, Nairobi",
+    date: "Oct 20 2024",
+    ticketType: "Regular",
+    quantity: 4,
+  },
+    {
+    id: "tkt-003",
+    eventName: "Blankets & Wine Festival",
+    imageUrl: "https://images.unsplash.com/photo-1658227633934-b589ca17d602?q=80&w=800",
+    location: "Laurette Garden, Nairobi",
+    date: "Aug 12 2023",
+    ticketType: "Early Bird",
+    quantity: 1,
+  },
+   {
+    id: "tkt-004",
+    eventName: "Mombasa Food Festival",
+    imageUrl: "https://images.unsplash.com/photo-1594935422899-b91a34341938?q=80&w=800",
+    location: "Mama Ngina Waterfront, Mombasa",
+    date: "Jul 05 2023",
+    ticketType: "Regular",
+    quantity: 3,
+  },
+];
