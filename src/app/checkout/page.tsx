@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, Lock, Mail, User, Phone, MapPin, Landmark } from 'lucide-react';
+import { CreditCard, Lock, Mail, User, Phone } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 const checkoutSchema = z.object({
@@ -20,20 +20,16 @@ const checkoutSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(10, 'A valid phone number is required'),
-  address: z.string().min(1, 'Address is required'),
-  city: z.string().min(1, 'City is required'),
-  postalCode: z.string().min(1, 'Postal code is required'),
-  country: z.string().min(1, 'Country is required'),
   cardName: z.string().min(1, 'Name on card is required'),
-  cardNumber: z.string().min(16, 'Card number must be 16 digits').max(19, 'Invalid card number'),
-  cardExpiry: z.string().regex(/^(0[1-9]|1[0-2])\/?([0-9]{4}|[0-9]{2})$/, 'Invalid expiry date (MM/YY)'),
+  cardNumber: z.string().min(19, 'Card number must be 16 digits').max(19, 'Invalid card number'),
+  cardExpiry: z.string().regex(/^(0[1-9]|1[0-2])\/?([0-9]{2})$/, 'Invalid expiry date (MM/YY)'),
   cardCvc: z.string().min(3, 'CVC must be 3-4 digits').max(4, 'CVC must be 3-4 digits'),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
-// Dummy Component for the animated credit card
-function AnimatedCreditCard({ isFlipped, cardDetails }: { isFlipped: boolean, cardDetails: Partial<CheckoutFormValues> }) {
+// Feature 1: Animated Credit Card Component
+function AnimatedCreditCard({ isFlipped, cardDetails }: { isFlipped: boolean, cardDetails: Partial<Pick<CheckoutFormValues, 'cardName' | 'cardNumber' | 'cardExpiry' | 'cardCvc'>> }) {
   return (
     <div className="w-full max-w-sm h-56 [transform-style:preserve-3d] transition-transform duration-500 mx-auto" style={{ transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
       {/* Front */}
@@ -56,7 +52,7 @@ function AnimatedCreditCard({ isFlipped, cardDetails }: { isFlipped: boolean, ca
       </div>
       {/* Back */}
       <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-2 flex flex-col justify-center text-white shadow-2xl">
-        <div className="w-full h-10 bg-black"></div>
+        <div className="w-full h-10 bg-black mt-4"></div>
         <div className="bg-gray-200 mt-4 p-2 text-right">
           <p className="text-black font-mono text-sm">{cardDetails.cardCvc || '123'}</p>
         </div>
@@ -76,13 +72,12 @@ function CheckoutPage() {
     const form = useForm<CheckoutFormValues>({
         resolver: zodResolver(checkoutSchema),
         defaultValues: {
-            firstName: '', lastName: '', email: '', phone: '', address: '',
-            city: '', postalCode: '', country: 'Kenya', cardName: '', cardNumber: '',
-            cardExpiry: '', cardCvc: '',
+            firstName: '', lastName: '', email: '', phone: '',
+            cardName: '', cardNumber: '', cardExpiry: '', cardCvc: '',
         }
     });
     
-    const cardDetails = form.watch(['cardName', 'cardNumber', 'cardExpiry', 'cardCvc']);
+    const watchedCardDetails = form.watch(['cardName', 'cardNumber', 'cardExpiry', 'cardCvc']);
 
     if (cartCount === 0 && typeof window !== 'undefined') {
         router.push('/shop');
@@ -98,13 +93,11 @@ function CheckoutPage() {
     };
 
     const subtotal = totalPrice;
-    const shipping = 500; // Example shipping cost
     const discountAmount = subtotal * discount;
-    const total = subtotal - discountAmount + shipping;
+    const total = subtotal - discountAmount;
 
     const onSubmit = (data: CheckoutFormValues) => {
         console.log('Form submitted:', data);
-        // In a real app, process payment here
         router.push('/order-success');
     }
 
@@ -132,16 +125,26 @@ function CheckoutPage() {
                     <CardHeader><CardTitle>Payment Details</CardTitle></CardHeader>
                     <CardContent className="space-y-6">
                         <AnimatedCreditCard isFlipped={isCardFlipped} cardDetails={{
-                            cardName: cardDetails[0],
-                            cardNumber: cardDetails[1],
-                            cardExpiry: cardDetails[2],
-                            cardCvc: cardDetails[3],
+                            cardName: watchedCardDetails[0],
+                            cardNumber: watchedCardDetails[1],
+                            cardExpiry: watchedCardDetails[2],
+                            cardCvc: watchedCardDetails[3],
                         }}/>
                         <FormField control={form.control} name="cardName" render={({ field }) => ( <FormItem><FormLabel>Name on Card</FormLabel><FormControl><Input {...field} onFocus={() => setIsCardFlipped(false)} /></FormControl><FormMessage /></FormItem> )} />
+                        {/* Feature 2: Automatic Card Number Formatting */}
                         <FormField control={form.control} name="cardNumber" render={({ field }) => ( <FormItem><FormLabel>Card Number</FormLabel><FormControl><Input {...field} maxLength={19} onChange={e => field.onChange(e.target.value.replace(/\D/g, '').replace(/(\d{4})(?=\d)/g, '$1 '))} onFocus={() => setIsCardFlipped(false)} /></FormControl><FormMessage /></FormItem> )} />
                         <div className="flex gap-4">
-                             <FormField control={form.control} name="cardExpiry" render={({ field }) => ( <FormItem className="flex-1"><FormLabel>Expiry</FormLabel><FormControl><Input {...field} placeholder="MM/YY" maxLength={5} onChange={e => field.onChange(e.target.value.replace(/\D/g, '').replace(/(\d{2})(?=\d)/g, '$1/'))} onFocus={() => setIsCardFlipped(false)} /></FormControl><FormMessage /></FormItem> )} />
-                             <FormField control={form.control} name="cardCvc" render={({ field }) => ( <FormItem className="flex-1"><FormLabel>CVC</FormLabel><FormControl><Input {...field} maxLength={4} onFocus={() => setIsCardFlipped(true)} /></FormControl><FormMessage /></FormItem> )} />
+                             {/* Feature 3: Automatic Expiry Date Formatting */}
+                             <FormField control={form.control} name="cardExpiry" render={({ field }) => ( <FormItem className="flex-1"><FormLabel>Expiry</FormLabel><FormControl><Input {...field} placeholder="MM/YY" maxLength={5} onChange={e => {
+                                const value = e.target.value.replace(/\D/g, '');
+                                if (value.length > 2) {
+                                    field.onChange(`${value.slice(0,2)}/${value.slice(2,4)}`);
+                                } else {
+                                    field.onChange(value);
+                                }
+                             }} onFocus={() => setIsCardFlipped(false)} /></FormControl><FormMessage /></FormItem> )} />
+                             {/* Feature 4: CVC focus flips card */}
+                             <FormField control={form.control} name="cardCvc" render={({ field }) => ( <FormItem className="flex-1"><FormLabel>CVC</FormLabel><FormControl><Input {...field} maxLength={4} onFocus={() => setIsCardFlipped(true)} onBlur={() => setIsCardFlipped(false)} /></FormControl><FormMessage /></FormItem> )} />
                         </div>
                     </CardContent>
                 </Card>
@@ -183,10 +186,7 @@ function CheckoutPage() {
                                 <p className="text-muted-foreground">Subtotal</p>
                                 <p className="font-semibold">KES {subtotal.toLocaleString()}</p>
                             </div>
-                             <div className="flex justify-between">
-                                <p className="text-muted-foreground">Shipping</p>
-                                <p className="font-semibold">KES {shipping.toLocaleString()}</p>
-                            </div>
+                            {/* Feature 5: Removed erroneous shipping cost for digital tickets */}
                             {discount > 0 && (
                                 <div className="flex justify-between text-green-600 dark:text-green-400">
                                     <p>Discount ({promoCode})</p>
@@ -212,3 +212,5 @@ function CheckoutPage() {
 }
 
 export default CheckoutPage;
+
+    

@@ -11,8 +11,8 @@ export default function CheckoutLayout({
              <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-16 items-center justify-between">
                     <Logo />
-                    <Link href="/shop" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                        Continue Shopping
+                    <Link href="/events" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                        Continue Browsing Events
                     </Link>
                 </div>
             </header>
@@ -20,3 +20,5 @@ export default function CheckoutLayout({
         </div>
     );
 }
+
+    
