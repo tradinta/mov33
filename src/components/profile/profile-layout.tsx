@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Award, CreditCard, Heart, History, LogOut, Ticket, User, Wallpaper } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 const navItems = [
     { href: "/profile", label: "My Tickets", icon: Ticket },
