@@ -47,7 +47,7 @@ export default function OrderSuccessPage() {
             <CheckCircle className="mx-auto h-24 w-24 text-green-500 animate-in fade-in zoom-in-50 duration-500" />
             <h1 className="mt-8 font-headline text-4xl md:text-5xl font-extrabold">Order Successful!</h1>
             <p className="mt-4 text-lg text-muted-foreground">
-                Thank you for your purchase. Your order has been confirmed and a receipt has been sent to your email.
+                Thank you for your purchase. Your tickets are ready! A receipt has also been sent to your email.
             </p>
             
             <Card className="mt-12 text-left bg-card/50">
@@ -56,15 +56,14 @@ export default function OrderSuccessPage() {
                      <div className="space-y-2 text-muted-foreground">
                         <p><strong>Status:</strong> Confirmed</p>
                         <p><strong>Total:</strong> KES 10,000</p>
-                        <p><strong>Estimated Delivery:</strong> 3-5 Business Days</p>
                     </div>
                 </CardContent>
             </Card>
 
             <div className="mt-12 flex flex-col sm:flex-row justify-center gap-4">
-                <Button asChild size="lg" className="font-poppins">
+                <Button asChild size="lg" className="font-poppins text-lg">
                     <Link href="/profile">
-                        <Ticket className="mr-2 h-5 w-5" /> View My Tickets
+                        <Ticket className="mr-2 h-5 w-5" /> Go to Ticket Center
                     </Link>
                 </Button>
                  <Button asChild variant="outline" size="lg" className="font-poppins">

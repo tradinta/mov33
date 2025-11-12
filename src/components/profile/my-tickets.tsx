@@ -1,6 +1,6 @@
 import { ticketsData } from "@/lib/tickets-data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Ticket, Download, Share2 } from "lucide-react";
+import { Ticket, Download, Share2, Pencil } from "lucide-react";
 import Image from "next/image";
 import { Button } from "../ui/button";
 
@@ -36,10 +36,13 @@ function TicketCard({ ticket }: { ticket: typeof ticketsData[0] }) {
                     <div className="flex gap-2">
                         {!isPast && <>
                             <Button variant="outline" size="sm">
-                                <Download className="mr-2 h-4 w-4" /> Download
+                                <Pencil className="mr-2 h-4 w-4" /> Customize
+                            </Button>
+                             <Button variant="outline" size="sm">
+                                <Share2 className="mr-2 h-4 w-4" /> Share
                             </Button>
                             <Button size="sm">
-                                <Share2 className="mr-2 h-4 w-4" /> Share
+                                <Download className="mr-2 h-4 w-4" /> Download
                             </Button>
                         </>}
                          {isPast && 

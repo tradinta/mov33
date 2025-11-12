@@ -62,8 +62,8 @@ export function ProfileLayout({ children }: { children: React.ReactNode }) {
                             <AvatarFallback>JD</AvatarFallback>
                         </Avatar>
                         <div>
+                            <p className="text-muted-foreground font-poppins">Welcome back,</p>
                             <h1 className="font-headline text-3xl md:text-4xl font-extrabold">John Doe</h1>
-                            <p className="text-muted-foreground mt-1">john.doe@example.com</p>
                         </div>
                         <Card className="ml-auto p-4 hidden sm:block">
                             <div className="text-center">
