@@ -34,10 +34,6 @@ import {
 } from '@/components/ui/accordion';
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import {
   Popover,
@@ -48,12 +44,12 @@ import { Calendar } from '@/components/ui/calendar';
 import {
   ArrowLeft,
   CalendarIcon,
-  DollarSign,
   PlusCircle,
   Trash2,
   Upload,
 } from 'lucide-react';
 import Link from 'next/link';
+import { TicketsSection } from '@/components/organizer/event-form/tickets-section';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Event name must be at least 3 characters.'),
@@ -73,7 +69,11 @@ const formSchema = z.object({
   tickets: z.array(z.object({
     tier: z.string().min(2, 'Tier name is required.'),
     price: z.coerce.number().min(0, 'Price must be a positive number.'),
+    description: z.string().optional(),
     perks: z.string().min(3, 'Please list at least one perk.'),
+    status: z.string().optional(),
+    remaining: z.coerce.number().optional(),
+    discount: z.string().optional(),
   })).min(1, "You must add at least one ticket tier."),
 
   // Schedule
@@ -104,9 +104,11 @@ const formSchema = z.object({
 
 });
 
+export type EventFormValues = z.infer<typeof formSchema>;
+
 export default function NewEventPage() {
   const { toast } = useToast();
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<EventFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
@@ -116,7 +118,7 @@ export default function NewEventPage() {
       about: '',
       tags: '',
       mainImage: '',
-      tickets: [{ tier: 'Regular', price: 0, perks: 'General Access' }],
+      tickets: [{ tier: 'Regular', price: 0, perks: 'General Access', description: '' }],
       schedule: [{ day: 'Day 1', items: [{ time: '06:00 PM', title: 'Doors Open'}] }],
       artists: [],
       gallery: [],
@@ -124,10 +126,6 @@ export default function NewEventPage() {
     },
   });
 
-  const { fields: ticketFields, append: appendTicket, remove: removeTicket } = useFieldArray({
-    control: form.control,
-    name: 'tickets',
-  });
   const { fields: scheduleFields, append: appendSchedule, remove: removeSchedule } = useFieldArray({
     control: form.control,
     name: 'schedule',
@@ -146,7 +144,7 @@ export default function NewEventPage() {
   });
 
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  function onSubmit(data: EventFormValues) {
     toast({
       title: 'You submitted the following values:',
       description: (
@@ -186,7 +184,7 @@ export default function NewEventPage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Accordion type="multiple" defaultValue={['item-1']} className="w-full space-y-4">
+          <Accordion type="multiple" defaultValue={['item-1', 'item-3']} className="w-full space-y-4">
             {/* Core Details */}
             <AccordionItem value="item-1" className="border-b-0">
                 <Card>
@@ -355,74 +353,7 @@ export default function NewEventPage() {
 
             {/* Tickets */}
             <AccordionItem value="item-3" className="border-b-0">
-                <Card>
-                    <AccordionTrigger className="p-6 font-headline text-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-t-lg hover:no-underline bg-muted/50">
-                        Tickets
-                    </AccordionTrigger>
-                    <AccordionContent className="p-6 pt-0 space-y-4">
-                       {ticketFields.map((field, index) => (
-                           <Card key={field.id} className="p-4 bg-background">
-                                <div className="grid grid-cols-1 md:grid-cols-[1fr,1fr,2fr,auto] gap-4 items-start">
-                                     <FormField
-                                        control={form.control}
-                                        name={`tickets.${index}.tier`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Tier Name</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="e.g., VIP" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                     <FormField
-                                        control={form.control}
-                                        name={`tickets.${index}.price`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Price (KES)</FormLabel>
-                                                <FormControl>
-                                                    <div className="relative">
-                                                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                        <Input type="number" placeholder="2500" className="pl-8" {...field} />
-                                                    </div>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                     <FormField
-                                        control={form.control}
-                                        name={`tickets.${index}.perks`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Perks</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="e.g., Express Entry, Free Drink" {...field} />
-                                                </FormControl>
-                                                <FormDescription className="text-xs">Comma-separated perks.</FormDescription>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <Button variant="ghost" size="icon" className="mt-8" onClick={() => removeTicket(index)}>
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                               </div>
-                           </Card>
-                       ))}
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => appendTicket({ tier: '', price: 0, perks: '' })}
-                        >
-                           <PlusCircle className="mr-2 h-4 w-4" /> Add Ticket Tier
-                        </Button>
-                         <FormMessage>{form.formState.errors.tickets?.message}</FormMessage>
-                    </AccordionContent>
-                </Card>
+                <TicketsSection />
             </AccordionItem>
 
              {/* Schedule */}
