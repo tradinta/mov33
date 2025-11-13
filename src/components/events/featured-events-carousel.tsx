@@ -16,6 +16,7 @@ import {
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { ArrowRight } from 'lucide-react';
+import Autoplay from "embla-carousel-autoplay"
 
 export function FeaturedEventsCarousel() {
   // Get 3 random products to feature
@@ -23,13 +24,20 @@ export function FeaturedEventsCarousel() {
     return eventsData.slice().sort(() => 0.5 - Math.random()).slice(0, 3);
   }, []);
 
+  const plugin = React.useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: true })
+  )
+
   return (
     <Carousel
+      plugins={[plugin.current]}
       opts={{
         align: 'start',
         loop: true,
       }}
       className="w-full"
+      onMouseEnter={plugin.current.stop}
+      onMouseLeave={plugin.current.reset}
     >
       <CarouselContent>
         {featuredEvents.map((event) => (
