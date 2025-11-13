@@ -41,6 +41,7 @@ export const ParticleBackground: React.FC<React.HTMLAttributes<HTMLDivElement>> 
     };
 
     const animate = () => {
+      if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
       // Update particle positions
