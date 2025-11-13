@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { ThemeToggle } from '../theme-toggle';
 
 const navLinks = [
   { href: '/events', label: 'Events' },
@@ -122,6 +123,7 @@ export function Header() {
             <Search className="h-4 w-4" />
             <span className="sr-only">Search</span>
           </Button>
+          <ThemeToggle />
           <Cart />
           <UserNav />
           <Sheet>
