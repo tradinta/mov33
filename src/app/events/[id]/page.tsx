@@ -48,6 +48,7 @@ import Link from 'next/link';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
 import { UpgradeToVipCard } from '@/components/shared/upgrade-to-vip-card';
+import { cn } from '@/lib/utils';
 
 // Dummy data that would normally come from a CMS or database
 const eventDetails = {
