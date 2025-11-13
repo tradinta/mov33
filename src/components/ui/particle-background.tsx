@@ -9,11 +9,15 @@ interface Particle {
   y: number;
   vx: number;
   vy: number;
+  color: string;
 }
 
 export const ParticleBackground: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [particleColor, setParticleColor] = useState('hsl(14 78% 57%)'); // Default fallback
+  const [colors, setColors] = useState({
+    accent: 'hsl(14 78% 57%)',
+    primary: 'hsl(210 20% 15%)',
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -23,21 +27,25 @@ export const ParticleBackground: React.FC<React.HTMLAttributes<HTMLDivElement>> 
     if (!ctx) return;
 
     // Function to get and set the color from CSS variables
-    const updateColor = () => {
+    const updateColors = () => {
       if (typeof window !== 'undefined') {
         const computedStyle = getComputedStyle(document.documentElement);
         const accentColorValue = computedStyle.getPropertyValue('--accent').trim();
-        if (accentColorValue) {
-          setParticleColor(`hsl(${accentColorValue})`);
-        }
+        const primaryColorValue = computedStyle.getPropertyValue('--primary').trim();
+        
+        setColors({
+            accent: `hsl(${accentColorValue})`,
+            primary: `hsl(${primaryColorValue})`,
+        });
       }
     };
 
-    updateColor(); // Initial color set
+    updateColors();
 
     let particles: Particle[] = [];
     const particleCount = 70;
     const maxDistance = 150;
+    const availableColors = [colors.accent, colors.primary];
 
     const resizeCanvas = () => {
       canvas.width = canvas.offsetWidth;
@@ -50,6 +58,7 @@ export const ParticleBackground: React.FC<React.HTMLAttributes<HTMLDivElement>> 
           y: Math.random() * canvas.height,
           vx: (Math.random() - 0.5) * 0.5,
           vy: (Math.random() - 0.5) * 0.5,
+          color: availableColors[Math.floor(Math.random() * availableColors.length)],
         });
       }
     };
@@ -69,7 +78,6 @@ export const ParticleBackground: React.FC<React.HTMLAttributes<HTMLDivElement>> 
       });
 
       // Draw lines
-      ctx.strokeStyle = particleColor;
       ctx.lineWidth = 0.5;
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
@@ -78,6 +86,11 @@ export const ParticleBackground: React.FC<React.HTMLAttributes<HTMLDivElement>> 
           const distance = Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
           
           if (distance < maxDistance) {
+            const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+            gradient.addColorStop(0, p1.color);
+            gradient.addColorStop(1, p2.color);
+
+            ctx.strokeStyle = gradient;
             ctx.globalAlpha = (1 - distance / maxDistance) * 0.5;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
@@ -89,12 +102,15 @@ export const ParticleBackground: React.FC<React.HTMLAttributes<HTMLDivElement>> 
        ctx.globalAlpha = 1;
 
       // Draw particles
-      ctx.fillStyle = particleColor;
       particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 10;
         ctx.beginPath();
         ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
         ctx.fill();
       });
+      ctx.shadowBlur = 0; // Reset shadow for other elements
 
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -106,7 +122,7 @@ export const ParticleBackground: React.FC<React.HTMLAttributes<HTMLDivElement>> 
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.attributeName === 'class') {
-                updateColor();
+                updateColors();
             }
         });
     });
@@ -121,7 +137,7 @@ export const ParticleBackground: React.FC<React.HTMLAttributes<HTMLDivElement>> 
         observer.disconnect();
     };
 
-  }, [particleColor]);
+  }, [colors.accent, colors.primary]);
 
   return (
     <div className={cn('w-full h-full opacity-50', className)}>
