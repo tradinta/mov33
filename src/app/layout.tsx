@@ -21,15 +21,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Montserrat:wght@700;800&family=Poppins:wght@500;600&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased">
-        <div className="relative">
-          <ParticleBackground className="fixed top-0 left-0 w-full h-full z-[-1]" />
-          <div className="relative z-10">
-            <CartProvider>
-              {children}
-              <Toaster />
-            </CartProvider>
-          </div>
+      <body className="font-body antialiased bg-background">
+        <ParticleBackground className="fixed top-0 left-0 w-full h-full z-0" />
+        <div className="relative z-10">
+          <CartProvider>
+            {children}
+            <Toaster />
+          </CartProvider>
         </div>
       </body>
     </html>
