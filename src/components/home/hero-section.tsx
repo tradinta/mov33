@@ -1,14 +1,12 @@
 'use client';
 import { Button } from "@/components/ui/button";
 import { Sparkles, Ticket } from "lucide-react";
-import { ParticleBackground } from "../ui/particle-background";
 
 export function HeroSection() {
   return (
     <section 
-      className="relative w-full bg-[hsl(var(--deep-blue-background))] text-[hsl(var(--deep-blue-foreground))] py-24 md:py-36 overflow-hidden"
+      className="relative w-full bg-transparent text-[hsl(var(--deep-blue-foreground))] py-24 md:py-36 overflow-hidden"
     >
-      <ParticleBackground className="absolute inset-0 z-0" />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
