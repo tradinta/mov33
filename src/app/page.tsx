@@ -4,7 +4,6 @@ import { VipHighlights } from "@/components/home/vip-highlights";
 import { FeaturedPartners } from "@/components/home/featured-partners";
 import { Testimonials } from "@/components/home/testimonials";
 import { ShopHighlights } from "@/components/home/shop-highlights";
-import { AIRecommendations } from "@/components/home/ai-recommendations";
 import { MainLayout } from "@/components/layout/main-layout";
 import { EventGrid } from "@/components/events/event-grid";
 
@@ -25,7 +24,6 @@ export default function Home() {
           <VipHighlights />
           <FeaturedPartners />
           <Testimonials />
-          <AIRecommendations />
           <ShopHighlights />
         </div>
       </div>
