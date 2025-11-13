@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -15,6 +16,7 @@ import {
   Heart, 
   Instagram,
   Linkedin,
+  Locate,
   MapPin, 
   Minus, 
   Plus, 
@@ -91,6 +93,10 @@ const eventDetails = {
         { q: "Is there parking available?", a: "Yes, limited paid parking is available. We recommend using ride-sharing services." },
         { q: "Are children allowed?", a: "Yes, this is a family-friendly event. Children under 12 enter free." },
     ],
+    lostAndFound: {
+      itemsFound: 5,
+      contact: 'help@safarisevens.com'
+    },
     tickets: [
         { id: 'early-bird', tier: "Early Bird", price: 1500, description: "Get in early and save! Access for the full weekend.", perks: ["Full weekend pass", "Access to all group matches"], status: "Sold Out", remaining: 0 },
         { id: 'advance', tier: "Advance", price: 2500, description: "The complete weekend experience for any rugby fan.", perks: ["Full weekend pass", "Access to all matches including finals"], status: "Available", remaining: null, discount: "Group discount available" },
@@ -130,6 +136,10 @@ const eventDetails = {
         { q: "Can I bring a camera?", a: "Only phone cameras are allowed. No professional DSLRs." },
         { q: "What's the refund policy?", a: "Tickets are non-refundable." },
     ],
+    lostAndFound: {
+      itemsFound: 8,
+      contact: 'lost@mov33.com'
+    },
      tickets: [
         { id: 'advance', tier: "Advance", price: 5000, description: "Secure your spot for this historic final show.", perks: ["Full access to the concert grounds"], status: "Available", remaining: null },
         { id: 'vip', tier: "VIP", price: 15000, description: "Enjoy the show from the best seats with premium service.", perks: ["Express entry", "Access to VIP lounge with private bar", "Premium viewing area"], status: "Available", remaining: null, discount: "Buy 4, get 1 free!" },
@@ -349,7 +359,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                 </Button>
                                  <Button size="lg" className="w-full sm:flex-1 font-poppins text-lg" onClick={handleProceedToCheckout} disabled={totalSelectedTickets === 0}>
                                     Proceed to Checkout
-                                </Button>
+                                 </Button>
                             </CardFooter>
                         </Card>
                         )}
@@ -445,9 +455,34 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                           ))}
                         </Accordion>
                     </section>
+                    
+                     {/* Lost & Found Section */}
+                     {details.lostAndFound && (
+                        <section id="lost-and-found">
+                            <h2 className="font-headline text-2xl font-bold">Lost &amp; Found</h2>
+                            <Card className="mt-4 bg-card/50">
+                                <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+                                    <div className="p-4 bg-accent/10 rounded-full">
+                                        <Locate className="h-10 w-10 text-accent" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-muted-foreground">
+                                            The organizer has reported <strong className="text-foreground">{details.lostAndFound.itemsFound} lost items</strong>. If you believe one might be yours, please get in touch.
+                                        </p>
+                                    </div>
+                                    <Button asChild>
+                                        <a href={`mailto:${details.lostAndFound.contact}`}>Contact Organizer</a>
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        </section>
+                    )}
                 </div>
             </main>
         </div>
     </div>
   );
 }
+
+
+    
