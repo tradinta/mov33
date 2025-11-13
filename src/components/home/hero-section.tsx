@@ -7,9 +7,10 @@ export function HeroSection() {
     <section 
       className="relative w-full bg-[hsl(var(--deep-blue-background))] text-[hsl(var(--deep-blue-foreground))] py-24 md:py-36 overflow-hidden"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-background/5 via-background/10 to-secondary/20 opacity-30" />
-      <div className="absolute -bottom-1/2 -left-20 w-96 h-96 bg-accent/10 rounded-full filter blur-3xl opacity-40 animate-pulse" style={{animationDuration: '8s'}}></div>
-      <div className="absolute -top-1/2 -right-20 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl opacity-40 animate-pulse" style={{animationDuration: '10s', animationDelay: '2s'}}></div>
+      <div 
+        className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] opacity-60"
+        aria-hidden="true"
+      />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
