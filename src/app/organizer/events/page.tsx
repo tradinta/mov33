@@ -36,25 +36,11 @@ const organizerTours = toursData.filter(
 export default function OrganizerListingsPage() {
   return (
     <Tabs defaultValue="events">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold font-headline">Your Listings</h1>
-          <p className="text-muted-foreground">
-            View and manage all your event and tour listings.
-          </p>
-        </div>
-        <div className='flex gap-2'>
-           <Button size="sm" asChild>
-            <Link href="/organizer/events/new">
-              <PlusCircle className="mr-2 h-4 w-4" /> Create New Event
-            </Link>
-          </Button>
-           <Button size="sm" variant="outline" asChild>
-            <Link href="/organizer/tours/new">
-              <PlusCircle className="mr-2 h-4 w-4" /> Create New Tour
-            </Link>
-          </Button>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold font-headline">Your Listings</h1>
+        <p className="text-muted-foreground">
+          View and manage all your event and tour listings.
+        </p>
       </div>
       <TabsList className="grid w-full grid-cols-2 max-w-md">
         <TabsTrigger value="events">Events ({organizerEvents.length})</TabsTrigger>
@@ -62,11 +48,18 @@ export default function OrganizerListingsPage() {
       </TabsList>
       <TabsContent value="events">
         <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>Event Listings</CardTitle>
-            <CardDescription>
-              Your upcoming and past event listings.
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Event Listings</CardTitle>
+              <CardDescription>
+                Your upcoming and past event listings.
+              </CardDescription>
+            </div>
+             <Button size="sm" asChild>
+              <Link href="/organizer/events/new">
+                <PlusCircle className="mr-2 h-4 w-4" /> Create New Event
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent>
             <Table>
@@ -109,11 +102,18 @@ export default function OrganizerListingsPage() {
       </TabsContent>
        <TabsContent value="tours">
         <Card className="mt-4">
-          <CardHeader>
-            <CardTitle>Tour Listings</CardTitle>
-            <CardDescription>
-              Your active and past tour packages.
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Tour Listings</CardTitle>
+              <CardDescription>
+                Your active and past tour packages.
+              </CardDescription>
+            </div>
+             <Button size="sm" variant="outline" asChild>
+              <Link href="/organizer/tours/new">
+                <PlusCircle className="mr-2 h-4 w-4" /> Create New Tour
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent>
              <Table>
