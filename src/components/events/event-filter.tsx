@@ -8,23 +8,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { Calendar as CalendarIcon, MapPin, Tag, SlidersHorizontal, Search, Check, ChevronsUpDown, RotateCw } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Calendar as CalendarIcon, RotateCw } from "lucide-react";
+import { useState } from "react";
 import { format } from "date-fns";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { Separator } from "../ui/separator";
-import { CommandDialog, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { counties } from "@/lib/counties";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { mockSearchData } from "@/lib/search-data";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 const categories = ["Concert", "Festival", "Sports", "Community", "Party", "Tech", "Adventure"];
@@ -33,34 +23,10 @@ const ageGroups = ["All Ages", "Kids", "Teenagers", "Young Adults", "Youths", "S
 export function EventFilter() {
   const [date, setDate] = useState<Date>();
   const [priceRange, setPriceRange] = useState([500, 20000]);
-  const [comboboxOpen, setComboboxOpen] = useState(false)
   const [county, setCounty] = useState("")
-  const [openCommand, setOpenCommand] = useState(false);
-
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpenCommand((open) => !open);
-      }
-    };
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
 
   return (
     <>
-    <div className="relative w-full mb-4 lg:mb-6" onClick={() => setOpenCommand(true)}>
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input 
-            placeholder="Search events, artists..."
-            className="pl-10 h-11 rounded-full cursor-pointer w-full"
-        />
-        <kbd className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 hidden h-6 select-none items-center gap-1 rounded border bg-muted px-2 font-mono text-sm font-medium opacity-100 sm:flex">
-            <span className="text-lg">⌘</span>K
-        </kbd>
-    </div>
-
     <Card>
        <CardHeader className="flex flex-row items-center justify-between pb-4">
         <CardTitle className="text-lg font-poppins font-semibold">Filters</CardTitle>
@@ -153,36 +119,6 @@ export function EventFilter() {
         <Button className="w-full hidden lg:inline-flex">Apply Filters</Button>
       </CardContent>
     </Card>
-
-    <CommandDialog open={openCommand} onOpenChange={setOpenCommand}>
-    <CommandInput placeholder="Search events, artists, venues..." />
-    <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading="Events">
-        {mockSearchData.events.map((event) => (
-            <CommandItem key={event.id} value={event.name} onSelect={() => { console.log('nav to event'); setOpenCommand(false); }}>
-            {event.name}
-            </CommandItem>
-        ))}
-        </CommandGroup>
-        <Separator />
-        <CommandGroup heading="Artists">
-            {mockSearchData.artists.map((artist) => (
-            <CommandItem key={artist.id} value={artist.name} onSelect={() => { console.log('nav to artist'); setOpenCommand(false); }}>
-            {artist.name}
-            </CommandItem>
-        ))}
-        </CommandGroup>
-        <Separator />
-        <CommandGroup heading="Venues">
-        {mockSearchData.venues.map((venue) => (
-            <CommandItem key={venue.id} value={venue.name} onSelect={() => { console.log('nav to venue'); setOpenCommand(false); }}>
-            {venue.name}
-            </CommandItem>
-        ))}
-        </CommandGroup>
-    </CommandList>
-    </CommandDialog>
     </>
   );
 }

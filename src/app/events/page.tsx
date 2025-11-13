@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { EventFilter } from "@/components/events/event-filter";
 import { EventGrid } from "@/components/events/event-grid";
-import type { Metadata } from 'next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
 import { SlidersHorizontal } from 'lucide-react';
@@ -16,12 +15,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { FeaturedEventsCarousel } from '@/components/events/featured-events-carousel';
+import { EventSearch } from '@/components/events/event-search';
 
-
-// export const metadata: Metadata = {
-//   title: 'Events in Kenya - Concerts, Festivals & More | Mov33',
-//   description: 'Discover and book tickets for the best events in Kenya. From vibrant concerts in Nairobi to cultural festivals in Lamu, find your next unforgettable experience with Mov33.',
-// };
 
 export default function EventsPage() {
   const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -70,6 +65,9 @@ export default function EventsPage() {
                 <TabsTrigger value="this-weekend">This Weekend</TabsTrigger>
                 <TabsTrigger value="past">Past</TabsTrigger>
               </TabsList>
+              <div className="my-6">
+                <EventSearch />
+              </div>
               <TabsContent value="all">
                 <EventGrid />
               </TabsContent>
