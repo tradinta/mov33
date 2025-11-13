@@ -7,7 +7,7 @@ import { AnimatedGradientBackground } from "../ui/animated-gradient-background";
 export function HeroSection() {
   return (
     <section 
-      className="relative w-full bg-[hsl(var(--deep-blue-background))] text-[hsl(var(--deep-blue-foreground))] py-24 md:py-36 overflow-hidden"
+      className="relative w-full bg-background text-foreground py-24 md:py-36 overflow-hidden"
     >
       <AnimatedGradientBackground />
       
@@ -15,7 +15,7 @@ export function HeroSection() {
         <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
           Discover Unforgettable Experiences
         </h1>
-        <p className="mt-6 text-lg md:text-xl text-deep-blue-foreground/80 max-w-3xl mx-auto font-poppins">
+        <p className="mt-6 text-lg md:text-xl text-foreground/80 max-w-3xl mx-auto font-poppins">
           Concerts, Festivals, Sports, and Community Events across Kenya. Your next adventure awaits.
         </p>
         <div className="mt-10 flex justify-center gap-4">
@@ -29,7 +29,7 @@ export function HeroSection() {
           <Button 
             size="lg" 
             variant="outline" 
-            className="font-poppins font-semibold text-base md:text-lg px-8 py-6 rounded-full border-primary/50 text-primary transition-all duration-300 ease-in-out hover:scale-105 hover:bg-primary/10 hover:shadow-lg hover:shadow-primary/10"
+            className="font-poppins font-semibold text-base md:text-lg px-8 py-6 rounded-full border-primary/50 text-foreground transition-all duration-300 ease-in-out hover:scale-105 hover:bg-primary/10 hover:shadow-lg"
           >
             <Sparkles className="mr-2 h-5 w-5" /> 
             See Featured
