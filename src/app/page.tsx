@@ -5,7 +5,7 @@ import { FeaturedPartners } from "@/components/home/featured-partners";
 import { Testimonials } from "@/components/home/testimonials";
 import { ShopHighlights } from "@/components/home/shop-highlights";
 import { MainLayout } from "@/components/layout/main-layout";
-import { EventGrid } from "@/components/events/event-grid";
+import { TrendingEvents } from "@/components/home/trending-events";
 
 export default function Home() {
   return (
@@ -13,13 +13,7 @@ export default function Home() {
       <HeroSection />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-20 md:space-y-28 py-16 md:py-24">
-          <div>
-            <div className="text-center">
-              <h2 className="font-headline text-3xl md:text-4xl font-bold">Now Trending</h2>
-              <p className="mt-2 text-lg text-muted-foreground">The hottest events right now.</p>
-            </div>
-            <EventGrid />
-          </div>
+          <TrendingEvents />
           <DiscoverSection />
           <VipHighlights />
           <FeaturedPartners />
