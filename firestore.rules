@@ -1,0 +1,21 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Users
+    // Anybody can create a user profile (for sign-up)
+    // Only the owner of the profile can read or write to it
+    // No one can delete a user profile
+    match /users/{userId} {
+      allow create;
+      allow read, update: if isOwner(userId);
+      allow delete: if false;
+    }
+  }
+}

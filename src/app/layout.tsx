@@ -4,6 +4,7 @@ import './globals.css';
 import { CartProvider } from '@/context/cart-context';
 import { ParticleBackground } from '@/components/ui/particle-background';
 import { ThemeProvider } from '@/components/theme-provider';
+import FirebaseClientProvider from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'Mov33 - Discover & Book Your Next Experience',
@@ -29,13 +30,15 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ParticleBackground className="fixed top-0 left-0 w-full h-full z-0" />
-            <div className="relative z-10">
-              <CartProvider>
-                {children}
-                <Toaster />
-              </CartProvider>
-            </div>
+            <FirebaseClientProvider>
+                <ParticleBackground className="fixed top-0 left-0 w-full h-full z-0" />
+                <div className="relative z-10">
+                  <CartProvider>
+                    {children}
+                    <Toaster />
+                  </CartProvider>
+                </div>
+            </FirebaseClientProvider>
         </ThemeProvider>
       </body>
     </html>

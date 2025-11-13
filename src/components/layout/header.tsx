@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { Award, ChevronDown, Menu, Search, User } from 'lucide-react';
+import { Award, ChevronDown, Menu, Search, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Cart } from '@/components/cart/cart';
 import {
   DropdownMenu,
@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ThemeToggle } from '../theme-toggle';
+import { useUser } from '@/firebase/auth/use-user';
+import { getAuth, signOut } from 'firebase/auth';
 
 const navLinks = [
   { href: '/events', label: 'Events' },
@@ -34,23 +36,29 @@ const dashboardLinks = [
 ];
 
 function UserNav() {
-    // Mock user with membership status
-    const user = { 
-        name: "John Doe", 
-        email: "john.doe@example.com", 
-        avatar: "https://picsum.photos/seed/profilepic/100/100",
-        membership: "Standard" // Can be "Standard" or "VIP"
-    }; 
-    const isLoggedIn = true;
+    const { user, loading } = useUser();
+    const router = useRouter();
+    const auth = getAuth();
+    // Mock membership status for now
+    const membership = "Standard";
 
-    if (!isLoggedIn) {
+    const handleSignOut = async () => {
+        await signOut(auth);
+        router.push('/');
+    };
+
+    if (loading) {
+      return <div className="h-10 w-24 rounded-full bg-muted animate-pulse" />;
+    }
+
+    if (!user) {
         return (
              <>
-                <Button variant="ghost" className="hidden sm:inline-flex font-poppins">
-                    Sign In
+                <Button variant="ghost" className="hidden sm:inline-flex font-poppins" asChild>
+                    <Link href="/login">Sign In</Link>
                 </Button>
-                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-poppins">
-                    Sign Up
+                <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-poppins" asChild>
+                    <Link href="/signup">Sign Up</Link>
                 </Button>
             </>
         )
@@ -61,16 +69,16 @@ function UserNav() {
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt={user.displayName || 'User'} />
+                        <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel>
                     <div className="flex items-center gap-2">
-                        <div className="font-bold">{user.name}</div>
-                        {user.membership === 'VIP' && (
+                        <div className="font-bold">{user.displayName || 'User'}</div>
+                        {membership === 'VIP' && (
                             <div className="flex items-center gap-1 text-xs bg-muted-gold text-white px-2 py-0.5 rounded-full">
                                 <Award className="h-3 w-3" />
                                 <span>VIP</span>
@@ -83,14 +91,18 @@ function UserNav() {
                 <DropdownMenuItem asChild>
                     <Link href="/profile"><User className="mr-2 h-4 w-4" /> My Profile</Link>
                 </DropdownMenuItem>
-                 {user.membership !== 'VIP' && (
+                 {membership !== 'VIP' && (
                     <DropdownMenuItem asChild>
                         <Link href="/membership" className="text-accent">
                             <Award className="mr-2 h-4 w-4" /> Upgrade to VIP
                         </Link>
                     </DropdownMenuItem>
                  )}
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                </DropdownMenuItem>
                  <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                     <Link href="/super-admin">Go to Super Admin</Link>
