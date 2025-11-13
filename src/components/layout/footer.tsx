@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ export function Footer() {
   return (
     <footer className="border-t border-border/40 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 py-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 py-16">
           <div className="col-span-2 lg:col-span-1">
             <Logo />
             <p className="mt-4 text-sm text-muted-foreground">
@@ -30,6 +31,7 @@ export function Footer() {
               <li><Link href="/partner" className="text-muted-foreground hover:text-foreground">Partner with Us</Link></li>
               <li><Link href="#" className="text-muted-foreground hover:text-foreground">Careers</Link></li>
               <li><Link href="#" className="text-muted-foreground hover:text-foreground">Press</Link></li>
+              <li><Link href="#" className="text-muted-foreground hover:text-foreground">Leadership</Link></li>
             </ul>
           </div>
           <div>
@@ -38,6 +40,14 @@ export function Footer() {
               <li><Link href="#" className="text-muted-foreground hover:text-foreground">Help Center</Link></li>
               <li><Link href="#" className="text-muted-foreground hover:text-foreground">Contact Us</Link></li>
               <li><Link href="#" className="text-muted-foreground hover:text-foreground">Terms of Service</Link></li>
+            </ul>
+          </div>
+           <div>
+            <h3 className="font-poppins font-semibold text-foreground">Policies</h3>
+            <ul className="mt-4 space-y-2 text-sm">
+              <li><Link href="#" className="text-muted-foreground hover:text-foreground">Privacy Policy</Link></li>
+              <li><Link href="#" className="text-muted-foreground hover:text-foreground">Terms</Link></li>
+              <li><Link href="#" className="text-muted-foreground hover:text-foreground">Cookie Policy</Link></li>
             </ul>
           </div>
           <div className="col-span-2 md:col-span-2 lg:col-span-1">
