@@ -1,69 +1,41 @@
-import Image from 'next/image';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Button } from '@/components/ui/button';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-const heroItems = [
-  {
-    image: PlaceHolderImages.find(p => p.id === 'hero-1')!,
-    title: "Unforgettable Live Music",
-    description: "Experience the artists you love, live and in person. Get your tickets now.",
-    cta: "Explore Concerts",
-  },
-  {
-    image: PlaceHolderImages.find(p => p.id === 'hero-2')!,
-    title: "Adventure Awaits",
-    description: "Discover breathtaking landscapes and curated tours. Your next journey starts here.",
-    cta: "Discover Tours",
-  },
-  {
-    image: PlaceHolderImages.find(p => p.id === 'hero-3')!,
-    title: "Own the Night",
-    description: "Find the hottest parties and nightlife events in your city.",
-    cta: "Explore Nightlife",
-  },
-];
+import { Button } from "@/components/ui/button";
+import { Sparkles, Ticket } from "lucide-react";
 
 export function HeroSection() {
   return (
-    <section className="relative w-full h-[60vh] md:h-[80vh]">
-      <Carousel
-        opts={{ loop: true }}
-        className="w-full h-full"
-      >
-        <CarouselContent className="h-full">
-          {heroItems.map((item, index) => (
-            <CarouselItem key={index} className="h-full">
-              <div className="relative h-full w-full">
-                <Image
-                  src={item.image.imageUrl}
-                  alt={item.image.description}
-                  fill
-                  className="object-cover"
-                  priority={index === 0}
-                  data-ai-hint={item.image.imageHint}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4">
-                  <div className="max-w-3xl">
-                    <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
-                      {item.title}
-                    </h1>
-                    <p className="mt-4 text-lg md:text-xl text-primary max-w-xl mx-auto">
-                      {item.description}
-                    </p>
-                    <Button size="lg" className="mt-8 bg-accent hover:bg-accent/90 text-accent-foreground font-poppins text-lg px-8 py-6">
-                      {item.cta}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 hidden md:inline-flex" />
-        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 hidden md:inline-flex" />
-      </Carousel>
+    <section 
+      className="relative w-full bg-[hsl(var(--deep-blue-background))] text-[hsl(var(--deep-blue-foreground))] py-24 md:py-36 overflow-hidden"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-background/5 via-background/10 to-secondary/20 opacity-30" />
+      <div className="absolute -bottom-1/2 -left-20 w-96 h-96 bg-accent/10 rounded-full filter blur-3xl opacity-40 animate-pulse" style={{animationDuration: '8s'}}></div>
+      <div className="absolute -top-1/2 -right-20 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl opacity-40 animate-pulse" style={{animationDuration: '10s', animationDelay: '2s'}}></div>
+      
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h1 className="font-headline text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight">
+          Discover Unforgettable Experiences
+        </h1>
+        <p className="mt-6 text-lg md:text-xl text-deep-blue-foreground/80 max-w-3xl mx-auto font-poppins">
+          Concerts, Festivals, Sports, and Community Events across Kenya. Your next adventure awaits.
+        </p>
+        <div className="mt-10 flex justify-center gap-4">
+          <Button 
+            size="lg" 
+            className="bg-accent hover:bg-accent/90 text-accent-foreground font-poppins font-semibold text-base md:text-lg px-8 py-6 rounded-full transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-accent/20"
+          >
+            <Ticket className="mr-2 h-5 w-5" />
+            Book Now
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="font-poppins font-semibold text-base md:text-lg px-8 py-6 rounded-full border-primary/50 text-primary transition-all duration-300 ease-in-out hover:scale-105 hover:bg-primary/10 hover:shadow-lg hover:shadow-primary/10"
+          >
+            <Sparkles className="mr-2 h-5 w-5" /> 
+            See Featured
+          </Button>
+        </div>
+      </div>
     </section>
   );
 }
