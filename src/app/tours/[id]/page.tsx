@@ -123,10 +123,12 @@ export default function TourDetailPage({ params }: TourDetailPageProps) {
             {/* Right Column: Booking */}
             <aside>
                 <div className="sticky top-24 space-y-6">
-                   <TourBookingCard price={tour.price} />
+                   <TourBookingCard tour={tour} />
                 </div>
             </aside>
         </div>
     </div>
   );
 }
+
+    

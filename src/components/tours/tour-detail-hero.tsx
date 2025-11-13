@@ -31,10 +31,12 @@ export function TourDetailHero({ tour }: TourDetailHeroProps) {
                 </div>
                 <div className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-accent" />
-                    <span>Up to 6 people</span>
+                    <span>Up to {tour.maxGuests} people</span>
                 </div>
             </div>
         </div>
     </section>
   );
 }
+
+    

@@ -18,7 +18,10 @@ export type Tour = {
     id: string;
     name: string;
     logoUrl: string;
-  }
+  };
+  privateBooking: boolean;
+  minGuests: number;
+  maxGuests: number;
 };
 
 export const toursData: Tour[] = [
@@ -45,7 +48,10 @@ export const toursData: Tour[] = [
         id: "alex-travel",
         name: "Alex Travel",
         logoUrl: "https://picsum.photos/seed/alextravel/100/100"
-    }
+    },
+    privateBooking: true,
+    minGuests: 2,
+    maxGuests: 6,
   },
   {
     id: "amboseli-kilimanjaro",
@@ -69,7 +75,10 @@ export const toursData: Tour[] = [
         id: "city-tours-co",
         name: "City Tours Co.",
         logoUrl: "https://picsum.photos/seed/citytours/100/100"
-    }
+    },
+    privateBooking: false,
+    minGuests: 4,
+    maxGuests: 12,
   },
   {
     id: "coastal-escape-diani",
@@ -94,7 +103,10 @@ export const toursData: Tour[] = [
         id: "alex-travel",
         name: "Alex Travel",
         logoUrl: "https://picsum.photos/seed/alextravel/100/100"
-    }
+    },
+    privateBooking: true,
+    minGuests: 2,
+    maxGuests: 8,
   },
   {
     id: "nairobi-city-tour",
@@ -118,6 +130,11 @@ export const toursData: Tour[] = [
         id: "city-tours-co",
         name: "City Tours Co.",
         logoUrl: "https://picsum.photos/seed/citytours/100/100"
-    }
+    },
+    privateBooking: false,
+    minGuests: 2,
+    maxGuests: 6,
   },
 ];
+
+    

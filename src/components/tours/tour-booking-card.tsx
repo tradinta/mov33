@@ -9,23 +9,24 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import type { Tour } from '@/lib/tours-data';
 
 interface TourBookingCardProps {
-  price: string;
+  tour: Tour;
 }
 
-export function TourBookingCard({ price }: TourBookingCardProps) {
+export function TourBookingCard({ tour }: TourBookingCardProps) {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [adults, setAdults] = useState(1);
+  const [adults, setAdults] = useState(tour.minGuests || 1);
 
-  const total = parseInt(price.replace(/,/g, '')) * adults;
+  const total = parseInt(tour.price.replace(/,/g, '')) * adults;
 
   return (
     <Card className="bg-card/50 backdrop-blur-lg">
       <CardHeader>
         <div className="flex justify-between items-baseline">
             <CardDescription>From</CardDescription>
-            <p className="font-headline text-3xl font-bold text-accent">KES {price}</p>
+            <p className="font-headline text-3xl font-bold text-accent">KES {tour.price}</p>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -64,11 +65,11 @@ export function TourBookingCard({ price }: TourBookingCardProps) {
                     <span className='font-semibold'>Adults</span>
                 </div>
                 <div className='flex items-center gap-3'>
-                    <Button variant="outline" size="icon" className='h-8 w-8 rounded-full' onClick={() => setAdults(Math.max(1, adults - 1))}>
+                    <Button variant="outline" size="icon" className='h-8 w-8 rounded-full' onClick={() => setAdults(Math.max(tour.minGuests || 1, adults - 1))}>
                         <Minus className="h-4 w-4" />
                     </Button>
                     <span className='text-lg font-bold w-4 text-center'>{adults}</span>
-                    <Button variant="outline" size="icon" className='h-8 w-8 rounded-full' onClick={() => setAdults(adults + 1)}>
+                    <Button variant="outline" size="icon" className='h-8 w-8 rounded-full' onClick={() => setAdults(Math.min(tour.maxGuests || 10, adults + 1))}>
                         <Plus className="h-4 w-4" />
                     </Button>
                 </div>
@@ -87,3 +88,5 @@ export function TourBookingCard({ price }: TourBookingCardProps) {
     </Card>
   );
 }
+
+    

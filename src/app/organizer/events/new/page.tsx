@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,11 +49,13 @@ import {
   Star,
   Trash2,
   Upload,
+  Users,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { TicketsSection } from '@/components/organizer/event-form/tickets-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 
 const ticketSchema = z.object({
     tier: z.string().min(2, 'Tier name is required.'),
@@ -77,6 +80,10 @@ const formSchema = z.object({
   highlights: z.string().optional(),
   includes: z.string().optional(),
   notIncludes: z.string().optional(),
+  privateBooking: z.boolean().default(false),
+  minGuests: z.coerce.number().optional(),
+  maxGuests: z.coerce.number().optional(),
+
 
   // Common
   location: z.string().min(2, 'Location is required.'),
@@ -154,6 +161,7 @@ export default function NewEventPage() {
       highlights: '',
       includes: '',
       notIncludes: '',
+      privateBooking: false,
     },
   });
 
@@ -449,9 +457,54 @@ export default function NewEventPage() {
                  <AccordionItem value="item-3" className="border-b-0">
                     <Card>
                         <AccordionTrigger className="p-6 font-headline text-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-t-lg hover:no-underline bg-muted/50">
-                            Tour Details
+                            Tour Details & Pricing
                         </AccordionTrigger>
                          <AccordionContent className="p-6 pt-0 space-y-6">
+                             <div className='grid md:grid-cols-2 gap-6'>
+                                <FormField
+                                    control={form.control}
+                                    name="minGuests"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel className="flex items-center gap-2"><Users className='w-4 h-4' /> Min. Guests</FormLabel>
+                                        <FormControl><Input type="number" placeholder="e.g., 2" {...field} /></FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="maxGuests"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel className="flex items-center gap-2"><Users className='w-4 h-4' /> Max. Guests</FormLabel>
+                                        <FormControl><Input type="number" placeholder="e.g., 8" {...field} /></FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={form.control}
+                                    name="privateBooking"
+                                    render={({ field }) => (
+                                        <FormItem className="md:col-span-2 flex flex-row items-center justify-between rounded-lg border p-4">
+                                        <div className="space-y-0.5">
+                                            <FormLabel className="text-base">Allow Private Bookings</FormLabel>
+                                            <FormDescription>
+                                            Allow a single person or group to book this tour exclusively.
+                                            </FormDescription>
+                                        </div>
+                                        <FormControl>
+                                            <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                            />
+                                        </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
+
+                             </div>
                             <FormField
                                 control={form.control}
                                 name="highlights"
@@ -642,3 +695,5 @@ export default function NewEventPage() {
     </div>
   );
 }
+
+    
