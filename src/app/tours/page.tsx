@@ -7,7 +7,9 @@ import type { Metadata } from 'next';
 import { TourFilter } from '@/components/tours/tour-filter';
 import { Button } from '@/components/ui/button';
 import { SlidersHorizontal } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Link from 'next/link';
 
 // export const metadata: Metadata = {
 //   title: 'Kenya Tours & Safaris | Mov33',
@@ -53,7 +55,20 @@ export default function ToursPage() {
                 </Dialog>
             </div>
             
-            <h2 className="font-headline text-3xl font-bold hidden lg:block">Available Tours</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="font-headline text-3xl font-bold hidden lg:block">Available Tours</h2>
+              <Tabs defaultValue="all" className="w-full">
+                <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="today">Today</TabsTrigger>
+                  <TabsTrigger value="tomorrow">This Weekend</TabsTrigger>
+                  <TabsTrigger value="past" asChild>
+                    <Link href="/archive">Past</Link>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
             <ToursList />
           </main>
         </div>
@@ -61,5 +76,3 @@ export default function ToursPage() {
     </div>
   );
 }
-
-    
