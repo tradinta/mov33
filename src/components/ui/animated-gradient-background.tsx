@@ -6,25 +6,16 @@ import { cn } from "@/lib/utils";
 export function AnimatedGradientBackground({ className }: { className?: string }) {
     return (
         <div className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}>
+            {/* Soft radial glow */}
             <div 
-                className="absolute inset-0 z-0 opacity-40 dark:opacity-30"
+                className="absolute top-[-20%] right-[-20%] h-[500px] w-[500px] rounded-full opacity-20"
                 style={{
-                    backgroundImage: 'conic-gradient(from 90deg at 50% 50%, hsl(var(--accent)) -20%, hsl(var(--muted-gold)) 30%, hsl(var(--secondary)) 50%, hsl(var(--muted-gold)) 70%, hsl(var(--accent)) 120%)',
+                    background: 'radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%)',
                     filter: 'blur(100px)',
-                    animation: 'spin 20s linear infinite'
                 }}
             />
-            <div className="absolute inset-0 z-10 h-full w-full bg-[linear-gradient(to_right,#8080800c_1px,transparent_1px),linear-gradient(to_bottom,#8080800c_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_60%,transparent_100%)]"></div>
-             <style jsx>{`
-                @keyframes spin {
-                    from {
-                        transform: rotate(0deg);
-                    }
-                    to {
-                        transform: rotate(360deg);
-                    }
-                }
-            `}</style>
+             {/* Grid pattern overlay */}
+            <div className="absolute inset-0 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
         </div>
     );
 }
