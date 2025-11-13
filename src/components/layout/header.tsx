@@ -1,8 +1,7 @@
-
 'use client';
 
 import Link from 'next/link';
-import { ChevronDown, Menu, Search, User } from 'lucide-react';
+import { Award, ChevronDown, Menu, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
@@ -35,7 +34,13 @@ const dashboardLinks = [
 ];
 
 function UserNav() {
-    const user = { name: "John Doe", email: "john.doe@example.com", avatar: "https://picsum.photos/seed/profilepic/100/100" }; // Mock user
+    // Mock user with membership status
+    const user = { 
+        name: "John Doe", 
+        email: "john.doe@example.com", 
+        avatar: "https://picsum.photos/seed/profilepic/100/100",
+        membership: "Standard" // Can be "Standard" or "VIP"
+    }; 
     const isLoggedIn = true;
 
     if (!isLoggedIn) {
@@ -63,13 +68,28 @@ function UserNav() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel>
-                    <div className="font-bold">{user.name}</div>
+                    <div className="flex items-center gap-2">
+                        <div className="font-bold">{user.name}</div>
+                        {user.membership === 'VIP' && (
+                            <div className="flex items-center gap-1 text-xs bg-muted-gold text-white px-2 py-0.5 rounded-full">
+                                <Award className="h-3 w-3" />
+                                <span>VIP</span>
+                            </div>
+                        )}
+                    </div>
                     <div className="text-xs text-muted-foreground">{user.email}</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                     <Link href="/profile"><User className="mr-2 h-4 w-4" /> My Profile</Link>
                 </DropdownMenuItem>
+                 {user.membership !== 'VIP' && (
+                    <DropdownMenuItem asChild>
+                        <Link href="/membership" className="text-accent">
+                            <Award className="mr-2 h-4 w-4" /> Upgrade to VIP
+                        </Link>
+                    </DropdownMenuItem>
+                 )}
                 <DropdownMenuItem>Logout</DropdownMenuItem>
                  <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>

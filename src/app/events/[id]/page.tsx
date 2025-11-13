@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState } from 'react';
@@ -8,6 +7,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { 
+  Award,
   Calendar, 
   ChevronRight, 
   Clock, 
@@ -47,6 +47,7 @@ import { ImageGallery } from '@/components/events/image-gallery';
 import Link from 'next/link';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
+import { UpgradeToVipCard } from '@/components/shared/upgrade-to-vip-card';
 
 // Dummy data that would normally come from a CMS or database
 const eventDetails = {
@@ -181,10 +182,20 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   const router = useRouter();
 
   const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
+  
+  // Mock current user status. In a real app, this would come from a user context or session.
+  const currentUser = {
+    membership: "Standard" // Change to "VIP" to test access
+  };
 
   if (!event) {
     notFound();
   }
+
+  const isVipEvent = event.tags.includes("VIP");
+  const hasVipAccess = currentUser.membership === "VIP";
+  const showUpgradeGate = isVipEvent && !hasVipAccess;
+
 
   const handleQuantityChange = (ticketId: string, change: number) => {
     setTicketQuantities(prev => {
@@ -261,7 +272,10 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                     <header>
                         <div className="flex items-center gap-2">
                             {event.tags.map(tag => (
-                                <Badge key={tag} variant="secondary" className="font-poppins">{tag}</Badge>
+                                <Badge key={tag} variant={tag === 'VIP' ? 'destructive' : 'secondary'} className={cn(tag === 'VIP' && 'bg-muted-gold text-white', 'font-poppins')}>
+                                    {tag === 'VIP' && <Award className="mr-1.5 h-3 w-3" />}
+                                    {tag}
+                                </Badge>
                             ))}
                         </div>
                         <h1 className="font-headline text-4xl md:text-5xl font-extrabold text-foreground mt-4">
@@ -288,6 +302,9 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                     
                     {/* Ticket Booking Section */}
                     <section id="tickets">
+                        {showUpgradeGate ? (
+                            <UpgradeToVipCard />
+                        ) : (
                         <Card className="bg-card/50 backdrop-blur-lg shadow-xl">
                             <CardHeader>
                                 <CardTitle className="font-headline text-2xl">Book Your Tickets</CardTitle>
@@ -334,6 +351,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                                 </Button>
                             </CardFooter>
                         </Card>
+                        )}
                     </section>
 
 
