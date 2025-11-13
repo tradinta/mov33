@@ -13,11 +13,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/logo";
 import { Chrome, Github } from "lucide-react";
+import { AnimatedGradientBackground } from "@/components/ui/animated-gradient-background";
 
 export default function LoginPage() {
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
-      <div className="flex items-center justify-center py-12">
+      <div className="hidden bg-muted lg:block relative overflow-hidden">
+        <AnimatedGradientBackground />
+        <div className="absolute bottom-8 left-8 right-8 p-4 bg-black/50 rounded-lg backdrop-blur-sm z-10">
+             <h3 className="text-white text-2xl font-bold font-headline">Your next unforgettable experience is just a login away.</h3>
+             <p className="text-white/80 mt-2">Discover, book, and manage tickets for the best live events in Kenya.</p>
+        </div>
+      </div>
+       <div className="flex items-center justify-center py-12">
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
             <Logo className="mx-auto" />
@@ -62,20 +70,6 @@ export default function LoginPage() {
               Sign up
             </Link>
           </div>
-        </div>
-      </div>
-      <div className="hidden bg-muted lg:block relative">
-        <Image
-          src="https://images.unsplash.com/photo-1533137098665-47ca60257cec?q=80&w=1920"
-          alt="Image"
-          width="1920"
-          height="1080"
-          className="h-full w-full object-cover dark:brightness-[0.3]"
-          data-ai-hint="concert background"
-        />
-        <div className="absolute bottom-8 left-8 right-8 p-4 bg-black/50 rounded-lg backdrop-blur-sm">
-             <h3 className="text-white text-2xl font-bold font-headline">Your next unforgettable experience is just a login away.</h3>
-             <p className="text-white/80 mt-2">Discover, book, and manage tickets for the best live events in Kenya.</p>
         </div>
       </div>
     </div>
