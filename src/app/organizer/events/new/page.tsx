@@ -1,4 +1,3 @@
-
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,54 +43,57 @@ import { Calendar } from '@/components/ui/calendar';
 import {
   ArrowLeft,
   CalendarIcon,
+  Check,
   PlusCircle,
+  Star,
   Trash2,
   Upload,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { TicketsSection } from '@/components/organizer/event-form/tickets-section';
-
-const discountSchema = z.object({
-  quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
-  percentage: z.coerce.number().min(1, 'Percentage must be at least 1.').max(100, 'Percentage cannot exceed 100.'),
-});
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const ticketSchema = z.object({
     tier: z.string().min(2, 'Tier name is required.'),
     price: z.coerce.number().min(0, 'Price must be a positive number.'),
     description: z.string().optional(),
     perks: z.string().min(3, 'Please list at least one perk.'),
-    discounts: z.array(discountSchema).optional(),
 });
 
 
 const formSchema = z.object({
-  name: z.string().min(3, 'Event name must be at least 3 characters.'),
-  date: z.date({
-    required_error: 'A date is required.',
-  }),
-  venue: z.string().min(2, 'Venue is required.'),
-  location: z.string().min(2, 'Location is required.'),
+  listingType: z.enum(['event', 'tour']).default('event'),
+  name: z.string().min(3, 'Listing name must be at least 3 characters.'),
   description: z.string().min(10, 'A short description is required.'),
   
-  // Display & SEO
+  // Event-specific
+  date: z.date().optional(),
+  venue: z.string().optional(),
+
+  // Tour-specific
+  duration: z.string().optional(),
+  destination: z.string().optional(),
+  highlights: z.string().optional(),
+  includes: z.string().optional(),
+  notIncludes: z.string().optional(),
+
+  // Common
+  location: z.string().min(2, 'Location is required.'),
   about: z.string().min(50, 'The "About" section must be at least 50 characters.'),
   tags: z.string().min(1, 'Please enter at least one tag, separated by commas.'),
   mainImage: z.string().url('Please enter a valid image URL.'),
   
-  // Tickets
-  tickets: z.array(ticketSchema).min(1, "You must add at least one ticket tier."),
+  tickets: z.array(ticketSchema).optional(),
 
-  // Schedule
   schedule: z.array(z.object({
     day: z.string().min(1, 'Day description is required.'),
     items: z.array(z.object({
         time: z.string().min(1, 'Time is required'),
         title: z.string().min(3, 'Title is required'),
     })).min(1, "You must add at least one schedule item for the day."),
-  })).min(1, "You must add at least one day to the schedule."),
+  })).optional(),
 
-  // Additional Information
   artists: z.array(z.object({
       name: z.string().min(2, 'Artist name is required'),
       role: z.string().min(3, 'Artist role is required'),
@@ -108,7 +110,24 @@ const formSchema = z.object({
       a: z.string().min(5, 'Answer is required.'),
   })).optional(),
 
+}).refine(data => {
+    if (data.listingType === 'event') {
+        return !!data.date && !!data.venue && (data.tickets || []).length > 0;
+    }
+    return true;
+}, {
+    message: "Date, Venue, and at least one ticket tier are required for events.",
+    path: ['listingType'],
+}).refine(data => {
+    if (data.listingType === 'tour') {
+        return !!data.duration && !!data.destination && !!data.highlights && !!data.includes && !!data.notIncludes;
+    }
+    return true;
+}, {
+    message: "Duration, Destination, Highlights, and Inclusions/Exclusions are required for tours.",
+    path: ['listingType'],
 });
+
 
 export type EventFormValues = z.infer<typeof formSchema>;
 
@@ -117,6 +136,7 @@ export default function NewEventPage() {
   const form = useForm<EventFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      listingType: 'event',
       name: '',
       venue: '',
       location: '',
@@ -124,13 +144,20 @@ export default function NewEventPage() {
       about: '',
       tags: '',
       mainImage: '',
-      tickets: [{ tier: 'Regular', price: 0, perks: 'General Access', description: '', discounts: [] }],
+      tickets: [{ tier: 'Regular', price: 0, perks: 'General Access', description: '' }],
       schedule: [{ day: 'Day 1', items: [{ time: '06:00 PM', title: 'Doors Open'}] }],
       artists: [],
       gallery: [],
       faqs: [],
+      duration: '',
+      destination: '',
+      highlights: '',
+      includes: '',
+      notIncludes: '',
     },
   });
+
+  const listingType = form.watch('listingType');
 
   const { fields: scheduleFields, append: appendSchedule, remove: removeSchedule } = useFieldArray({
     control: form.control,
@@ -163,12 +190,12 @@ export default function NewEventPage() {
 
   const addScheduleItem = (dayIndex: number) => {
     const currentItems = form.getValues(`schedule.${dayIndex}.items`);
-    form.setValue(`schedule.${dayIndex}.items`, [...currentItems, { time: '', title: '' }]);
+    form.setValue(`schedule.${dayIndex}.items`, [...(currentItems || []), { time: '', title: '' }]);
   }
 
   const removeScheduleItem = (dayIndex: number, itemIndex: number) => {
     const currentItems = form.getValues(`schedule.${dayIndex}.items`);
-    form.setValue(`schedule.${dayIndex}.items`, currentItems.filter((_, i) => i !== itemIndex));
+    form.setValue(`schedule.${dayIndex}.items`, (currentItems || []).filter((_, i) => i !== itemIndex));
   }
 
   return (
@@ -177,19 +204,52 @@ export default function NewEventPage() {
         <Button variant="outline" size="icon" asChild>
           <Link href="/organizer/events">
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to events</span>
+            <span className="sr-only">Back to listings</span>
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold font-headline">Create a New Event</h1>
+          <h1 className="text-2xl font-bold font-headline">Create a New Listing</h1>
           <p className="text-muted-foreground">
-            Fill out the details below to list your event on Mov33.
+            Fill out the details below to list your event or tour on Mov33.
           </p>
         </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <Card className='p-6'>
+                 <FormField
+                    control={form.control}
+                    name="listingType"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                        <FormLabel>What are you listing?</FormLabel>
+                        <FormControl>
+                            <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex space-x-4"
+                            >
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="event" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Event</FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="tour" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Tour</FormLabel>
+                            </FormItem>
+                            </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+            </Card>
+
           <Accordion type="multiple" defaultValue={['item-1', 'item-3']} className="w-full space-y-4">
             {/* Core Details */}
             <AccordionItem value="item-1" className="border-b-0">
@@ -204,86 +264,110 @@ export default function NewEventPage() {
                             name="name"
                             render={({ field }) => (
                                 <FormItem className="md:col-span-2">
-                                <FormLabel>Event Name</FormLabel>
+                                <FormLabel>{listingType === 'event' ? 'Event Name' : 'Tour Name'}</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="e.g., Sauti Sol: Live in Nairobi" {...field} />
+                                    <Input placeholder={listingType === 'event' ? "e.g., Sauti Sol: Live in Nairobi" : "e.g., 3-Day Maasai Mara Safari"} {...field} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
                             )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="date"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-col">
-                                    <FormLabel>Event Date</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
+
+                            {listingType === 'event' && (
+                                <>
+                                 <FormField
+                                    control={form.control}
+                                    name="date"
+                                    render={({ field }) => (
+                                        <FormItem className="flex flex-col">
+                                        <FormLabel>Event Date</FormLabel>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                                >
+                                                {field.value ? (
+                                                    format(field.value, "PPP")
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                </Button>
+                                            </FormControl>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={field.value}
+                                                onSelect={field.onChange}
+                                                disabled={(date) =>
+                                                date < new Date() || date < new Date("1900-01-01")
+                                                }
+                                                initialFocus
+                                            />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={form.control}
+                                    name="venue"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Venue</FormLabel>
                                         <FormControl>
-                                            <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-full pl-3 text-left font-normal",
-                                                !field.value && "text-muted-foreground"
-                                            )}
-                                            >
-                                            {field.value ? (
-                                                format(field.value, "PPP")
-                                            ) : (
-                                                <span>Pick a date</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
+                                            <Input placeholder="e.g., Uhuru Gardens" {...field} />
                                         </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            disabled={(date) =>
-                                            date < new Date() || date < new Date("1900-01-01")
-                                            }
-                                            initialFocus
-                                        />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                </>
+                            )}
+                             {listingType === 'tour' && (
+                                <>
+                                 <FormField
+                                    control={form.control}
+                                    name="duration"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Tour Duration</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., 3 Days, 2 Nights" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={form.control}
+                                    name="destination"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Destination</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., Maasai Mara" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                </>
+                            )}
+
+
                              <FormField
-                                control={form.control}
-                                name="description"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Time</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="e.g., 7:00 PM" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="venue"
-                                render={({ field }) => (
-                                    <FormItem>
-                                    <FormLabel>Venue</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="e.g., Uhuru Gardens" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
                                 control={form.control}
                                 name="location"
                                 render={({ field }) => (
-                                    <FormItem>
+                                    <FormItem className="md:col-span-2">
                                     <FormLabel>Location</FormLabel>
                                     <FormControl>
                                         <Input placeholder="e.g., Nairobi" {...field} />
@@ -309,14 +393,14 @@ export default function NewEventPage() {
                             name="mainImage"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Main Event Image</FormLabel>
+                                <FormLabel>Main Image</FormLabel>
                                 <FormControl>
                                     <div className='flex items-center gap-2'>
                                         <Input placeholder="https://..." {...field} />
                                         <Button variant="outline" size="icon"><Upload /></Button>
                                     </div>
                                 </FormControl>
-                                <FormDescription>This is the main image shown on the event card.</FormDescription>
+                                <FormDescription>This is the main image shown on the listing card.</FormDescription>
                                 <FormMessage />
                                 </FormItem>
                             )}
@@ -326,15 +410,15 @@ export default function NewEventPage() {
                             name="about"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>About The Event</FormLabel>
+                                <FormLabel>About The {listingType === 'event' ? 'Event' : 'Tour'}</FormLabel>
                                 <FormControl>
                                     <Textarea
-                                    placeholder="Tell attendees more about this event, what to expect, and why they should come..."
+                                    placeholder="Tell people more about this listing, what to expect, and why they should book..."
                                     className="resize-y min-h-[120px]"
                                     {...field}
                                     />
                                 </FormControl>
-                                 <FormDescription>A detailed description for the event page. Supports Markdown.</FormDescription>
+                                 <FormDescription>A detailed description for the listing page. Supports Markdown.</FormDescription>
                                 <FormMessage />
                                 </FormItem>
                             )}
@@ -356,17 +440,68 @@ export default function NewEventPage() {
                     </AccordionContent>
                 </Card>
             </AccordionItem>
+            
+            {listingType === 'event' ? (
+                <AccordionItem value="item-3" className="border-b-0">
+                    <TicketsSection />
+                </AccordionItem>
+            ) : (
+                 <AccordionItem value="item-3" className="border-b-0">
+                    <Card>
+                        <AccordionTrigger className="p-6 font-headline text-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-t-lg hover:no-underline bg-muted/50">
+                            Tour Details
+                        </AccordionTrigger>
+                         <AccordionContent className="p-6 pt-0 space-y-6">
+                            <FormField
+                                control={form.control}
+                                name="highlights"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel className="flex items-center gap-2"><Star className='w-4 h-4 text-accent'/> Highlights</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="List the main highlights, separated by commas." {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="includes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel className="flex items-center gap-2"><Check className='w-4 h-4 text-green-500'/> What's Included</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="List what the price includes, separated by commas." {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="notIncludes"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel className="flex items-center gap-2"><X className='w-4 h-4 text-destructive'/> What's Not Included</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="List what the price excludes, separated by commas." {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                         </AccordionContent>
+                    </Card>
+                </AccordionItem>
+            )}
 
-            {/* Tickets */}
-            <AccordionItem value="item-3" className="border-b-0">
-                <TicketsSection />
-            </AccordionItem>
 
              {/* Schedule */}
             <AccordionItem value="item-4" className="border-b-0">
                 <Card>
                     <AccordionTrigger className="p-6 font-headline text-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-t-lg hover:no-underline bg-muted/50">
-                        Schedule
+                        Schedule / Itinerary
                     </AccordionTrigger>
                     <AccordionContent className="p-6 pt-0 space-y-4">
                        {scheduleFields.map((dayField, dayIndex) => (
@@ -427,7 +562,7 @@ export default function NewEventPage() {
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => appendSchedule({ day: `Day ${scheduleFields.length + 1}`, items: [{time: '', title: ''}]})}
+                            onClick={() => appendSchedule({ day: `Day ${(scheduleFields || []).length + 1}`, items: [{time: '', title: ''}]})}
                         >
                            <PlusCircle className="mr-2 h-4 w-4" /> Add Day / Stage
                         </Button>
@@ -500,7 +635,7 @@ export default function NewEventPage() {
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button">Save as Draft</Button>
-            <Button type="submit">Publish Event</Button>
+            <Button type="submit">Publish {listingType === 'event' ? 'Event' : 'Tour'}</Button>
           </div>
         </form>
       </Form>
