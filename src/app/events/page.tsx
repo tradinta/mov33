@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { FeaturedEventsCarousel } from '@/components/events/featured-events-carousel';
 import { EventSearch } from '@/components/events/event-search';
+import Link from 'next/link';
 
 
 export default function EventsPage() {
@@ -63,7 +64,9 @@ export default function EventsPage() {
                 <TabsTrigger value="all">All Events</TabsTrigger>
                 <TabsTrigger value="today">Today</TabsTrigger>
                 <TabsTrigger value="this-weekend">This Weekend</TabsTrigger>
-                <TabsTrigger value="past">Past</TabsTrigger>
+                 <TabsTrigger value="past" asChild>
+                  <Link href="/archive">Past Events</Link>
+                </TabsTrigger>
               </TabsList>
               <div className="my-6">
                 <EventSearch />
@@ -78,11 +81,7 @@ export default function EventsPage() {
                 <EventGrid />
               </TabsContent>
               <TabsContent value="past">
-                {/* For now, this shows the same as upcoming. In a real app, this would be a separate data fetch. */}
-                <EventGrid /> 
-                <div className="text-center mt-8">
-                  <p className="text-muted-foreground">Showing a placeholder for past events.</p>
-                </div>
+                 {/* This content is now handled by the /archive page */}
               </TabsContent>
             </Tabs>
           </main>
