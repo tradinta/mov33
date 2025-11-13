@@ -13,13 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/logo";
 import { Chrome, Github } from "lucide-react";
-import { AnimatedGradientBackground } from "@/components/ui/animated-gradient-background";
+import { TrianglifyBackground } from "@/components/ui/trianglify-background";
 
 export default function LoginPage() {
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
       <div className="hidden bg-muted lg:block relative overflow-hidden">
-        <AnimatedGradientBackground />
+        <TrianglifyBackground />
         <div className="absolute bottom-8 left-8 right-8 p-4 bg-black/50 rounded-lg backdrop-blur-sm z-10">
              <h3 className="text-white text-2xl font-bold font-headline">Your next unforgettable experience is just a login away.</h3>
              <p className="text-white/80 mt-2">Discover, book, and manage tickets for the best live events in Kenya.</p>
