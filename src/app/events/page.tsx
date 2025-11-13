@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { EventFilter } from "@/components/events/event-filter";
 import { EventGrid } from "@/components/events/event-grid";
-import { HeroSection } from "@/components/events/hero-section";
 import type { Metadata } from 'next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { FeaturedEventsCarousel } from '@/components/events/featured-events-carousel';
 
 
 // export const metadata: Metadata = {
@@ -28,7 +28,6 @@ export default function EventsPage() {
   
   return (
     <div className="bg-background">
-      <HeroSection />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-8">
            {/* Filters Column (Desktop) */}
@@ -40,9 +39,11 @@ export default function EventsPage() {
           
            {/* Main Content Column */}
           <main className="lg:col-span-3">
+             <FeaturedEventsCarousel />
+
              {/* Mobile Filter Button */}
-            <div className="lg:hidden mb-6 flex justify-between items-center">
-                <h2 className="font-headline text-2xl font-bold">Upcoming Events</h2>
+            <div className="lg:hidden my-6 flex justify-between items-center">
+                <h2 className="font-headline text-2xl font-bold">All Events</h2>
                 <Dialog open={isFilterSheetOpen} onOpenChange={setFilterSheetOpen}>
                     <DialogTrigger asChild>
                         <Button variant="outline">
@@ -62,12 +63,20 @@ export default function EventsPage() {
                 </Dialog>
             </div>
 
-            <Tabs defaultValue="upcoming" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 max-w-sm">
-                <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
-                <TabsTrigger value="past">Past & Archived</TabsTrigger>
+            <Tabs defaultValue="all" className="w-full mt-12">
+              <TabsList className="grid w-full grid-cols-4 max-w-lg">
+                <TabsTrigger value="all">All Events</TabsTrigger>
+                <TabsTrigger value="today">Today</TabsTrigger>
+                <TabsTrigger value="this-weekend">This Weekend</TabsTrigger>
+                <TabsTrigger value="past">Past</TabsTrigger>
               </TabsList>
-              <TabsContent value="upcoming">
+              <TabsContent value="all">
+                <EventGrid />
+              </TabsContent>
+               <TabsContent value="today">
+                <EventGrid />
+              </TabsContent>
+               <TabsContent value="this-weekend">
                 <EventGrid />
               </TabsContent>
               <TabsContent value="past">
