@@ -33,7 +33,6 @@ import {
   PlusCircle,
   Star,
   Trash2,
-  Upload,
   Users,
   X,
 } from 'lucide-react';
@@ -43,6 +42,7 @@ import { createListing } from '@/lib/actions';
 import { useUser } from '@/firebase/auth/use-user';
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import { ImageUploader } from '@/components/organizer/event-form/image-uploader';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Tour name must be at least 3 characters.'),
@@ -60,7 +60,7 @@ const formSchema = z.object({
   location: z.string().min(2, 'Location is required.'),
   about: z.string().min(50, 'The "About" section must be at least 50 characters.'),
   tags: z.string().min(1, 'Please enter at least one tag, separated by commas.'),
-  mainImage: z.string().url('Please enter a valid image URL.'),
+  mainImage: z.string().url('Please upload a main image for the tour.'),
   
   schedule: z.array(z.object({
     day: z.string().min(1, 'Day description is required.'),
@@ -268,22 +268,11 @@ export default function NewTourPage() {
                         Display & SEO
                     </AccordionTrigger>
                     <AccordionContent className="p-6 pt-0 space-y-6">
-                         <FormField
-                            control={form.control}
+                         <ImageUploader 
                             name="mainImage"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Main Image</FormLabel>
-                                <FormControl>
-                                    <div className='flex items-center gap-2'>
-                                        <Input placeholder="https://..." {...field} />
-                                        <Button variant="outline" size="icon"><Upload /></Button>
-                                    </div>
-                                </FormControl>
-                                <FormDescription>This is the main image shown on the listing card.</FormDescription>
-                                <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Main Tour Image"
+                            description="This is the main image shown on the listing card."
+                            folder="tours"
                         />
                          <FormField
                             control={form.control}
@@ -465,7 +454,7 @@ export default function NewTourPage() {
                                                 </FormItem>
                                             )}
                                         />
-                                        <Button variant="ghost" size="icon" onClick={() => removeScheduleItem(dayIndex, itemIndex)}>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeScheduleItem(dayIndex, itemIndex)}>
                                             <Trash2 className="h-4 w-4 text-muted-foreground" />
                                         </Button>
                                     </div>
@@ -505,7 +494,7 @@ export default function NewTourPage() {
                                         <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,auto] gap-4 items-start">
                                             <FormField control={form.control} name={`gallery.${index}.imageUrl`} render={({ field }) => (<FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                                             <FormField control={form.control} name={`gallery.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                            <Button variant="ghost" size="icon" className="mt-8" onClick={() => removeGallery(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                            <Button type="button" variant="ghost" size="icon" className="mt-8" onClick={() => removeGallery(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                         </div>
                                     </Card>
                                 ))}
@@ -521,7 +510,7 @@ export default function NewTourPage() {
                                         <div className="grid grid-cols-1 md:grid-cols-[1fr,2fr,auto] gap-4 items-start">
                                             <FormField control={form.control} name={`faqs.${index}.q`} render={({ field }) => (<FormItem><FormLabel>Question</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                                             <FormField control={form.control} name={`faqs.${index}.a`} render={({ field }) => (<FormItem><FormLabel>Answer</FormLabel><FormControl><Textarea className="min-h-0" {...field} /></FormControl></FormItem>)} />
-                                            <Button variant="ghost" size="icon" className="mt-8" onClick={() => removeFaq(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                            <Button type="button" variant="ghost" size="icon" className="mt-8" onClick={() => removeFaq(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                         </div>
                                     </Card>
                                 ))}
@@ -544,5 +533,3 @@ export default function NewTourPage() {
     </div>
   );
 }
-
-    

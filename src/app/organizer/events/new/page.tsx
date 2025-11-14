@@ -25,9 +25,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import {
-  Card,
-} from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import {
   Popover,
   PopoverContent,
@@ -39,7 +37,6 @@ import {
   CalendarIcon,
   PlusCircle,
   Trash2,
-  Upload,
 } from 'lucide-react';
 import Link from 'next/link';
 import { TicketsSection } from '@/components/organizer/event-form/tickets-section';
@@ -47,14 +44,21 @@ import { createListing } from '@/lib/actions';
 import { useUser } from '@/firebase/auth/use-user';
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import { ImageUploader } from '@/components/organizer/event-form/image-uploader';
 
-const ticketSchema = z.object({
-    tier: z.string().min(2, 'Tier name is required.'),
-    price: z.coerce.number().min(0, 'Price must be a positive number.'),
-    description: z.string().optional(),
-    perks: z.string().min(3, 'Please list at least one perk.'),
+
+const ticketDiscountSchema = z.object({
+  quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
+  percentage: z.coerce.number().min(1, 'Discount must be at least 1%').max(100, 'Discount cannot exceed 100%'),
 });
 
+const ticketSchema = z.object({
+  tier: z.string().min(2, 'Tier name is required.'),
+  price: z.coerce.number().min(0, 'Price must be a positive number.'),
+  description: z.string().optional(),
+  perks: z.string().min(3, 'Please list at least one perk.'),
+  discounts: z.array(ticketDiscountSchema).optional(),
+});
 
 const formSchema = z.object({
   name: z.string().min(3, 'Event name must be at least 3 characters.'),
@@ -64,7 +68,7 @@ const formSchema = z.object({
   location: z.string().min(2, 'Location is required.'),
   about: z.string().min(50, 'The "About" section must be at least 50 characters.'),
   tags: z.string().min(1, 'Please enter at least one tag, separated by commas.'),
-  mainImage: z.string().url('Please enter a valid image URL.'),
+  mainImage: z.string().url('Please upload a main image for the event.'),
   
   tickets: z.array(ticketSchema).min(1, 'You must add at least one ticket tier.'),
 
@@ -91,7 +95,6 @@ const formSchema = z.object({
       q: z.string().min(5, 'Question is required.'),
       a: z.string().min(5, 'Answer is required.'),
   })).optional(),
-
 });
 
 
@@ -309,22 +312,11 @@ export default function NewEventPage() {
                         Display & SEO
                     </AccordionTrigger>
                     <AccordionContent className="p-6 pt-0 space-y-6">
-                         <FormField
-                            control={form.control}
+                        <ImageUploader 
                             name="mainImage"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Main Image</FormLabel>
-                                <FormControl>
-                                    <div className='flex items-center gap-2'>
-                                        <Input placeholder="https://..." {...field} />
-                                        <Button variant="outline" size="icon"><Upload /></Button>
-                                    </div>
-                                </FormControl>
-                                <FormDescription>This is the main image shown on the listing card.</FormDescription>
-                                <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Main Event Image"
+                            description="This is the main image shown on the listing card."
+                            folder="events"
                         />
                          <FormField
                             control={form.control}
@@ -417,7 +409,7 @@ export default function NewEventPage() {
                                                 </FormItem>
                                             )}
                                         />
-                                        <Button variant="ghost" size="icon" onClick={() => removeScheduleItem(dayIndex, itemIndex)}>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeScheduleItem(dayIndex, itemIndex)}>
                                             <Trash2 className="h-4 w-4 text-muted-foreground" />
                                         </Button>
                                     </div>
@@ -458,7 +450,7 @@ export default function NewEventPage() {
                                             <FormField control={form.control} name={`artists.${index}.name`} render={({ field }) => (<FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                                             <FormField control={form.control} name={`artists.${index}.role`} render={({ field }) => (<FormItem><FormLabel>Role</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                                             <FormField control={form.control} name={`artists.${index}.imageUrl`} render={({ field }) => (<FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                            <Button variant="ghost" size="icon" className="mt-8" onClick={() => removeArtist(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                            <Button type="button" variant="ghost" size="icon" className="mt-8" onClick={() => removeArtist(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                         </div>
                                     </Card>
                                 ))}
@@ -474,7 +466,7 @@ export default function NewEventPage() {
                                         <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,auto] gap-4 items-start">
                                             <FormField control={form.control} name={`gallery.${index}.imageUrl`} render={({ field }) => (<FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                                             <FormField control={form.control} name={`gallery.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                            <Button variant="ghost" size="icon" className="mt-8" onClick={() => removeGallery(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                            <Button type="button" variant="ghost" size="icon" className="mt-8" onClick={() => removeGallery(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                         </div>
                                     </Card>
                                 ))}
@@ -490,7 +482,7 @@ export default function NewEventPage() {
                                         <div className="grid grid-cols-1 md:grid-cols-[1fr,2fr,auto] gap-4 items-start">
                                             <FormField control={form.control} name={`faqs.${index}.q`} render={({ field }) => (<FormItem><FormLabel>Question</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                                             <FormField control={form.control} name={`faqs.${index}.a`} render={({ field }) => (<FormItem><FormLabel>Answer</FormLabel><FormControl><Textarea className="min-h-0" {...field} /></FormControl></FormItem>)} />
-                                            <Button variant="ghost" size="icon" className="mt-8" onClick={() => removeFaq(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                            <Button type="button" variant="ghost" size="icon" className="mt-8" onClick={() => removeFaq(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                         </div>
                                     </Card>
                                 ))}
