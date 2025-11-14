@@ -43,11 +43,6 @@ export default function OrganizerListingsPage() {
             View and manage all your event and tour listings.
             </p>
         </div>
-         <Button size="sm" asChild>
-          <Link href="/organizer/events/new">
-            <PlusCircle className="mr-2 h-4 w-4" /> Create New Listing
-          </Link>
-        </Button>
       </div>
       <TabsList className="grid w-full grid-cols-2 max-w-md">
         <TabsTrigger value="events">Events ({organizerEvents.length})</TabsTrigger>
@@ -55,11 +50,18 @@ export default function OrganizerListingsPage() {
       </TabsList>
       <TabsContent value="events">
         <Card className="mt-4">
-          <CardHeader>
-              <CardTitle>Event Listings</CardTitle>
-              <CardDescription>
-                Your upcoming and past event listings.
-              </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Event Listings</CardTitle>
+                <CardDescription>
+                    Your upcoming and past event listings.
+                </CardDescription>
+              </div>
+               <Button size="sm" asChild>
+                <Link href="/organizer/events/new">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Create New Event
+                </Link>
+                </Button>
           </CardHeader>
           <CardContent>
             <Table>
@@ -102,11 +104,18 @@ export default function OrganizerListingsPage() {
       </TabsContent>
        <TabsContent value="tours">
         <Card className="mt-4">
-          <CardHeader>
-              <CardTitle>Tour Listings</CardTitle>
-              <CardDescription>
-                Your active and past tour packages.
-              </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Tour Listings</CardTitle>
+                <CardDescription>
+                    Your active and past tour packages.
+                </CardDescription>
+              </div>
+              <Button size="sm" asChild>
+                <Link href="/organizer/tours/new">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Create New Tour
+                </Link>
+              </Button>
           </CardHeader>
           <CardContent>
              <Table>
