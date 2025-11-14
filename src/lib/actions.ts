@@ -44,7 +44,8 @@ export async function getSignature(folder: string) {
     const signature = cloudinary.utils.api_sign_request(
         {
             timestamp: timestamp,
-            folder: folder
+            folder: folder,
+            upload_preset: ''
         },
         process.env.CLOUDINARY_API_SECRET as string
     );
