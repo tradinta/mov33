@@ -65,12 +65,6 @@ export function ImageUploader({ name, label, description, folder }: ImageUploade
         }
       };
 
-      const dataToSend: { [key: string]: any } = {};
-      for (const [key, value] of formData.entries()) {
-        dataToSend[key] = value;
-      }
-      console.log('Data being sent to Cloudinary:', dataToSend);
-
       xhr.send(formData);
 
     } catch (error) {
