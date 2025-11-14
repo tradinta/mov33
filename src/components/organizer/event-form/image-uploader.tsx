@@ -37,6 +37,8 @@ export function ImageUploader({ name, label, description, folder }: ImageUploade
       formData.append('signature', signature);
       formData.append('timestamp', timestamp.toString());
       formData.append('folder', folder);
+      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
+
 
       const endpoint = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`;
       
@@ -62,6 +64,12 @@ export function ImageUploader({ name, label, description, folder }: ImageUploade
           }
         }
       };
+
+      const dataToSend: { [key: string]: any } = {};
+      for (const [key, value] of formData.entries()) {
+        dataToSend[key] = value;
+      }
+      console.log('Data being sent to Cloudinary:', dataToSend);
 
       xhr.send(formData);
 
