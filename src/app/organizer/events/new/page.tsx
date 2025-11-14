@@ -44,6 +44,7 @@ import { createListing } from '@/lib/actions';
 import { useUser } from '@/firebase/auth/use-user';
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import { ImageUploader } from '@/components/organizer/image-uploader';
 
 
 const ticketDiscountSchema = z.object({
@@ -67,7 +68,7 @@ const formSchema = z.object({
   location: z.string().min(2, 'Location is required.'),
   about: z.string().min(50, 'The "About" section must be at least 50 characters.'),
   tags: z.string().min(1, 'Please enter at least one tag, separated by commas.'),
-  mainImage: z.string().url('Please enter a valid image URL.'),
+  mainImage: z.string().url('Please upload a main image for the event.'),
   
   tickets: z.array(ticketSchema).min(1, 'You must add at least one ticket tier.'),
 
@@ -86,7 +87,7 @@ const formSchema = z.object({
   })).optional(),
 
   gallery: z.array(z.object({
-      imageUrl: z.string().url('Please enter a valid image URL.'),
+      imageUrl: z.string().url('Please upload a valid image.'),
       description: z.string().min(3, 'Description is required.'),
   })).optional(),
 
@@ -316,9 +317,9 @@ export default function NewEventPage() {
                             name="mainImage"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormLabel>Main Event Image URL</FormLabel>
+                                <FormLabel>Main Event Image</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="https://example.com/image.png" {...field} />
+                                    <ImageUploader name={field.name} folder="events"/>
                                 </FormControl>
                                 <FormDescription>This is the main image shown on the listing card.</FormDescription>
                                 <FormMessage />
@@ -470,11 +471,21 @@ export default function NewEventPage() {
                             <div className="space-y-4">
                                 {galleryFields.map((field, index) => (
                                      <Card key={field.id} className="p-4 bg-muted/30">
-                                        <div className="grid grid-cols-1 md:grid-cols-[2fr,1fr,auto] gap-4 items-start">
-                                            <FormField control={form.control} name={`gallery.${index}.imageUrl`} render={({ field }) => (<FormItem><FormLabel>Image URL</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                            <FormField control={form.control} name={`gallery.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                                            <Button type="button" variant="ghost" size="icon" className="mt-8" onClick={() => removeGallery(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                                            <FormField 
+                                                control={form.control} 
+                                                name={`gallery.${index}.imageUrl`} 
+                                                render={({ field: imageField }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Image {index + 1}</FormLabel>
+                                                        <FormControl>
+                                                            <ImageUploader name={imageField.name} folder="events/gallery" />
+                                                        </FormControl>
+                                                    </FormItem>
+                                            )} />
+                                            <FormField control={form.control} name={`gallery.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                                         </div>
+                                        <Button type="button" variant="ghost" size="icon" className="float-right -mt-10" onClick={() => removeGallery(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                     </Card>
                                 ))}
                                 <Button type="button" variant="outline" size="sm" onClick={() => appendGallery({ imageUrl: '', description: '' })}><PlusCircle className="mr-2 h-4 w-4" />Add Gallery Image</Button>
@@ -513,3 +524,5 @@ export default function NewEventPage() {
     </div>
   );
 }
+
+    
