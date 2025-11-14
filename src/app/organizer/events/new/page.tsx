@@ -44,7 +44,6 @@ import { createListing } from '@/lib/actions';
 import { useUser } from '@/firebase/auth/use-user';
 import { useRouter } from 'next/navigation';
 import React from 'react';
-import { ImageUploader } from '@/components/organizer/event-form/image-uploader';
 
 
 const ticketDiscountSchema = z.object({
@@ -68,7 +67,7 @@ const formSchema = z.object({
   location: z.string().min(2, 'Location is required.'),
   about: z.string().min(50, 'The "About" section must be at least 50 characters.'),
   tags: z.string().min(1, 'Please enter at least one tag, separated by commas.'),
-  mainImage: z.string().url('Please upload a main image for the event.'),
+  mainImage: z.string().url('Please enter a valid image URL.'),
   
   tickets: z.array(ticketSchema).min(1, 'You must add at least one ticket tier.'),
 
@@ -312,11 +311,19 @@ export default function NewEventPage() {
                         Display & SEO
                     </AccordionTrigger>
                     <AccordionContent className="p-6 pt-0 space-y-6">
-                        <ImageUploader 
+                        <FormField
+                            control={form.control}
                             name="mainImage"
-                            label="Main Event Image"
-                            description="This is the main image shown on the listing card."
-                            folder="events"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Main Event Image URL</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="https://example.com/image.png" {...field} />
+                                </FormControl>
+                                <FormDescription>This is the main image shown on the listing card.</FormDescription>
+                                <FormMessage />
+                                </FormItem>
+                            )}
                         />
                          <FormField
                             control={form.control}
@@ -506,5 +513,3 @@ export default function NewEventPage() {
     </div>
   );
 }
-
-    

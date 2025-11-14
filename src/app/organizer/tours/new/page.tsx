@@ -42,7 +42,6 @@ import { createListing } from '@/lib/actions';
 import { useUser } from '@/firebase/auth/use-user';
 import { useRouter } from 'next/navigation';
 import React from 'react';
-import { ImageUploader } from '@/components/organizer/event-form/image-uploader';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Tour name must be at least 3 characters.'),
@@ -268,11 +267,19 @@ export default function NewTourPage() {
                         Display & SEO
                     </AccordionTrigger>
                     <AccordionContent className="p-6 pt-0 space-y-6">
-                         <ImageUploader 
+                        <FormField
+                            control={form.control}
                             name="mainImage"
-                            label="Main Tour Image"
-                            description="This is the main image shown on the listing card."
-                            folder="tours"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Main Tour Image URL</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="https://example.com/image.png" {...field} />
+                                </FormControl>
+                                <FormDescription>This is the main image shown on the listing card.</FormDescription>
+                                <FormMessage />
+                                </FormItem>
+                            )}
                         />
                          <FormField
                             control={form.control}
