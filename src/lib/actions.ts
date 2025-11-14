@@ -1,3 +1,4 @@
+
 'use server';
 
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -45,7 +46,6 @@ export async function getSignature(folder: string) {
         {
             timestamp: timestamp,
             folder: folder,
-            upload_preset: ''
         },
         process.env.CLOUDINARY_API_SECRET as string
     );
