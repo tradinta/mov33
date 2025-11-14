@@ -30,6 +30,62 @@
         }
       },
       "required": ["uid", "email"]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "Represents a single event listing.",
+      "type": "object",
+      "properties": {
+        "organizerId": { "type": "string", "description": "The UID of the user who organized the event." },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "venue": { "type": "string" },
+        "location": { "type": "string" },
+        "about": { "type": "string" },
+        "tags": { "type": "string" },
+        "mainImage": { "type": "string", "format": "uri" },
+        "tickets": {
+          "type": "array",
+          "items": { "$ref": "#/entities/TicketTier" }
+        }
+      },
+      "required": ["organizerId", "name", "date", "venue", "location", "mainImage"]
+    },
+    "Tour": {
+      "title": "Tour",
+      "description": "Represents a tour package listing.",
+      "type": "object",
+      "properties": {
+        "organizerId": { "type": "string", "description": "The UID of the user who organized the tour." },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "duration": { "type": "string" },
+        "destination": { "type": "string" },
+        "highlights": { "type": "string" },
+        "includes": { "type": "string" },
+        "notIncludes": { "type": "string" },
+        "privateBooking": { "type": "boolean" },
+        "minGuests": { "type": "number" },
+        "maxGuests": { "type": "number" },
+        "location": { "type": "string" },
+        "about": { "type": "string" },
+        "tags": { "type": "string" },
+        "mainImage": { "type": "string", "format": "uri" }
+      },
+       "required": ["organizerId", "name", "duration", "destination", "mainImage"]
+    },
+    "TicketTier": {
+      "title": "Ticket Tier",
+      "description": "Defines a pricing tier for an event ticket.",
+      "type": "object",
+      "properties": {
+        "tier": { "type": "string" },
+        "price": { "type": "number" },
+        "description": { "type": "string" },
+        "perks": { "type": "string" }
+      },
+      "required": ["tier", "price"]
     }
   },
   "auth": {
@@ -41,6 +97,14 @@
         "$ref": "#/entities/UserProfile"
       },
       "description": "Stores public profile information for each user."
+    },
+    "/events/{eventId}": {
+        "schema": { "$ref": "#/entities/Event" },
+        "description": "Stores all event listings."
+    },
+    "/tours/{tourId}": {
+        "schema": { "$ref": "#/entities/Tour" },
+        "description": "Stores all tour listings."
     }
   }
 }

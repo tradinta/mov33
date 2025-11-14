@@ -7,6 +7,10 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
     // Users
     // Anybody can create a user profile (for sign-up)
@@ -16,6 +20,16 @@ service cloud.firestore {
       allow create;
       allow read, update: if isOwner(userId);
       allow delete: if false;
+    }
+
+    // Events & Tours
+    // Any signed-in user can create a listing.
+    // Anyone can read event/tour listings.
+    // Only the organizer who created it can update or delete it.
+    match /{collection}/{listingId} where collection in ['events', 'tours'] {
+      allow create: if isSignedIn();
+      allow read;
+      allow update, delete: if isOwner(resource.data.organizerId);
     }
   }
 }

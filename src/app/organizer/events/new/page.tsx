@@ -56,6 +56,10 @@ import Link from 'next/link';
 import { TicketsSection } from '@/components/organizer/event-form/tickets-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
+import { createListing } from '@/lib/actions';
+import { useUser } from '@/firebase/auth/use-user';
+import { useRouter } from 'next/navigation';
+import React from 'react';
 
 const ticketSchema = z.object({
     tier: z.string().min(2, 'Tier name is required.'),
@@ -140,6 +144,10 @@ export type EventFormValues = z.infer<typeof formSchema>;
 
 export default function NewEventPage() {
   const { toast } = useToast();
+  const { user, loading } = useUser();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   const form = useForm<EventFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -185,15 +193,35 @@ export default function NewEventPage() {
   });
 
 
-  function onSubmit(data: EventFormValues) {
-    toast({
-      title: 'You submitted the following values:',
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+  async function onSubmit(data: EventFormValues) {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: "You must be logged in to create a listing."
+        });
+        return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+        await createListing(data, user.uid);
+        toast({
+            title: "Listing Created!",
+            description: `Your ${data.listingType} "${data.name}" has been published successfully.`
+        });
+        router.push('/organizer/events');
+    } catch (error) {
+        console.error("Failed to create listing:", error);
+        toast({
+            variant: "destructive",
+            title: "Failed to create listing",
+            description: "An unexpected error occurred. Please try again."
+        })
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   const addScheduleItem = (dayIndex: number) => {
@@ -204,6 +232,15 @@ export default function NewEventPage() {
   const removeScheduleItem = (dayIndex: number, itemIndex: number) => {
     const currentItems = form.getValues(`schedule.${dayIndex}.items`);
     form.setValue(`schedule.${dayIndex}.items`, (currentItems || []).filter((_, i) => i !== itemIndex));
+  }
+
+  if (loading) {
+    return <p>Loading user...</p>
+  }
+  
+  if (!user) {
+    router.push('/login');
+    return null;
   }
 
   return (
@@ -687,8 +724,10 @@ export default function NewEventPage() {
           </Accordion>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button">Save as Draft</Button>
-            <Button type="submit">Publish {listingType === 'event' ? 'Event' : 'Tour'}</Button>
+            <Button variant="outline" type="button" disabled={isSubmitting}>Save as Draft</Button>
+            <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Publishing...' : `Publish ${listingType === 'event' ? 'Event' : 'Tour'}`}
+            </Button>
           </div>
         </form>
       </Form>
@@ -696,4 +735,3 @@ export default function NewEventPage() {
   );
 }
 
-    
