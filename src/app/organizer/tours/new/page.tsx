@@ -73,7 +73,7 @@ const formSchema = z.object({
 
   gallery: z.array(z.object({
       imageUrl: z.string().url('Please upload a valid image.'),
-      description: ztn.string().min(3, 'Description is required.'),
+      description: z.string().min(3, 'Description is required.'),
   })).optional(),
 
   faqs: z.array(z.object({
