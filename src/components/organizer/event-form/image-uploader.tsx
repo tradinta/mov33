@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -33,7 +34,6 @@ export function ImageUploader({ name, label, description, folder }: ImageUploade
       const { timestamp, signature } = await getSignature(folder);
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('api_key', process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
       formData.append('signature', signature);
       formData.append('timestamp', timestamp.toString());
       formData.append('folder', folder);
