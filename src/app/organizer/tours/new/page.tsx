@@ -42,6 +42,7 @@ import { createListing } from '@/lib/actions';
 import { useUser } from '@/firebase/auth/use-user';
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import { ImageUploader } from '@/components/organizer/image-uploader';
 
 
 const formSchema = z.object({
@@ -71,7 +72,7 @@ const formSchema = z.object({
   })).optional(),
 
   gallery: z.array(z.object({
-      imageUrl: z.string().url('Please enter a valid image URL.'),
+      imageUrl: z.string().url('Please upload a valid image.'),
       description: z.string().min(3, 'Description is required.'),
   })).optional(),
 
@@ -275,7 +276,7 @@ export default function NewTourPage() {
                                 <FormItem>
                                 <FormLabel>Main Tour Image</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="https://example.com/image.png" {...field} />
+                                    <ImageUploader name={field.name} folder="tours" />
                                 </FormControl>
                                 <FormDescription>This is the main image shown on the listing card.</FormDescription>
                                 <FormMessage />
@@ -505,9 +506,9 @@ export default function NewTourPage() {
                                                 name={`gallery.${index}.imageUrl`} 
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Image URL {index + 1}</FormLabel>
+                                                        <FormLabel>Image {index + 1}</FormLabel>
                                                         <FormControl>
-                                                             <Input placeholder="https://example.com/image.png" {...field} />
+                                                             <ImageUploader name={field.name} folder="tours" />
                                                         </FormControl>
                                                     </FormItem>
                                             )} />
@@ -551,5 +552,3 @@ export default function NewTourPage() {
     </div>
   );
 }
-
-    

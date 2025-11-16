@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
 import { ImageIcon, X } from 'lucide-react';
 import { Button } from '../ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface ImageUploaderProps {
   name: string;
@@ -17,6 +18,7 @@ interface ImageUploaderProps {
 
 export function ImageUploader({ name, folder }: ImageUploaderProps) {
   const { setValue, watch } = useFormContext();
+  const { toast } = useToast();
   const imageUrl = watch(name);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -57,7 +59,11 @@ export function ImageUploader({ name, folder }: ImageUploaderProps) {
           setValue(name, response.secure_url, { shouldValidate: true, shouldDirty: true });
         } else {
           console.error('Upload failed:', xhr.responseText);
-          // You might want to show a toast message here
+          toast({
+            variant: "destructive",
+            title: "Upload Failed",
+            description: "There was an error uploading your image. Please try again."
+          })
         }
       }
     };
@@ -72,7 +78,7 @@ export function ImageUploader({ name, folder }: ImageUploaderProps) {
   return (
     <div className="w-full">
       {imageUrl ? (
-        <div className="relative group w-full h-48 rounded-md overflow-hidden">
+        <div className="relative group w-full h-48 rounded-md overflow-hidden border">
           <Image src={imageUrl} alt="Uploaded image" layout="fill" objectFit="cover" />
           <Button
             type="button"
@@ -85,7 +91,7 @@ export function ImageUploader({ name, folder }: ImageUploaderProps) {
           </Button>
         </div>
       ) : (
-        <div className="w-full h-48 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center p-4 text-center">
+        <div className="w-full h-48 rounded-md border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center p-4 text-center relative">
             <ImageIcon className="h-8 w-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground mt-2">
                 Drag & drop or click to upload
@@ -108,5 +114,3 @@ export function ImageUploader({ name, folder }: ImageUploaderProps) {
     </div>
   );
 }
-
-    

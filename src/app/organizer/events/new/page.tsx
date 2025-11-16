@@ -44,6 +44,7 @@ import { createListing } from '@/lib/actions';
 import { useUser } from '@/firebase/auth/use-user';
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import { ImageUploader } from '@/components/organizer/image-uploader';
 
 
 const ticketDiscountSchema = z.object({
@@ -67,7 +68,7 @@ const formSchema = z.object({
   location: z.string().min(2, 'Location is required.'),
   about: z.string().min(50, 'The "About" section must be at least 50 characters.'),
   tags: z.string().min(1, 'Please enter at least one tag, separated by commas.'),
-  mainImage: z.string().url('Please provide a valid image URL.'),
+  mainImage: z.string().url('Please upload a main image for the event.'),
   
   tickets: z.array(ticketSchema).min(1, 'You must add at least one ticket tier.'),
 
@@ -86,7 +87,7 @@ const formSchema = z.object({
   })).optional(),
 
   gallery: z.array(z.object({
-      imageUrl: z.string().url('Please enter a valid image URL.'),
+      imageUrl: z.string().url('Please upload a valid image.'),
       description: z.string().min(3, 'Description is required.'),
   })).optional(),
 
@@ -318,7 +319,7 @@ export default function NewEventPage() {
                                 <FormItem>
                                 <FormLabel>Main Event Image</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="https://example.com/image.png" {...field} />
+                                    <ImageUploader name={field.name} folder="events" />
                                 </FormControl>
                                 <FormDescription>This is the main image shown on the listing card.</FormDescription>
                                 <FormMessage />
@@ -476,9 +477,9 @@ export default function NewEventPage() {
                                                 name={`gallery.${index}.imageUrl`} 
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Image URL {index + 1}</FormLabel>
+                                                        <FormLabel>Image {index + 1}</FormLabel>
                                                         <FormControl>
-                                                            <Input placeholder="https://example.com/image.png" {...field} />
+                                                            <ImageUploader name={field.name} folder="events" />
                                                         </FormControl>
                                                     </FormItem>
                                             )} />
@@ -523,5 +524,3 @@ export default function NewEventPage() {
     </div>
   );
 }
-
-    
