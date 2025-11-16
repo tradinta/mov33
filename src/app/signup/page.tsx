@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { Chrome } from 'lucide-react';
-import { TrianglifyBackground } from '@/components/ui/trianglify-background';
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -92,7 +91,6 @@ export default function SignupPage() {
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
       <div className="hidden bg-muted lg:block relative overflow-hidden">
-        <TrianglifyBackground />
         <div className="absolute bottom-8 left-8 right-8 p-4 bg-black/50 rounded-lg backdrop-blur-sm z-10">
           <h3 className="text-white text-2xl font-bold font-headline">
             Join a community of live music lovers and adventurers.
