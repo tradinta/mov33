@@ -65,7 +65,7 @@ function AdminHeader() {
         <NavigationMenu className="hidden md:flex mx-6">
           <NavigationMenuList>
             <NavigationMenuItem>
-              <Link href="/admin" legacyBehavior passHref>
+              <Link href="/admin" passHref>
                 <NavigationMenuLink
                   className={navigationMenuTriggerStyle()}
                   active={pathname === '/admin'}
@@ -94,7 +94,7 @@ function AdminHeader() {
               </NavigationMenuContent>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/admin/analytics" legacyBehavior passHref>
+              <Link href="/admin/analytics" passHref>
                 <NavigationMenuLink
                   className={navigationMenuTriggerStyle()}
                   active={pathname === '/admin/analytics'}

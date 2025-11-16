@@ -62,7 +62,7 @@ function SuperAdminHeader() {
         <NavigationMenu className="hidden md:flex mx-6">
           <NavigationMenuList>
             <NavigationMenuItem>
-              <Link href="/super-admin" legacyBehavior passHref>
+              <Link href="/super-admin" passHref>
                 <NavigationMenuLink
                   className={navigationMenuTriggerStyle()}
                   active={pathname === '/super-admin'}
@@ -72,7 +72,7 @@ function SuperAdminHeader() {
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/super-admin/settings" legacyBehavior passHref>
+              <Link href="/super-admin/settings" passHref>
                 <NavigationMenuLink
                   className={navigationMenuTriggerStyle()}
                   active={pathname === '/super-admin/settings'}
@@ -82,7 +82,7 @@ function SuperAdminHeader() {
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/super-admin/security" legacyBehavior passHref>
+              <Link href="/super-admin/security" passHref>
                 <NavigationMenuLink
                   className={navigationMenuTriggerStyle()}
                   active={pathname === '/super-admin/security'}

@@ -45,7 +45,7 @@ function InfluencerHeader() {
           <NavigationMenuList>
             {navLinks.map((link) => (
                 <NavigationMenuItem key={link.href}>
-                <Link href={link.href} legacyBehavior passHref>
+                <Link href={link.href} passHref>
                     <NavigationMenuLink
                     className={navigationMenuTriggerStyle()}
                     active={pathname.startsWith(link.href) && (link.href !== '/influencer' || pathname === '/influencer')}
