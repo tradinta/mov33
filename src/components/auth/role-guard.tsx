@@ -1,5 +1,3 @@
-import { AccessDenied } from './access-denied';
-
 'use client';
 
 import { useAuth } from '@/context/auth-context';
