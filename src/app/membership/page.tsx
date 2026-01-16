@@ -54,7 +54,7 @@ export default function MembershipPage() {
     const isPremium = profile?.mov33Plus || false;
 
     return (
-        <div className="bg-obsidian min-h-screen pt-24 pb-20">
+        <div className="bg-background dark:bg-obsidian min-h-screen pt-24 pb-20">
             <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-gold/5 to-transparent pointer-events-none" />
 
             <div className="container mx-auto px-4 max-w-6xl space-y-16 relative z-10">

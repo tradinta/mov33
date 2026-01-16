@@ -6,7 +6,6 @@ import { ParticleBackground } from '@/components/ui/particle-background';
 import { ThemeProvider } from '@/components/theme-provider';
 import FirebaseClientProvider from '@/firebase/client-provider';
 import { AnalyticsTracker } from '@/components/analytics/analytics-tracker';
-import { Header } from '@/components/layout/header';
 
 export const metadata: Metadata = {
   title: {
@@ -67,7 +66,6 @@ export default function RootLayout({
             <div className="relative z-10">
               <CartProvider>
                 <AnalyticsTracker />
-                <Header />
                 {children}
                 <Toaster />
               </CartProvider>

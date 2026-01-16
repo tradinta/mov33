@@ -60,19 +60,19 @@ export function EventGrid({ filters }: EventGridProps) {
 
       // County Filter
       if (filters.county && filters.county !== "all") {
-        if (event.location.toLowerCase().indexOf(filters.county.toLowerCase()) === -1) return false;
+        if ((event.location || '').toLowerCase().indexOf(filters.county.toLowerCase()) === -1) return false;
       }
 
       // Price Filter
-      if (event.price < filters.priceRange[0] || event.price > filters.priceRange[1]) return false;
+      if ((event.price || 0) < filters.priceRange[0] || (event.price || 0) > filters.priceRange[1]) return false;
 
       // Search Query Filter
       if (filters.searchQuery) {
         const query = filters.searchQuery.toLowerCase();
         return (
-          event.title.toLowerCase().includes(query) ||
-          event.description.toLowerCase().includes(query) ||
-          event.location.toLowerCase().includes(query)
+          (event.title || '').toLowerCase().includes(query) ||
+          (event.description || '').toLowerCase().includes(query) ||
+          (event.location || '').toLowerCase().includes(query)
         );
       }
 
