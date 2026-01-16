@@ -131,10 +131,11 @@ export default function EventsPage() {
 
             <Tabs defaultValue="all" className="w-full">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-                <TabsList className="bg-white/5 border border-white/5 p-1 h-14 rounded-2xl">
-                  <TabsTrigger value="all" className="rounded-xl px-6 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-gold data-[state=active]:text-obsidian">Global</TabsTrigger>
-                  <TabsTrigger value="today" className="rounded-xl px-6 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-gold data-[state=active]:text-obsidian">Tonight</TabsTrigger>
-                  <TabsTrigger value="this-weekend" className="rounded-xl px-6 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-gold data-[state=active]:text-obsidian">Weekend</TabsTrigger>
+                <TabsList className="bg-white/5 border border-white/5 p-1 h-14 rounded-full">
+                  <TabsTrigger value="all" className="rounded-full px-6 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-gold data-[state=active]:text-obsidian">All Events</TabsTrigger>
+                  <TabsTrigger value="today" className="rounded-full px-6 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-gold data-[state=active]:text-obsidian">Today</TabsTrigger>
+                  <TabsTrigger value="this-weekend" className="rounded-full px-6 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-gold data-[state=active]:text-obsidian">This Weekend</TabsTrigger>
+                  <TabsTrigger value="past" className="rounded-full px-6 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-zinc-700 data-[state=active]:text-white">Past Events</TabsTrigger>
                 </TabsList>
 
                 <div className="flex items-center gap-4">
@@ -152,6 +153,9 @@ export default function EventsPage() {
               </TabsContent>
               <TabsContent value="this-weekend" className="mt-0 focus-visible:outline-none">
                 <EventGrid filters={activeFilters} />
+              </TabsContent>
+              <TabsContent value="past" className="mt-0 focus-visible:outline-none">
+                <EventGrid filters={{ ...activeFilters, showPast: true }} />
               </TabsContent>
             </Tabs>
           </main>
