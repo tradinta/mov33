@@ -1,3 +1,5 @@
+import { AccessDenied } from './access-denied';
+
 'use client';
 
 import { useAuth } from '@/context/auth-context';
@@ -6,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { UserRole } from '@/lib/types';
 import { Loader2, ShieldCheck, Server, User, Globe, CheckCircle2 } from 'lucide-react';
 import { logAccess, getClientIP } from '@/lib/audit-logger';
+import { AccessDenied } from './access-denied';
 
 // Type definition for steps
 type VerificationStep = 'identity' | 'role' | 'device' | 'logging' | 'complete';
@@ -22,6 +25,7 @@ export function RoleGuard({
     const [step, setStep] = useState<VerificationStep>('identity');
     const [ipAddress, setIpAddress] = useState<string>('Searching...');
     const [deviceInfo, setDeviceInfo] = useState<string>('Analyzing...');
+    const [accessDenied, setAccessDenied] = useState(false);
 
     useEffect(() => {
         if (!loading && !profile) {
@@ -33,7 +37,7 @@ export function RoleGuard({
         if (loading || !profile) return;
 
         if (!allowedRoles.includes(profile.role)) {
-            router.push('/'); // Or unauthorized page
+            setAccessDenied(true);
             return;
         }
 
@@ -81,8 +85,8 @@ export function RoleGuard({
         );
     }
 
-    if (!profile || !allowedRoles.includes(profile.role)) {
-        return null;
+    if (accessDenied || (!profile || !allowedRoles.includes(profile.role))) {
+        return <AccessDenied requiredRole={allowedRoles[0]} />;
     }
 
     if (step !== 'complete') {

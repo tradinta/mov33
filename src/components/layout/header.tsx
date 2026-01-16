@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Award, ChevronDown, Menu, Search, User, LogOut } from 'lucide-react';
+import { Award, Menu, Search, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
@@ -19,6 +19,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ThemeToggle } from '../theme-toggle';
 import { useUser } from '@/firebase/auth/use-user';
+import { useAuth } from '@/context/auth-context';
 import { getAuth, signOut } from 'firebase/auth';
 
 const navLinks = [
@@ -27,25 +28,29 @@ const navLinks = [
   { href: '/shop', label: 'Shop' },
 ];
 
-const dashboardLinks = [
-  { href: '/admin', label: 'Admin Portal' },
-  { href: '/super-admin', label: 'Super Admin Portal' },
-  { href: '/organizer', label: 'Organizer Portal' },
-  { href: '/influencer', label: 'Influencer Dashboard' },
-  { href: '/verify', label: 'Verification Portal' },
-];
+// Map roles to their dashboard paths
+const roleToDashboard: Record<string, { href: string; label: string }> = {
+  'super-admin': { href: '/super-admin', label: 'Super Admin' },
+  'admin': { href: '/admin', label: 'Admin Panel' },
+  'moderator': { href: '/admin', label: 'Mod Panel' },
+  'organizer': { href: '/organizer', label: 'Organizer Hub' },
+  'influencer': { href: '/influencer', label: 'Influencer Dashboard' },
+};
 
 function UserNav() {
   const { user, loading } = useUser();
+  const { profile } = useAuth();
   const router = useRouter();
   const auth = getAuth();
-  // Mock membership status for now
   const membership = "Standard" as "Standard" | "VIP";
 
   const handleSignOut = async () => {
     await signOut(auth);
     router.push('/');
   };
+
+  // Get the dashboard link for the user's role
+  const dashboardLink = profile?.role ? roleToDashboard[profile.role] : null;
 
   if (loading) {
     return <div className="h-10 w-24 rounded-full bg-muted animate-pulse" />;
@@ -98,14 +103,21 @@ function UserNav() {
             </Link>
           </DropdownMenuItem>
         )}
+        {/* Show Dashboard Link if user has a special role */}
+        {dashboardLink && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href={dashboardLink.href} className="text-gold font-medium">
+                <LayoutDashboard className="mr-2 h-4 w-4" /> {dashboardLink.label}
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Logout</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/super-admin">Go to Super Admin</Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -114,17 +126,27 @@ function UserNav() {
 
 export function Header() {
   const pathname = usePathname();
+  const { profile } = useAuth();
 
-  if (pathname === '/login' || pathname === '/signup' || pathname.startsWith('/admin') || pathname.startsWith('/super-admin') || pathname.startsWith('/organizer')) {
+  // Hide header on login/signup/dashboard pages
+  if (pathname === '/login' || pathname === '/signup' || pathname.startsWith('/admin') || pathname.startsWith('/super-admin') || pathname.startsWith('/organizer') || pathname.startsWith('/influencer')) {
     return null;
   }
+
+  // Get dashboard link for user's role (for mobile menu)
+  const dashboardLink = profile?.role ? roleToDashboard[profile.role] : null;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 h-[65px]">
       <div className="container flex h-full items-center">
         <Logo />
-        <nav className="ml-6 hidden md:flex items-center">
-          <div className="flex items-center gap-1 bg-black/5 dark:bg-white/10 backdrop-blur-md border border-black/5 dark:border-white/10 rounded-full px-1.5 py-1.5 p-1">
+
+        {/* Spacer to push nav to the right */}
+        <div className="flex-1" />
+
+        {/* Navigation Pill - Now on the right */}
+        <nav className="hidden md:flex items-center mr-4">
+          <div className="flex items-center gap-1 bg-black/5 dark:bg-white/10 backdrop-blur-md border border-black/5 dark:border-white/10 rounded-full px-1.5 py-1.5">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -139,27 +161,11 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <div className="w-[1px] h-4 bg-border/50 mx-1" />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 focus:outline-none">
-                  More
-                  <ChevronDown className="h-3 w-3" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                <DropdownMenuLabel>Dashboards</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {dashboardLinks.map(link => (
-                  <DropdownMenuItem key={link.href} asChild>
-                    <Link href={link.href}>{link.label}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </nav>
-        <div className="flex flex-1 items-center justify-end space-x-2">
+
+        {/* Right side actions */}
+        <div className="flex items-center space-x-2">
           <Button variant="ghost" size="icon" className="hidden md:inline-flex">
             <Search className="h-4 w-4" />
             <span className="sr-only">Search</span>
@@ -167,6 +173,8 @@ export function Header() {
           <ThemeToggle />
           <Cart />
           <UserNav />
+
+          {/* Mobile Menu */}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
@@ -189,20 +197,18 @@ export function Header() {
                       {link.label}
                     </Link>
                   ))}
-                  <div className="pt-2">
-                    <h3 className="px-1 text-sm font-semibold text-muted-foreground">Dashboards</h3>
-                    <div className="mt-2 flex flex-col gap-4">
-                      {dashboardLinks.map((link) => (
-                        <Link
-                          key={link.href}
-                          href={link.href}
-                          className="font-poppins text-muted-foreground hover:text-foreground"
-                        >
-                          {link.label}
-                        </Link>
-                      ))}
+                  {/* Show dashboard link for user's role only */}
+                  {dashboardLink && (
+                    <div className="pt-4 border-t">
+                      <Link
+                        href={dashboardLink.href}
+                        className="font-poppins text-gold hover:text-gold/80 flex items-center gap-2"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        {dashboardLink.label}
+                      </Link>
                     </div>
-                  </div>
+                  )}
                 </nav>
               </div>
             </SheetContent>
