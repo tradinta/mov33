@@ -97,14 +97,14 @@ export function FeaturedEventsCarousel() {
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-obsidian via-obsidian/80 to-gold/20" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/40 to-transparent" />
 
-                  <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-16 lg:p-20">
+                  <div className="absolute inset-0 flex flex-col justify-center p-8 md:p-16 lg:p-20 pt-16 md:pt-24">
                     <motion.div
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.2 }}
-                      className="max-w-3xl space-y-6"
+                      className="max-w-3xl space-y-4 md:space-y-6"
                     >
                       <div className="flex flex-wrap items-center gap-3">
                         <Badge className="bg-gold text-obsidian font-black uppercase tracking-[0.2em] text-[10px] px-4 py-1.5 rounded-full border-none shadow-xl shadow-gold/20">
