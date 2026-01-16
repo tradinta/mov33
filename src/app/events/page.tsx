@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { EventFilter, EventFilters } from "@/components/events/event-filter";
 import { EventGrid } from "@/components/events/event-grid";
@@ -20,8 +20,15 @@ import { EventSearch } from '@/components/events/event-search';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const slogans = [
+  { title: 'Discover', highlight: 'Events' },
+  { title: 'Experience', highlight: 'More' },
+  { title: 'Find Your', highlight: 'Vibe' },
+];
+
 export default function EventsPage() {
   const [isFilterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [sloganIndex, setSloganIndex] = useState(0);
   const [activeFilters, setActiveFilters] = useState<EventFilters>({
     date: undefined,
     category: "",
@@ -30,6 +37,14 @@ export default function EventsPage() {
     sortBy: "recommended",
     searchQuery: ""
   });
+
+  // Auto-rotate slogans
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSloganIndex((prev) => (prev + 1) % slogans.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleFilterChange = (filters: EventFilters) => {
     setActiveFilters(filters);
@@ -41,7 +56,7 @@ export default function EventsPage() {
     <div className="bg-background dark:bg-obsidian min-h-screen transition-colors duration-300">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        {/* Header Section with Glassmorphism */}
+        {/* Header Section with Rotating Slogans */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -52,9 +67,20 @@ export default function EventsPage() {
               <div className="h-1 w-12 bg-gold rounded-full" />
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold/60">Experience More</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter italic text-foreground dark:text-white leading-none">
-              Discover <span className="text-gold">Events</span>
-            </h1>
+            <div className="h-[80px] md:h-[100px] overflow-hidden">
+              <AnimatePresence mode="wait">
+                <motion.h1
+                  key={sloganIndex}
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -50, opacity: 0 }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                  className="text-5xl md:text-7xl font-black uppercase tracking-tighter italic text-foreground dark:text-white leading-none"
+                >
+                  {slogans[sloganIndex].title} <span className="text-gold">{slogans[sloganIndex].highlight}</span>
+                </motion.h1>
+              </AnimatePresence>
+            </div>
             <p className="text-muted-foreground font-poppins max-w-lg text-sm md:text-base">
               From underground warehouse parties to premium tech summits. Your journey starts here.
             </p>
@@ -64,6 +90,7 @@ export default function EventsPage() {
             <EventSearch onSearch={(q) => setActiveFilters(prev => ({ ...prev, searchQuery: q }))} />
           </div>
         </motion.div>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-12">
           {/* Filters Column (Desktop) */}
