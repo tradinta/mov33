@@ -22,6 +22,7 @@ const navItems = [
   { icon: Calendar, label: 'Events Global', href: '/super-admin/events' },
   { icon: Map, label: 'Tours & Travel', href: '/super-admin/tours' },
   { icon: UserPlus, label: 'Organizers', href: '/super-admin/organizers' },
+  { icon: Flag, label: 'Partner Applications', href: '/super-admin/partners' },
   { icon: CreditCard, label: 'Finance & Payouts', href: '/super-admin/finance' },
   { icon: ShieldAlert, label: 'Moderation', href: '/super-admin/moderation' },
   { icon: Settings, label: 'System Settings', href: '/super-admin/settings' },

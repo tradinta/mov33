@@ -1,7 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 import { ReactNode } from 'react';
 
-export type UserRole = 'user' | 'moderator' | 'organizer' | 'influencer' | 'admin' | 'super-admin';
+export type UserRole = 'user' | 'moderator' | 'organizer' | 'influencer' | 'verification' | 'admin' | 'super-admin';
 
 export interface UserProfile {
     uid: string;
