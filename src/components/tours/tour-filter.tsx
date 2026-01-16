@@ -68,7 +68,8 @@ export function TourFilter({ onFilterChange }: TourFilterProps) {
       privateOnly,
       searchQuery
     });
-  }, [destination, duration, priceRange, privateOnly, searchQuery, onFilterChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [destination, duration, priceRange, privateOnly, searchQuery]);
 
   return (
     <GlassCard className="border-white/5 bg-obsidian/40 backdrop-blur-xl sticky top-24">
