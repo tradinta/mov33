@@ -1,5 +1,5 @@
-
 import { Metadata } from 'next';
+import { MainLayout } from '@/components/layout/main-layout';
 
 export const metadata: Metadata = {
     title: 'Shop Merchandise',
@@ -11,5 +11,5 @@ export default function ShopLayout({
 }: {
     children: React.ReactNode;
 }) {
-    return <>{children}</>;
+    return <MainLayout>{children}</MainLayout>;
 }
