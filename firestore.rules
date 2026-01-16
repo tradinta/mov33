@@ -3,33 +3,324 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Users
-    // Anybody can create a user profile (for sign-up)
-    // Only the owner of the profile can read or write to it
-    // No one can delete a user profile
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isRole(role) {
+      return isSignedIn() && getRole() == role;
+    }
+
+    function isAdmin() {
+      return isRole('admin') || isRole('super-admin');
+    }
+
+    function isSuperAdmin() {
+      return isRole('super-admin');
+    }
+
+    function isOrganizer() {
+      return isRole('organizer');
+    }
+
+    function isInfluencer() {
+      return isRole('influencer');
+    }
+
+    function isModerator() {
+      return isRole('moderator');
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
     match /users/{userId} {
-      allow create;
-      allow read, update: if isOwner(userId);
+      // Users can create their own profile on signup
+      allow create: if isSignedIn() && isOwner(userId);
+      
+      // Public read for organizer profiles displayed on event pages
+      // Auth context needs to read user roles
+      allow read: if true;
+      
+      // Users can update their own profile
+      allow update: if isOwner(userId);
+      
+      // Super-admins can update any user (role changes, verification, suspension)
+      allow update: if isSuperAdmin();
+      
+      // Never allow delete
       allow delete: if false;
     }
 
-    // Events & Tours
-    // Any signed-in user can create a listing.
-    // Anyone can read event/tour listings.
-    // Only the organizer who created it can update or delete it.
-    match /{collection}/{listingId} where collection in ['events', 'tours'] {
-      allow create: if isSignedIn();
-      allow read;
-      allow update, delete: if isOwner(resource.data.organizerId);
+
+    // ============================================
+    // EVENTS COLLECTION
+    // ============================================
+    match /events/{eventId} {
+      // Public can read approved events
+      // Organizers can read their own events
+      // Admins can read all events
+      allow read: if true;
+      
+      // Only organizers can create events
+      allow create: if isOrganizer() || isAdmin();
+      
+      // Organizers can update their own events
+      // Admins can update any event (moderation)
+      allow update: if (isSignedIn() && resource.data.organizerId == request.auth.uid) 
+                    || isAdmin();
+      
+      // Only super-admins can delete events
+      allow delete: if isSuperAdmin();
     }
+
+
+    // ============================================
+    // TOURS COLLECTION
+    // ============================================
+    match /tours/{tourId} {
+      // Public can read all tours
+      allow read: if true;
+      
+      // Only organizers can create tours
+      allow create: if isOrganizer() || isAdmin();
+      
+      // Organizers can update their own tours
+      // Admins can update any tour
+      allow update: if (isSignedIn() && resource.data.organizerId == request.auth.uid) 
+                    || isAdmin();
+      
+      // Only super-admins can delete tours
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // ============================================
+    // PRODUCTS COLLECTION (Shop)
+    // ============================================
+    match /products/{productId} {
+      // Anyone can read products (public shop)
+      allow read: if true;
+      
+      // Only admins can manage products
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    // ============================================
+    // ORDERS COLLECTION
+    // ============================================
+    match /orders/{orderId} {
+      // Users can read their own orders by matching email
+      // Admins can read all orders
+      allow read: if isSignedIn() && (
+                      resource.data.userId == request.auth.uid
+                      || resource.data.contactEmail == request.auth.token.email
+                      || isAdmin()
+                    );
+      
+      // Anyone can create an order (checkout flow, including guests)
+      allow create: if true;
+      
+      // Only admins/callbacks can update orders (payment status)
+      allow update: if isAdmin();
+      
+      // Only super-admins can delete orders
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // ============================================
+    // TICKETS COLLECTION
+    // ============================================
+    match /tickets/{ticketId} {
+      // Users can read their own tickets
+      // Organizers can read tickets for their events
+      // Moderators can read for scanning
+      // Admins can read all
+      allow read: if isSignedIn() && (
+                      resource.data.userId == request.auth.uid
+                      || resource.data.userEmail == request.auth.token.email
+                      || resource.data.organizerId == request.auth.uid
+                      || isModerator()
+                      || isAdmin()
+                    );
+      
+      // Tickets created server-side via payment callbacks only
+      // Block direct client creation
+      allow create: if false;
+      
+      // Organizers and moderators can check-in tickets
+      // Admins can update any ticket
+      allow update: if isSignedIn() && (
+                        resource.data.organizerId == request.auth.uid
+                        || isModerator()
+                        || isAdmin()
+                      );
+      
+      // Only super-admins can delete tickets
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // ============================================
+    // PROMOCODES COLLECTION
+    // ============================================
+    match /promocodes/{codeId} {
+      // Public read needed for checkout validation
+      allow read: if true;
+      
+      // Organizers can create promo codes
+      allow create: if isOrganizer() || isAdmin();
+      
+      // Organizers can update/delete their own promo codes
+      // Admins can manage any promo code
+      allow update, delete: if (isSignedIn() && resource.data.organizerId == request.auth.uid)
+                            || isAdmin();
+    }
+
+
+    // ============================================
+    // PAYOUTS COLLECTION
+    // ============================================
+    match /payouts/{payoutId} {
+      // Users can read their own payout requests
+      // Admins can read all
+      allow read: if isSignedIn() && (
+                      resource.data.organizerId == request.auth.uid
+                      || resource.data.userId == request.auth.uid
+                      || isAdmin()
+                    );
+      
+      // Organizers and influencers can request payouts
+      allow create: if (isOrganizer() || isInfluencer())
+                    && request.resource.data.status == 'pending';
+      
+      // Only admins can update payouts (approve/reject/process)
+      allow update: if isAdmin();
+      
+      // Never allow delete
+      allow delete: if false;
+    }
+
+
+    // ============================================
+    // REPORTS COLLECTION
+    // ============================================
+    match /reports/{reportId} {
+      // Only admins can read reports
+      allow read: if isAdmin();
+      
+      // Authenticated users can submit reports
+      allow create: if isSignedIn();
+      
+      // Only admins can update reports (resolve)
+      allow update: if isAdmin();
+      
+      // Only super-admins can delete reports
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // ============================================
+    // M-PESA LOGS COLLECTION (Audit Trail)
+    // ============================================
+    match /mpesa_logs/{logId} {
+      // Only admins can read audit logs
+      allow read: if isAdmin();
+      
+      // Logs are created server-side only via Admin SDK
+      allow create: if false;
+      
+      // Logs are immutable
+      allow update, delete: if false;
+    }
+
+
+    // ============================================
+    // ANALYTICS PAGEVIEWS COLLECTION
+    // ============================================
+    match /analytics_pageviews/{viewId} {
+      // Only admins can read analytics data
+      allow read: if isAdmin();
+      
+      // Anyone can create page views (tracking)
+      allow create: if true;
+      
+      // Page views are immutable
+      allow update, delete: if false;
+    }
+
+
+    // ============================================
+    // ANALYTICS EVENT VIEWS COLLECTION
+    // ============================================
+    match /analytics_event_views/{viewId} {
+      // Only admins can read analytics data
+      allow read: if isAdmin();
+      
+      // Anyone can create event views (tracking)
+      allow create: if true;
+      
+      // Event views are immutable
+      allow update, delete: if false;
+    }
+
+
+    // ============================================
+    // ANALYTICS AGGREGATES COLLECTION
+    // ============================================
+    match /analytics_aggregates/{docId} {
+      // Only admins can read aggregates
+      allow read: if isAdmin();
+      
+      // Server-side only creation/updates
+      allow create, update: if false;
+      
+      allow delete: if false;
+    }
+
+
+    // ============================================
+    // TRENDING CACHE COLLECTION
+    // ============================================
+    match /trending_cache/{cacheId} {
+      // Anyone can read trending (for homepage)
+      allow read: if true;
+      
+      // Server-side only updates
+      allow create, update: if false;
+      
+      allow delete: if false;
+    }
+
+
+    // ============================================
+    // ADMIN CONFIG COLLECTION
+    // ============================================
+    match /config/{configId} {
+      allow read, write: if isSuperAdmin();
+    }
+
+
+    // ============================================
+    // CATCH-ALL: DEFAULT DENY
+    // ============================================
+    // Any other collection not explicitly matched above will be denied
+    // This is already the default behavior in Firestore but explicit is better
+
   }
 }

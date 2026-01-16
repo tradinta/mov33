@@ -1,122 +1,186 @@
-
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { DollarSign, Users, Ticket, Activity } from "lucide-react";
-import {
-  AreaChart,
-  Area,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts"
-import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-
-const commissionData = [
-  { month: "Jan", commission: 12000 },
-  { month: "Feb", commission: 18000 },
-  { month: "Mar", commission: 15000 },
-  { month: "Apr", commission: 22000 },
-  { month: "May", commission: 25000 },
-  { month: "Jun", commission: 30000 },
-];
-
-const chartConfig = {
-  commission: {
-    label: "Commission",
-    color: "hsl(var(--accent))",
-  },
-} satisfies ChartConfig;
-
-
-function CommissionChart() {
-    return (
-      <ChartContainer config={chartConfig} className="w-full h-full">
-        <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={commissionData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                 <defs>
-                    <linearGradient id="colorCommission" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="var(--color-commission)" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="var(--color-commission)" stopOpacity={0}/>
-                    </linearGradient>
-                </defs>
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `KES ${Number(value) / 1000}K`} />
-                <Tooltip content={<ChartTooltipContent indicator="dot" />} />
-                <Area type="monotone" dataKey="commission" stroke="var(--color-commission)" fillOpacity={1} fill="url(#colorCommission)" />
-            </AreaChart>
-        </ResponsiveContainer>
-      </ChartContainer>
-    )
-}
-
+import React, { useState, useEffect } from 'react';
+import { GlassCard } from '@/components/ui/glass-card';
+import { BarChart3, Users, Wallet, TrendingUp, Copy, ExternalLink, Trophy, Loader2, Sparkles, Ticket } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/auth-context';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { firestore } from '@/firebase';
+import { Promocode } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 export default function InfluencerDashboard() {
+  const { profile } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [codes, setCodes] = useState<Promocode[]>([]);
+
+  useEffect(() => {
+    const fetchPerformance = async () => {
+      if (!profile?.uid) return;
+      try {
+        const q = query(collection(firestore, 'promocodes'), where('influencerId', '==', profile.uid));
+        const snap = await getDocs(q);
+        const fetchedCodes = snap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Promocode));
+        setCodes(fetchedCodes);
+      } catch (error) {
+        console.error("Error fetching performance:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPerformance();
+  }, [profile?.uid]);
+
+  const totalConversions = codes.reduce((acc: number, code: Promocode) => acc + (code.usageCount || 0), 0);
+
+  // Simulated clicks (usually tracked via an analytics service or a redirect link)
+  const totalClicks = totalConversions * 4.2; // Estimation for demo purposes
+
+  const totalEarnings = codes.reduce((acc: number, code: Promocode) => {
+    if (!code.commissionValue) return acc;
+    // For simplicity in this demo, we use commissionValue * usageCount 
+    // In a real system, you'd calculate based on order value for percentage commissions
+    return acc + (code.commissionValue * (code.usageCount || 0));
+  }, 0);
+
+  const stats = [
+    { label: 'Potential Clicks', value: Math.round(totalClicks).toLocaleString(), icon: BarChart3, color: 'text-blue-400' },
+    { label: 'Conversions', value: totalConversions.toLocaleString(), icon: Users, color: 'text-kenyan-green' },
+    { label: 'Total Earnings', value: `KES ${totalEarnings.toLocaleString()}`, icon: Wallet, color: 'text-gold' },
+    { label: 'Conversion Rate', value: totalClicks > 0 ? `${((totalConversions / totalClicks) * 100).toFixed(1)}%` : '0%', icon: TrendingUp, color: 'text-purple-400' },
+  ];
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(`https://mov33.co.ke/?ref=${profile?.uid}`);
+    toast({
+      title: "Link Copied!",
+      description: "Your global referral link is ready to share.",
+    });
+  };
+
   return (
-    <div className="space-y-8">
-        <div className="flex items-center justify-between">
-            <div>
-                <h1 className="text-3xl font-bold font-headline">Welcome, Alex</h1>
-                <p className="text-muted-foreground">Here's your campaign performance overview.</p>
+    <div className="space-y-10 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Influencer Nexus</h1>
+          <p className="text-muted-foreground">Track your performance and maximize your impact.</p>
+        </div>
+        <div className="flex gap-4">
+          <Button onClick={handleCopyLink} className="bg-gold hover:bg-gold/90 text-obsidian font-bold rounded-2xl h-12">
+            <Copy className="mr-2 h-4 w-4" />
+            Copy Global Link
+          </Button>
+          <Button variant="outline" className="border-white/10 bg-white/5 font-bold rounded-2xl h-12">
+            Withdraw Funds
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat) => (
+          <GlassCard key={stat.label} className="p-6 border-white/5 hover:border-white/10 transition-colors cursor-default">
+            <div className="flex flex-col gap-4">
+              <div className={`h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center ${stat.color}`}>
+                <stat.icon className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="text-3xl font-black tracking-tighter text-white">{stat.value}</div>
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{stat.label}</div>
+              </div>
             </div>
+          </GlassCard>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="text-xl font-bold text-white uppercase tracking-widest flex items-center gap-2">
+            <div className="h-1 w-4 bg-kenyan-green rounded-full" />
+            Your Campaigns
+          </h2>
+
+          {loading ? (
+            <div className="flex items-center justify-center p-12">
+              <Loader2 className="h-8 w-8 animate-spin text-gold/30" />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {codes.map((c: Promocode) => (
+                <GlassCard key={c.id} className="p-4 border-white/5 hover:bg-white/[0.02] transition-colors overflow-hidden group">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-xl bg-gold/10 flex items-center justify-center text-gold group-hover:scale-110 transition-transform">
+                        <Ticket className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-sm uppercase tracking-tight flex items-center gap-2">
+                          {c.code}
+                          {c.active && <div className="h-1.5 w-1.5 rounded-full bg-kenyan-green animate-pulse" />}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
+                          {c.usageCount || 0} Redemptions • {c.discountValue}{c.discountType === 'percentage' ? '%' : ' KES'} OFF
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-black text-kenyan-green truncate">
+                        KES {(c.commissionValue || 0) * (c.usageCount || 0)}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground uppercase font-bold">Earned</div>
+                    </div>
+                  </div>
+                </GlassCard>
+              ))}
+              {codes.length === 0 && (
+                <div className="p-12 text-center border-2 border-dashed border-white/5 rounded-3xl opacity-50 italic text-sm font-medium">
+                  No active referral campaigns found.
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-      <section>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Commission</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">KES 122,000</div>
-              <p className="text-xs text-muted-foreground">+25.2% from last month</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tickets Sold</CardTitle>
-              <Ticket className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+152</div>
-              <p className="text-xs text-muted-foreground">+80.1% from last month</p>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">3</div>
-              <p className="text-xs text-muted-foreground">1 campaign ending this week</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Link Clicks</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">2,540</div>
-              <p className="text-xs text-muted-foreground">+500 this month</p>
-            </CardContent>
-          </Card>
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-white uppercase tracking-widest flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-gold" />
+            Hall of Fame
+          </h2>
+          <GlassCard className="p-6 border-gold/20 bg-gold/[0.02]">
+            <div className="space-y-6">
+              {[
+                { rank: 1, name: 'Sauti Sol', score: '4,200', current: true },
+                { rank: 2, name: 'Azziad N.', score: '3,840' },
+                { rank: 3, name: 'Khaligraph J.', score: '2,910' },
+              ].map((user) => (
+                <div key={user.rank} className={`flex items-center justify-between ${user.current ? 'bg-white/5 -mx-4 px-4 py-2 rounded-xl' : ''}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center font-black text-xs ${user.rank === 1 ? 'bg-gold text-obsidian' : 'bg-white/10'}`}>
+                      {user.rank}
+                    </div>
+                    <div className="font-bold text-sm">{user.name} {user.current && '(You)'}</div>
+                  </div>
+                  <div className="text-xs font-black text-muted-foreground tracking-tighter">{user.score} pts</div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 pt-6 border-t border-white/5 text-center">
+              <div className="text-[10px] uppercase font-black text-gold/50 tracking-[0.2em] mb-4">Your Next Milestone</div>
+              <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-gold w-[60%] rounded-full shadow-[0_0_10px_rgba(255,215,0,0.3)]" />
+              </div>
+              <div className="flex justify-between mt-2 font-black text-[10px] uppercase tracking-tighter opacity-40">
+                <span>Rank #4</span>
+                <span>1,000 pts to Rank #3</span>
+              </div>
+            </div>
+          </GlassCard>
         </div>
-      </section>
-
-       <Card>
-            <CardHeader>
-                <CardTitle>Commission Overview</CardTitle>
-                <CardDescription>Last 6 months commission trend.</CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-                <CommissionChart />
-            </CardContent>
-        </Card>
-
+      </div>
     </div>
   );
 }

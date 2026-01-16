@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   NavigationMenu,
@@ -24,9 +24,20 @@ import { Button } from '@/components/ui/button';
 import { LogOut, Settings, User, Menu } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { RoleGuard } from '@/components/auth/role-guard';
+import { useAuth } from '@/context/auth-context';
+import { auth } from '@/firebase';
+import { signOut } from 'firebase/auth';
 
 function OrganizerHeader() {
   const pathname = usePathname();
+  const { profile } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
 
   const navLinks = [
     { href: '/organizer', label: 'Overview' },
@@ -38,7 +49,6 @@ function OrganizerHeader() {
     { href: '/organizer/profile', label: 'Profile' },
   ];
 
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
@@ -46,16 +56,16 @@ function OrganizerHeader() {
         <NavigationMenu className="hidden md:flex mx-6">
           <NavigationMenuList>
             {navLinks.map((link) => (
-                <NavigationMenuItem key={link.href}>
+              <NavigationMenuItem key={link.href}>
                 <Link href={link.href} passHref>
-                    <NavigationMenuLink
+                  <NavigationMenuLink
                     className={navigationMenuTriggerStyle()}
                     active={pathname.startsWith(link.href) && (link.href !== '/organizer' || pathname === '/organizer')}
-                    >
+                  >
                     {link.label}
-                    </NavigationMenuLink>
+                  </NavigationMenuLink>
                 </Link>
-                </NavigationMenuItem>
+              </NavigationMenuItem>
             ))}
           </NavigationMenuList>
         </NavigationMenu>
@@ -69,10 +79,10 @@ function OrganizerHeader() {
               >
                 <Avatar className="h-10 w-10">
                   <AvatarImage
-                    src="https://picsum.photos/seed/kru/100/100"
-                    alt="Kenya Rugby Union"
+                    src={profile?.photoURL || `https://picsum.photos/seed/${profile?.uid || 'org'}/100/100`}
+                    alt={profile?.displayName || 'Organizer'}
                   />
-                  <AvatarFallback>KR</AvatarFallback>
+                  <AvatarFallback>{profile?.displayName?.slice(0, 2).toUpperCase() || 'OR'}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -80,30 +90,34 @@ function OrganizerHeader() {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    Kenya Rugby Union
+                    {profile?.displayName || 'Organizer'}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    organizer@kru.co.ke
+                    {profile?.email}
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Organizer Profile</span>
+              <DropdownMenuItem asChild>
+                <Link href="/organizer/profile" className="flex items-center w-full cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Organizer Profile</span>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+              <DropdownMenuItem asChild>
+                <Link href="/organizer/settings" className="flex items-center w-full cursor-pointer">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-           <Sheet>
+          <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
                 <Menu className="h-5 w-5" />
@@ -135,16 +149,17 @@ function OrganizerHeader() {
   );
 }
 
-
 export default function OrganizerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <OrganizerHeader />
-      <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
-    </div>
+    <RoleGuard allowedRoles={['organizer', 'admin', 'super-admin']}>
+      <div className="flex min-h-screen w-full flex-col bg-muted/40">
+        <OrganizerHeader />
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+      </div>
+    </RoleGuard>
   );
 }

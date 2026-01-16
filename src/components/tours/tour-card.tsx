@@ -1,57 +1,140 @@
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "../ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Tour } from "@/lib/types";
+import {
+  Clock,
+  Star,
+  Users,
+  ArrowUpRight,
+  MapPin,
+  Zap,
+  Heart,
+  ShieldCheck
+} from "lucide-react";
 import { Badge } from "../ui/badge";
-import type { Tour } from "@/lib/tours-data";
-import { ArrowRight, Clock, Star, Users } from "lucide-react";
+import { motion } from "framer-motion";
+import { GlassCard } from "../ui/glass-card";
 
 export function TourCard({ tour }: { tour: Tour }) {
+  const isPrivate = tour.privateBooking;
+
   return (
-    <Card className="group overflow-hidden rounded-xl bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-accent/10 hover:-translate-y-1">
-      <CardHeader className="p-0">
-        <div className="relative aspect-[4/3] w-full overflow-hidden">
-          <Link href={`/tours/${tour.id}`}>
+    <Link href={`/tours/${tour.id}`} className="block h-full group">
+      <GlassCard className="h-full overflow-hidden border-white/5 bg-obsidian/40 backdrop-blur-xl transition-all duration-500 hover:border-gold/30 hover:shadow-2xl hover:shadow-gold/5 flex flex-col">
+        {/* Top Image Section */}
+        <div className="relative aspect-[4/5] overflow-hidden">
+          {tour.imageUrl ? (
             <Image
-              src={tour.image.imageUrl}
-              alt={tour.image.description}
+              src={tour.imageUrl}
+              alt={tour.name}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              data-ai-hint={tour.image.imageHint}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 25vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-cover transition-transform duration-700 group-hover:scale-110"
             />
-          </Link>
-          <div className="absolute top-3 left-3 z-10">
-            <Badge className="bg-accent text-accent-foreground font-poppins">{tour.destination}</Badge>
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-obsidian via-obsidian/80 to-gold/20" />
+          )}
+
+          {/* Overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-transparent to-black/20" />
+
+          {/* Top Badges */}
+          <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
+            <Badge className="bg-white/10 backdrop-blur-md text-white border-white/10 text-[9px] font-black uppercase tracking-widest h-7 px-3">
+              <MapPin className="mr-1.5 h-3 w-3 text-gold" /> {tour.destination}
+            </Badge>
+            {tour.isFeatured && (
+              <Badge className="bg-gold text-obsidian text-[8px] font-black uppercase tracking-widest h-6 border-none shadow-lg">
+                <Zap className="mr-1 h-3 w-3" /> Trending
+              </Badge>
+            )}
+          </div>
+
+          <div className="absolute top-4 right-4 z-20">
+            <button className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-gold hover:text-obsidian transition-all group/btn shadow-xl">
+              <Heart className="h-4 w-4 transition-transform group-hover/btn:scale-110" />
+            </button>
+          </div>
+
+          {/* Bottom Info Bar On Image */}
+          <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-between items-center bg-obsidian/60 backdrop-blur-md p-3 rounded-2xl border border-white/5 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-3 w-3 text-gold" />
+                <span className="text-[10px] font-black text-white uppercase">{tour.duration}</span>
+              </div>
+              <div className="h-1 w-1 bg-white/20 rounded-full" />
+              <div className="flex items-center gap-1.5">
+                <Star className="h-3 w-3 text-gold fill-gold" />
+                <span className="text-[10px] font-black text-white">{tour.rating}</span>
+              </div>
+            </div>
+            {isPrivate && (
+              <ShieldCheck className="h-4 w-4 text-gold/60" />
+            )}
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-4 pb-2">
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-             <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                <span>{tour.duration}</span>
+
+        {/* Content Section */}
+        <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+          <div className="space-y-3">
+            <h3 className="font-headline text-2xl font-black text-white leading-[1.1] tracking-tighter uppercase italic group-hover:text-gold transition-colors duration-300">
+              {tour.name}
+            </h3>
+
+            <p className="text-muted-foreground font-poppins text-xs line-clamp-2 leading-relaxed opacity-60">
+              {tour.description}
+            </p>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              {tour.highlights?.slice(0, 2).map((h, i) => (
+                <span key={i} className="text-[9px] font-black uppercase bg-white/5 px-2 py-1 rounded text-white/50 tracking-tighter">
+                  • {h}
+                </span>
+              ))}
             </div>
-            <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-amber-400" />
-                <span className="font-bold text-foreground">{tour.rating}</span>
+          </div>
+
+          <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-black text-muted-foreground tracking-tight">
+                Member's Expedition Rate
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-xl font-black text-white italic tracking-tighter font-headline">
+                  KES {(tour.price * 0.9).toLocaleString()}
+                </span>
+                <span className="text-[10px] text-muted-foreground line-through decoration-gold/50">
+                  KES {tour.price.toLocaleString()}
+                </span>
+              </div>
             </div>
+
+            <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center group-hover:bg-gold group-hover:text-obsidian transition-all duration-500 rotate-45 group-hover:rotate-0 shadow-lg group-hover:shadow-gold/20">
+              <ArrowUpRight className="h-6 w-6 -rotate-45 group-hover:rotate-0 transition-transform duration-500" />
+            </div>
+          </div>
         </div>
-        <h3 className="mt-2 font-headline text-lg font-bold text-foreground group-hover:text-accent transition-colors leading-tight">
-            <Link href={`/tours/${tour.id}`}>{tour.name}</Link>
-        </h3>
-      </CardContent>
-      <CardFooter className="p-4 pt-0 flex justify-between items-center">
-        <div>
-            <p className="text-xs text-muted-foreground">From</p>
-            <p className="font-headline font-bold text-xl text-accent">KES {tour.price}</p>
+      </GlassCard>
+    </Link>
+  );
+}
+
+export function TourCardSkeleton() {
+  return (
+    <GlassCard className="h-[500px] overflow-hidden border-white/5 bg-white/[0.02] flex flex-col animate-pulse">
+      <Skeleton className="aspect-[4/5] w-full bg-white/5" />
+      <div className="p-6 space-y-4 flex-1">
+        <Skeleton className="h-4 w-1/3 bg-white/5" />
+        <Skeleton className="h-10 w-full bg-white/5" />
+        <Skeleton className="h-12 w-full bg-white/5" />
+        <div className="pt-4 mt-auto">
+          <Skeleton className="h-12 w-full bg-white/5 rounded-2xl" />
         </div>
-        <Button asChild variant="outline" size="sm">
-            <Link href={`/tours/${tour.id}`}>
-                Details <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-        </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </GlassCard>
   );
 }

@@ -1,67 +1,113 @@
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Event } from "@/lib/events-data";
+import type { Event } from "@/lib/types";
 import { Heart, MapPin } from "lucide-react";
-import { Button } from "../ui/button";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 export function EventCard({ event }: { event: Event }) {
-  const [dayOfWeek, datePart] = event.date.split(',');
-  const [day, month] = datePart?.trim().split(' ') || ["", ""];
-  
+  // Handle Firestore Timestamp or Date object
+  const eventDate = event.date?.toDate ? event.date.toDate() : new Date();
+  const dayOfWeek = format(eventDate, 'EEE').toUpperCase();
+  const day = format(eventDate, 'dd');
+  const month = format(eventDate, 'MMM').toUpperCase();
+
+  const isSoldOut = event.ticketsSold >= event.capacity && event.capacity > 0;
+  const price = event.price || 0;
+
   return (
-    <Card className="group overflow-hidden rounded-xl bg-card text-card-foreground shadow-sm transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-accent/10 hover:-translate-y-1 relative">
-      <div className="absolute top-3 right-3 z-10 flex gap-2">
-        <Button variant="ghost" size="icon" className="rounded-full bg-background/70 hover:bg-background h-8 w-8">
-          <Heart className="h-4 w-4 text-foreground" />
-          <span className="sr-only">Bookmark event</span>
-        </Button>
-      </div>
-
-      <div className="absolute top-3 left-3 z-10 bg-background/80 rounded-lg p-2 text-center w-14 shadow-md backdrop-blur-sm">
-        <span className="block text-[10px] uppercase text-foreground/80 leading-none font-poppins">{dayOfWeek}</span>
-        <span className="block font-bold text-base text-accent leading-none font-headline">{day}</span>
-        <span className="block text-[10px] uppercase text-foreground/80 leading-none font-poppins">{month}</span>
-      </div>
-
-      <CardContent className="p-0">
-        <Link href={`/events/${event.id}`} className="block">
-          <div className="relative aspect-[3/4] w-full overflow-hidden">
+    <Link href={`/events/${event.id}`} className="block h-full group">
+      <Card className="h-full overflow-hidden bg-white dark:bg-zinc-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-0">
+        {/* Image Container */}
+        <div className="relative aspect-[4/5] overflow-hidden">
+          {event.imageUrl ? (
             <Image
-              src={event.image.imageUrl}
-              alt={event.image.description}
+              src={event.imageUrl}
+              alt={event.title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              data-ai-hint={event.image.imageHint}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
-             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-800 dark:to-zinc-700" />
+          )}
+
+          {/* Gradient Overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+          {/* Floating Calendar Badge - Top Left */}
+          <div className="absolute top-4 left-4 z-20">
+            <div className="bg-white dark:bg-zinc-800 rounded-xl px-3 py-2 text-center shadow-lg min-w-[54px]">
+              <span className="block text-[9px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wide">{dayOfWeek}</span>
+              <span className="block font-bold text-2xl text-orange-500 leading-none my-0.5">{day}</span>
+              <span className="block text-[9px] uppercase font-bold text-zinc-500 dark:text-zinc-400 tracking-wide">{month}</span>
+            </div>
           </div>
-          <div className="absolute bottom-0 left-0 p-4 space-y-1 text-white w-full">
-            <h3 className="font-headline text-lg font-bold text-white group-hover:text-accent transition-colors leading-tight">
-              {event.name}
+
+          {/* Bookmark Heart - Top Right */}
+          <div className="absolute top-4 right-4 z-20">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              className="h-10 w-10 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+            >
+              <Heart className="h-5 w-5 text-zinc-400 hover:text-red-500 transition-colors" />
+            </button>
+          </div>
+
+          {/* Sold Out Badge */}
+          {isSoldOut && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
+              <Badge className="bg-red-500 text-white border-none text-xs font-bold uppercase">
+                Sold Out
+              </Badge>
+            </div>
+          )}
+
+          {/* Content Overlay - Bottom */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+            {/* Event Title */}
+            <h3 className="font-bold text-xl text-white leading-tight mb-2 line-clamp-2">
+              {event.title}
             </h3>
-             <div className="flex items-center text-xs text-white/90 font-body gap-1.5">
-                <MapPin className="h-3 w-3" />
-                <span>{event.venue}, {event.location}</span>
+
+            {/* Location */}
+            <div className="flex items-center gap-1.5 text-white/80 text-sm mb-3">
+              <MapPin className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{event.location}</span>
             </div>
-            <div className="flex justify-between items-end font-poppins pt-2">
-                <span className="block font-semibold text-base text-accent">
-                   KES {event.price}
-                </span>
+
+            {/* Price */}
+            <div className="text-orange-500 font-bold text-lg">
+              {price === 0 ? 'KES Free' : `KES ${price.toLocaleString()}`}
             </div>
           </div>
-        </Link>
-      </CardContent>
-    </Card>
+        </div>
+      </Card>
+    </Link>
   );
 }
 
 export function EventCardSkeleton() {
   return (
-    <div className="space-y-3 rounded-xl border bg-card p-0 shadow-sm overflow-hidden">
-      <Skeleton className="aspect-[3/4] w-full" />
-    </div>
+    <Card className="h-[400px] overflow-hidden bg-white dark:bg-zinc-900 rounded-2xl border-0 animate-pulse">
+      <div className="relative aspect-[4/5]">
+        <Skeleton className="absolute inset-0 bg-zinc-200 dark:bg-zinc-800" />
+        <div className="absolute top-4 left-4">
+          <Skeleton className="w-14 h-16 rounded-xl bg-zinc-300 dark:bg-zinc-700" />
+        </div>
+        <div className="absolute top-4 right-4">
+          <Skeleton className="w-10 h-10 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+        </div>
+        <div className="absolute bottom-4 left-4 right-4 space-y-2">
+          <Skeleton className="h-6 w-3/4 bg-zinc-300 dark:bg-zinc-700" />
+          <Skeleton className="h-4 w-1/2 bg-zinc-300 dark:bg-zinc-700" />
+          <Skeleton className="h-5 w-1/3 bg-zinc-300 dark:bg-zinc-700" />
+        </div>
+      </div>
+    </Card>
   );
 }

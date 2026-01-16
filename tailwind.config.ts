@@ -63,7 +63,10 @@ export default {
           ring: "hsl(var(--ring))",
           accent: "hsl(var(--accent))",
           "accent-foreground": "hsl(var(--accent-foreground))",
-        }
+        },
+        gold: 'hsl(var(--gold))',
+        'kenyan-green': 'hsl(var(--kenyan-green))',
+        obsidian: 'hsl(var(--obsidian))',
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -1,181 +1,119 @@
-
 'use client';
 
 import * as React from 'react';
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { RoleGuard } from '@/components/auth/role-guard';
 import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
+  LayoutDashboard, Users, Calendar, Map, CheckSquare,
+  CreditCard, Settings, ShieldAlert, FileText, Activity,
+  ChevronDown, LogOut, Search, Plus, UserPlus, Flag
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { LogOut, Settings, User } from 'lucide-react';
-import { Logo } from '@/components/logo';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/auth-context';
 
-function SuperAdminHeader() {
+export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-
-  const breadcrumbItems = React.useMemo(() => {
-    const segments = pathname.split('/').filter(Boolean);
-    const items = [{ href: '/super-admin', label: 'Super Admin' }];
-
-    if (segments.length > 1) {
-      const page = segments[1]
-        .split('-')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      if (page !== 'Super-admin') {
-        items.push({ href: `/${segments[0]}/${segments[1]}`, label: page });
-      }
-    }
-    if (items.length === 1 && pathname === '/super-admin') {
-      items.push({ href: '/super-admin', label: 'Dashboard' });
-    }
-
-    return items;
-  }, [pathname]);
+  const { logout, profile } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
-        <Logo />
-        <NavigationMenu className="hidden md:flex mx-6">
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <Link href="/super-admin" passHref>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  active={pathname === '/super-admin'}
-                >
-                  Dashboard
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/super-admin/settings" passHref>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  active={pathname === '/super-admin/settings'}
-                >
-                  Platform Settings
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="/super-admin/security" passHref>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  active={pathname === '/super-admin/security'}
-                >
-                  Security Logs
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+    <RoleGuard allowedRoles={['super-admin']}>
+      <div className="flex h-screen w-full bg-[#0a0a0a] text-white font-sans overflow-hidden">
 
-        <div className="flex flex-1 items-center justify-end space-x-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="relative h-10 w-10 rounded-full"
-              >
-                <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src="https://picsum.photos/seed/superadmin/100/100"
-                    alt="Catherine Williams"
-                  />
-                  <AvatarFallback>CW</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Catherine Williams
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    super.admin@mov33.com
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-      <div className="border-b">
-        <div className="container py-2">
-          <Breadcrumb>
-            <BreadcrumbList>
-              {breadcrumbItems.map((item, index) => (
-                <React.Fragment key={item.href}>
-                  <BreadcrumbItem>
-                    {index < breadcrumbItems.length - 1 ? (
-                      <BreadcrumbLink asChild>
-                        <Link href={item.href}>{item.label}</Link>
-                      </BreadcrumbLink>
-                    ) : (
-                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                    )}
-                  </BreadcrumbItem>
-                  {index < breadcrumbItems.length - 1 && (
-                    <BreadcrumbSeparator />
+        {/* SIDEBAR */}
+        <aside className="w-64 flex-shrink-0 border-r border-white/5 bg-[#0F0F0F] flex flex-col">
+          {/* Header */}
+          <div className="h-16 flex items-center px-6 border-b border-white/5">
+            <div className="flex items-center gap-2 text-white font-bold tracking-tight">
+              <div className="h-6 w-6 rounded-full bg-gold flex items-center justify-center">
+                <div className="h-3 w-3 bg-black rounded-full" />
+              </div>
+              <span>mov33 Admin</span>
+              <ChevronDown className="h-3 w-3 opacity-50 ml-auto" />
+            </div>
+          </div>
+
+          <div className="p-4 space-y-6 flex-1 overflow-y-auto">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+              <Input
+                placeholder="Search Platform"
+                className="pl-9 bg-[#1A1A1A] border-none text-sm h-9 rounded-lg text-zinc-300 placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-gold/50"
+              />
+            </div>
+
+            {/* Main Nav */}
+            <nav className="space-y-1">
+              {[
+                { icon: LayoutDashboard, label: 'Overview', href: '/super-admin' },
+                { icon: Users, label: 'User Management', href: '/super-admin/users' },
+                { icon: Calendar, label: 'Events Global', href: '/super-admin/events' },
+                { icon: Map, label: 'Tours & Travel', href: '/super-admin/tours' },
+                { icon: UserPlus, label: 'Organizers', href: '/super-admin/organizers' },
+                { icon: CreditCard, label: 'Finance & Payouts', href: '/super-admin/finance' },
+                { icon: ShieldAlert, label: 'Moderation', href: '/super-admin/moderation' },
+                { icon: Settings, label: 'System Settings', href: '/super-admin/settings' },
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                    pathname === item.href
+                      ? "bg-[#1A1A1A] text-gold font-medium border-l-2 border-gold"
+                      : "text-zinc-400 hover:text-white hover:bg-white/5"
                   )}
-                </React.Fragment>
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
               ))}
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-      </div>
-    </header>
-  );
-}
+            </nav>
 
-export default function SuperAdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <SuperAdminHeader />
-      <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
-    </div>
+            {/* Audits & Logs */}
+            <div className="space-y-3 pt-4 border-t border-white/5">
+              <div className="flex items-center justify-between px-2 text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                <span>System Logs</span>
+              </div>
+              <div className="space-y-1">
+                {[
+                  { icon: Activity, label: 'Server Health', color: 'text-green-500' },
+                  { icon: FileText, label: 'Audit Trail', color: 'text-blue-500' },
+                  { icon: Flag, label: 'User Reports', color: 'text-red-500' },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-white/5 cursor-pointer">
+                    <item.icon className={cn("h-4 w-4", item.color)} />
+                    {item.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* User */}
+          <div className="p-4 border-t border-white/5 z-20 bg-[#0F0F0F]">
+            <div className="flex items-center gap-3 group cursor-pointer" onClick={() => logout()}>
+              <Avatar className="h-8 w-8 border border-gold/20">
+                <AvatarImage src={profile?.photoURL || ''} />
+                <AvatarFallback className="bg-gold text-obsidian font-bold text-xs">SA</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 overflow-hidden">
+                <p className="text-sm font-medium text-white truncate">{profile?.displayName || 'Super Admin'}</p>
+                <p className="text-xs text-zinc-500 truncate">Log out</p>
+              </div>
+              <LogOut className="h-4 w-4 text-zinc-500 group-hover:text-red-400 transition-colors" />
+            </div>
+          </div>
+        </aside>
+
+        {/* MAIN CONTENT */}
+        <main className="flex-1 overflow-y-auto bg-[#0a0a0a] p-8">
+          {children}
+        </main>
+      </div>
+    </RoleGuard>
   );
 }

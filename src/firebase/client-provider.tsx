@@ -1,5 +1,5 @@
-'use client';
 import { FirebaseProvider } from '@/firebase/provider';
+import { AuthProvider } from '@/context/auth-context';
 import React from 'react';
 
 export default function FirebaseClientProvider({
@@ -7,5 +7,11 @@ export default function FirebaseClientProvider({
 }: {
   children: React.ReactNode;
 }) {
-  return <FirebaseProvider>{children}</FirebaseProvider>;
+  return (
+    <FirebaseProvider>
+      <AuthProvider>
+        {children}
+      </AuthProvider>
+    </FirebaseProvider>
+  );
 }

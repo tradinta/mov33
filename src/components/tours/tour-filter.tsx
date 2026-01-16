@@ -1,142 +1,192 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { cn } from "@/lib/utils";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { RotateCw } from 'lucide-react';
-import { Separator } from '../ui/separator';
+  RotateCw,
+  Palmtree,
+  Compass,
+  Waves,
+  Map as MapIcon,
+  Heart,
+  Clock,
+  DollarSign,
+  Users as UsersIcon
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Separator } from "../ui/separator";
+import { Label } from "@/components/ui/label";
+import { CardHeader, CardTitle, CardContent } from "../ui/card";
+import { GlassCard } from "../ui/glass-card";
+import { Checkbox } from "@/components/ui/checkbox";
+
+export type TourFilters = {
+  destination: string;
+  duration: string;
+  priceRange: [number, number];
+  privateOnly: boolean;
+  searchQuery: string;
+};
+
+interface TourFilterProps {
+  onFilterChange: (filters: TourFilters) => void;
+}
 
 const destinations = [
-  'Maasai Mara',
-  'Amboseli',
-  'Diani',
-  'Nairobi',
-  'Lamu',
-  'Samburu',
+  "Maasai Mara",
+  "Amboseli",
+  "Diani",
+  "Nairobi",
+  "Lamu",
+  "Samburu",
+  "Tsavo",
+  "Naivasha"
 ];
 
-export function TourFilter() {
-  const [priceRange, setPriceRange] = useState([5000, 50000]);
+export function TourFilter({ onFilterChange }: TourFilterProps) {
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000]);
+  const [destination, setDestination] = useState("");
+  const [duration, setDuration] = useState("any");
+  const [privateOnly, setPrivateOnly] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleReset = () => {
+    setPriceRange([0, 200000]);
+    setDestination("");
+    setDuration("any");
+    setPrivateOnly(false);
+    setSearchQuery("");
+  };
+
+  useEffect(() => {
+    onFilterChange({
+      destination,
+      duration,
+      priceRange,
+      privateOnly,
+      searchQuery
+    });
+  }, [destination, duration, priceRange, privateOnly, searchQuery, onFilterChange]);
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <CardTitle className="text-lg font-poppins font-semibold">
-          Filters
+    <GlassCard className="border-white/5 bg-obsidian/40 backdrop-blur-xl sticky top-24">
+      <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-white/5">
+        <CardTitle className="text-xl font-black uppercase tracking-tighter italic text-white flex items-center gap-2">
+          <div className="h-2 w-6 bg-gold rounded-full" />
+          Expedition
         </CardTitle>
-        <Button variant="ghost" size="sm">
-          <RotateCw className="mr-2 h-4 w-4" />
+        <button
+          onClick={handleReset}
+          className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-gold transition-colors flex items-center gap-1.5"
+        >
+          <RotateCw className="h-3 w-3" />
           Reset
-        </Button>
+        </button>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div>
-          <Label className="font-poppins text-sm font-semibold">
-            Destination
+      <CardContent className="space-y-8 pt-8">
+        {/* Destination */}
+        <div className="space-y-3">
+          <Label className="uppercase text-[10px] font-black tracking-widest text-muted-foreground flex items-center gap-2">
+            <MapIcon className="h-3 w-3 text-gold" />
+            Region / Park
           </Label>
-          <Select>
-            <SelectTrigger className="w-full font-poppins mt-2">
-              <SelectValue placeholder="Select destination..." />
+          <Select onValueChange={setDestination} value={destination}>
+            <SelectTrigger className="w-full h-12 rounded-xl bg-white/5 border-white/5 font-bold font-poppins focus:ring-gold/50 transition-all text-xs uppercase tracking-tight">
+              <SelectValue placeholder="All Destinations" />
             </SelectTrigger>
-            <SelectContent>
-              {destinations.map((dest) => (
-                <SelectItem key={dest} value={dest.toLowerCase()}>
-                  {dest}
+            <SelectContent className="bg-obsidian border-white/10 max-h-60">
+              <SelectItem value="all" className="uppercase text-[10px] font-black tracking-widest">All Kenya</SelectItem>
+              {destinations.map(d => (
+                <SelectItem key={d} value={d.toLowerCase()} className="font-bold text-xs uppercase tracking-tight">
+                  {d}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div>
-          <Label className="font-poppins text-sm font-semibold">Duration</Label>
-          <RadioGroup defaultValue="any" className="mt-2 space-y-2">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="any" id="d-any" />
-              <Label htmlFor="d-any" className="font-normal">
-                Any
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="1" id="d-1" />
-              <Label htmlFor="d-1" className="font-normal">
-                1 Day
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="2-3" id="d-2-3" />
-              <Label htmlFor="d-2-3" className="font-normal">
-                2-3 Days
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="4+" id="d-4" />
-              <Label htmlFor="d-4" className="font-normal">
-                4+ Days
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        <div className="grid gap-2">
-          <Label className="font-poppins text-sm font-semibold">
-            Price Range (KES)
+        {/* Duration Masterpiece Selector */}
+        <div className="space-y-3">
+          <Label className="uppercase text-[10px] font-black tracking-widest text-muted-foreground flex items-center gap-2">
+            <Clock className="h-3 w-3 text-gold" />
+            Duration
           </Label>
-          <Slider
-            min={0}
-            max={100000}
-            step={5000}
-            value={priceRange}
-            onValueChange={setPriceRange}
-            className="my-2"
-          />
-          <div className="flex justify-between items-center text-sm text-muted-foreground font-poppins">
-            <Input
-              className="w-24 h-8"
-              value={priceRange[0].toLocaleString()}
-              onChange={(e) =>
-                setPriceRange([+e.target.value.replace(/,/g, ''), priceRange[1]])
-              }
-            />
-            <span className="px-2">-</span>
-            <Input
-              className="w-24 h-8"
-              value={priceRange[1].toLocaleString()}
-              onChange={(e) =>
-                setPriceRange([priceRange[0], +e.target.value.replace(/,/g, '')])
-              }
-            />
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: "1 Day", val: "1" },
+              { label: "2-3 Days", val: "2-3" },
+              { label: "4-7 Days", val: "4-7" },
+              { label: "1 Week+", val: "7+" }
+            ].map((d) => (
+              <button
+                key={d.val}
+                onClick={() => setDuration(duration === d.val ? "any" : d.val)}
+                className={cn(
+                  "px-3 py-3 rounded-xl border text-[10px] font-black uppercase tracking-tighter transition-all duration-300",
+                  duration === d.val
+                    ? "bg-gold text-obsidian border-gold shadow-lg shadow-gold/20"
+                    : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10"
+                )}
+              >
+                {d.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        <Separator />
-
-        <div className="flex items-center space-x-2">
-          <Checkbox id="private-tours" />
-          <Label
-            htmlFor="private-tours"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            Private Tours Only
+        {/* Price Range */}
+        <div className="space-y-4">
+          <Label className="uppercase text-[10px] font-black tracking-widest text-muted-foreground flex items-center gap-2">
+            <DollarSign className="h-3 w-3 text-gold" />
+            Budget Range (KES)
           </Label>
+          <Slider
+            min={0}
+            max={300000}
+            step={5000}
+            value={priceRange}
+            onValueChange={(val) => setPriceRange(val as [number, number])}
+            className="my-6"
+          />
+          <div className="flex justify-between items-center gap-2 font-mono text-[10px] text-muted-foreground">
+            <div className="bg-white/5 px-3 py-2 rounded-lg border border-white/5 flex-1 text-center font-black">
+              {priceRange[0].toLocaleString()}
+            </div>
+            <span className="text-gold opacity-50 font-black">-</span>
+            <div className="bg-white/5 px-3 py-2 rounded-lg border border-white/5 flex-1 text-center font-black">
+              {priceRange[1].toLocaleString()}
+            </div>
+          </div>
         </div>
 
-        <Button className="w-full hidden lg:inline-flex">Apply Filters</Button>
+        <Separator className="bg-white/5" />
+
+        {/* Checks */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3 bg-white/5 p-4 rounded-xl border border-white/5 hover:border-gold/30 transition-all cursor-pointer group" onClick={() => setPrivateOnly(!privateOnly)}>
+            <Checkbox
+              id="private"
+              checked={privateOnly}
+              onCheckedChange={(val) => setPrivateOnly(!!val)}
+              className="h-5 w-5 rounded-md border-white/20 data-[state=checked]:bg-gold data-[state=checked]:text-obsidian"
+            />
+            <div className="space-y-0.5">
+              <Label htmlFor="private" className="text-[10px] font-bold uppercase tracking-widest text-white group-hover:text-gold transition-colors cursor-pointer">
+                Private Booking
+              </Label>
+              <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter opacity-50">Exclusive solo/group tours</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-4">
+          <Button className="w-full bg-gold text-obsidian font-black uppercase h-14 rounded-2xl shadow-xl shadow-gold/10 hover:shadow-gold/20 transition-all">
+            Apply Filters
+          </Button>
+        </div>
       </CardContent>
-    </Card>
+    </GlassCard>
   );
 }
-
-    
