@@ -23,6 +23,7 @@ export default function SuperAdminDashboard() {
     ticketsSold: 0,
     activeUsers: 0,
     totalEvents: 0,
+    anonymousVisitors: 0,
   });
   const [recentUsers, setRecentUsers] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
@@ -42,6 +43,17 @@ export default function SuperAdminDashboard() {
         const ticketsSnap = await getDocs(collection(firestore, 'tickets'));
         const tickets = ticketsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+        // Fetch Analytics for Unique Visitors
+        const pageviewsSnap = await getDocs(collection(firestore, 'analytics_pageviews'));
+        const pageviews = pageviewsSnap.docs.map(d => d.data());
+
+        // Calculate Unique Anonymous Visitors
+        const anonymousVisitorIds = new Set(
+          pageviews
+            .filter(pv => !pv.userId && pv.visitorId)
+            .map(pv => pv.visitorId)
+        );
+
         // Calculate Stats
         const totalRevenue = tickets.reduce((sum, t: any) => sum + (t.price || 0), 0);
 
@@ -50,6 +62,7 @@ export default function SuperAdminDashboard() {
           ticketsSold: tickets.length,
           activeUsers: users.length,
           totalEvents: events.length,
+          anonymousVisitors: anonymousVisitorIds.size,
         });
 
         // Recent Users (last 5)
@@ -110,7 +123,7 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card className="bg-[#111] border-white/5 shadow-lg relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <DollarSign className="h-16 w-16 text-gold" />
@@ -144,6 +157,18 @@ export default function SuperAdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-white">{stats.activeUsers.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-[#111] border-white/5 shadow-lg relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Eye className="h-16 w-16 text-orange-500" />
+          </div>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <span className="text-sm font-medium text-zinc-400">Anonymous Visitors</span>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-white">{stats.anonymousVisitors.toLocaleString()}</div>
           </CardContent>
         </Card>
 

@@ -20,7 +20,7 @@ import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc } from 'firebase/firestore';
 import { firestore } from '@/firebase';
-import { sendConfirmationEmail } from '@/lib/email-service';
+import { sendSignupConfirmation } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
 
 export default function SignupPage() {
@@ -57,9 +57,9 @@ export default function SignupPage() {
         createdAt: new Date(),
       });
 
-      // Send confirmation email via ZeptoMail
+      // Send confirmation email via ZeptoMail (Server Action)
       try {
-        await sendConfirmationEmail(user.email!, fullName);
+        await sendSignupConfirmation(user.email!, fullName);
       } catch (emailError) {
         console.error("Failed to send confirmation email:", emailError);
         // We don't block the user if email fail, but maybe we should notify them?

@@ -14,6 +14,21 @@ cloudinary.config({
 });
 
 
+import { adminAuth } from './firebase-admin';
+import { sendPasswordResetEmail, sendConfirmationEmail } from './email-service';
+
+export async function sendSignupConfirmation(email: string, name: string) {
+    console.log(`[Server Action] Attempting to send signup confirmation to: ${email}`);
+    try {
+        await sendConfirmationEmail(email, name);
+        console.log(`[Server Action] Signup confirmation sent successfully to: ${email}`);
+        return { success: true };
+    } catch (error) {
+        console.error("[Server Action] Error sending signup confirmation:", error);
+        throw new Error("Failed to send welcome email.");
+    }
+}
+
 export async function getSignature(folder: string) {
     const timestamp = Math.round(new Date().getTime() / 1000);
 
@@ -26,4 +41,40 @@ export async function getSignature(folder: string) {
     );
 
     return { timestamp, signature };
+}
+
+export async function requestPasswordReset(email: string) {
+    if (!adminAuth) {
+        console.error("Firebase Admin Auth not initialized");
+        throw new Error("Internal Server Error: Auth service unavailable");
+    }
+
+    try {
+        // Generate the reset link
+        const resetLink = await adminAuth.generatePasswordResetLink(email, {
+            url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'}/login`,
+        });
+
+        // Try to get user details for the name
+        let name = 'User';
+        try {
+            const userRecord = await adminAuth.getUserByEmail(email);
+            name = userRecord.displayName || 'User';
+        } catch (e) {
+            // If user doesn't exist, we still return success for security
+            console.log(`Password reset requested for non-existent email: ${email}`);
+            return { success: true };
+        }
+
+        // Send the email via ZeptoMail
+        await sendPasswordResetEmail(email, name, resetLink);
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error in requestPasswordReset:", error);
+        if (error.code === 'auth/user-not-found') {
+            return { success: true }; // Security best practice
+        }
+        throw new Error("Failed to send reset email. Please try again later.");
+    }
 }

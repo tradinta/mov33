@@ -6,7 +6,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '@/firebase';
 import { useAuth } from '@/context/auth-context';
 
-// Generate or retrieve session ID
+// Generate or retrieve session ID (per-session)
 function getSessionId(): string {
     if (typeof window === 'undefined') return 'server';
 
@@ -16,6 +16,18 @@ function getSessionId(): string {
         sessionStorage.setItem('mov33_session', sessionId);
     }
     return sessionId;
+}
+
+// Generate or retrieve persistent visitor ID (per-device)
+function getVisitorId(): string {
+    if (typeof window === 'undefined') return 'server';
+
+    let visitorId = localStorage.getItem('mov33_visitor_id');
+    if (!visitorId) {
+        visitorId = `v_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+        localStorage.setItem('mov33_visitor_id', visitorId);
+    }
+    return visitorId;
 }
 
 export function AnalyticsTracker() {
@@ -40,6 +52,7 @@ export function AnalyticsTracker() {
                     screenHeight: typeof window !== 'undefined' ? window.innerHeight : 0,
                     language: typeof navigator !== 'undefined' ? navigator.language : '',
                     sessionId: getSessionId(),
+                    visitorId: getVisitorId(),
                 });
             } catch (error) {
                 // Silently fail - analytics shouldn't break the app
