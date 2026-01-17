@@ -67,7 +67,7 @@ export default function ToursPage() {
                     <motion.div
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase text-white"
+                      className="px-4 py-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-full text-[10px] font-black uppercase text-foreground dark:text-white"
                     >
                       {activeFilters.duration} Days
                     </motion.div>
@@ -76,7 +76,7 @@ export default function ToursPage() {
 
                 <Dialog open={isFilterSheetOpen} onOpenChange={setFilterSheetOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="lg:hidden h-12 rounded-2xl border-white/10 bg-white/5 font-black uppercase text-[10px] tracking-widest">
+                    <Button variant="outline" className="lg:hidden h-12 rounded-2xl border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 font-black uppercase text-[10px] tracking-widest text-foreground dark:text-white">
                       <SlidersHorizontal className="mr-2 h-4 w-4" />
                       Refine
                     </Button>
@@ -95,7 +95,7 @@ export default function ToursPage() {
 
             <Tabs defaultValue="all" className="w-full">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-                <TabsList className="bg-white/5 border border-white/5 p-1 h-14 rounded-2xl">
+                <TabsList className="bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 p-1 h-14 rounded-2xl">
                   <TabsTrigger value="all" className="rounded-xl px-8 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-gold data-[state=active]:text-obsidian">All Journeys</TabsTrigger>
                   <TabsTrigger value="savanna" className="rounded-xl px-8 font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-gold data-[state=active]:text-obsidian flex items-center gap-2">
                     <Compass className="h-4 w-4" /> Savanna
@@ -106,7 +106,7 @@ export default function ToursPage() {
                 </TabsList>
 
                 <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  Sorted by: <span className="text-white">Trending</span>
+                  Sorted by: <span className="text-foreground dark:text-white">Trending</span>
                 </div>
               </div>
 

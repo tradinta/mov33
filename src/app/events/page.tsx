@@ -19,6 +19,7 @@ import { FeaturedEventsCarousel } from '@/components/events/featured-events-caro
 import { EventSearch } from '@/components/events/event-search';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { WelcomePopup } from '@/components/onboarding/welcome-popup';
 
 const slogans = [
   { title: 'Discover', highlight: 'Events' },
@@ -54,6 +55,7 @@ export default function EventsPage() {
 
   return (
     <div className="bg-background dark:bg-obsidian min-h-screen transition-colors duration-300">
+      <WelcomePopup />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Header Section with Rotating Slogans */}

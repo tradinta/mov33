@@ -20,18 +20,22 @@ import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc } from 'firebase/firestore';
 import { firestore } from '@/firebase';
+import { sendConfirmationEmail } from '@/lib/email-service';
+import { Loader2 } from 'lucide-react';
 
 export default function SignupPage() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
   const router = useRouter();
   const auth = getAuth(app);
   const { toast } = useToast();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -39,35 +43,52 @@ export default function SignupPage() {
         password
       );
       const user = userCredential.user;
+      const fullName = `${firstName} ${lastName}`;
+
       await updateProfile(user, {
-        displayName: `${firstName} ${lastName}`,
+        displayName: fullName,
       });
-      
+
       // Create user profile document in Firestore
       await setDoc(doc(firestore, "users", user.uid), {
         uid: user.uid,
-        displayName: `${firstName} ${lastName}`,
+        displayName: fullName,
         email: user.email,
         createdAt: new Date(),
       });
 
-      toast({ title: 'Success', description: 'Account created successfully!' });
-      router.push('/profile');
+      // Send confirmation email via ZeptoMail
+      try {
+        await sendConfirmationEmail(user.email!, fullName);
+      } catch (emailError) {
+        console.error("Failed to send confirmation email:", emailError);
+        // We don't block the user if email fail, but maybe we should notify them?
+        // For now just logged.
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Account created! Please check your email for confirmation.'
+      });
+      router.push('/events?newuser=true');
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
         description: error.message,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    setIsLoading(true);
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      
+
       // Create user profile document in Firestore
       await setDoc(doc(firestore, "users", user.uid), {
         uid: user.uid,
@@ -78,13 +99,15 @@ export default function SignupPage() {
       }, { merge: true });
 
       toast({ title: 'Success', description: 'Signed in successfully!' });
-      router.push('/profile');
+      router.push('/events?newuser=true');
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
         description: error.message,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -157,14 +180,35 @@ export default function SignupPage() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Create an account
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  'Create an account'
+                )}
               </Button>
             </div>
           </form>
-          <Button variant="outline" className="w-full" onClick={signInWithGoogle}>
-            <Chrome className="mr-2 h-4 w-4" />
-            Sign up with Google
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={signInWithGoogle}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Chrome className="mr-2 h-4 w-4" />
+                Sign up with Google
+              </>
+            )}
           </Button>
           <div className="mt-4 text-center text-sm">
             Already have an account?{' '}

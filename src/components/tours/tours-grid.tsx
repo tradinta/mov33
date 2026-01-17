@@ -97,7 +97,7 @@ export function ToursGrid({ filters }: ToursGridProps) {
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <h3 className="font-headline text-2xl font-black uppercase italic tracking-tighter text-white">No Expeditions Found</h3>
+                    <h3 className="font-headline text-2xl font-black uppercase italic tracking-tighter text-foreground dark:text-white">No Expeditions Found</h3>
                     <p className="text-muted-foreground font-poppins text-sm max-w-xs">
                         We couldn't find any tours matching your current preferences. Try adjusting your filters.
                     </p>
@@ -105,7 +105,7 @@ export function ToursGrid({ filters }: ToursGridProps) {
                 <Button
                     variant="outline"
                     onClick={() => window.location.reload()}
-                    className="rounded-xl border-white/10 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest px-8 h-12"
+                    className="rounded-xl border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 font-black uppercase text-[10px] tracking-widest px-8 h-12 text-foreground dark:text-white"
                 >
                     Clear Preferences
                 </Button>
