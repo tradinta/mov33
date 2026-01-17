@@ -7,10 +7,10 @@ import type { EventFormValues } from '@/app/organizer/events/new/page';
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
 });
 
 export async function createListing(formData: any, organizerId: string) {
@@ -26,15 +26,19 @@ export async function createListing(formData: any, organizerId: string) {
         };
 
         if (docData.date) {
-            docData.date = new Date(docData.date);
+            const parsedDate = new Date(docData.date);
+            if (!isNaN(parsedDate.getTime())) {
+                docData.date = parsedDate;
+            } else {
+                delete docData.date;
+            }
         }
 
         await addDoc(collection(firestore, collectionName), docData);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error(`Error creating ${listingType}: `, error);
-        // Re-throw the error to be caught by the calling function
-        throw new Error(`Failed to create ${listingType}.`);
+        throw error;
     }
 }
 

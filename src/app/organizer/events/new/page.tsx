@@ -20,6 +20,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
     Accordion,
     AccordionContent,
     AccordionItem,
@@ -37,6 +45,8 @@ import {
     CalendarIcon,
     PlusCircle,
     Trash2,
+    Loader2,
+    AlertTriangle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { TicketsSection } from '@/components/organizer/event-form/tickets-section';
@@ -142,25 +152,69 @@ export default function NewEventPage() {
         name: 'faqs',
     });
 
+    const [missingFields, setMissingFields] = React.useState<string[]>([]);
+    const [isModalOpen, setIsModalOpen] = React.useState(false);
 
-    async function onSubmit(data: EventFormValues) {
-        if (!user) {
-            toast({
-                variant: "destructive",
-                title: "Authentication Error",
-                description: "You must be logged in to create an event."
-            });
-            return;
+    // Persistence: Load from localStorage
+    React.useEffect(() => {
+        const savedData = localStorage.getItem('event-form-draft');
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                if (parsed.date) parsed.date = new Date(parsed.date);
+                form.reset(parsed);
+            } catch (e) {
+                console.error("Failed to load draft from localStorage", e);
+            }
         }
+    }, [form]);
 
+    // Persistence: Save to localStorage (Real-time)
+    const watchAllFields = form.watch();
+    React.useEffect(() => {
+        const dataToSave = { ...watchAllFields };
+        localStorage.setItem('event-form-draft', JSON.stringify(dataToSave));
+    }, [watchAllFields]);
+
+    const clearPersistence = () => {
+        localStorage.removeItem('event-form-draft');
+    }
+
+    async function handlePublishAttempt() {
+        // Trigger validation but don't stop execution
+        const valid = await form.trigger();
+        if (!valid) {
+            const errors = form.formState.errors;
+            const fields: string[] = [];
+
+            // Map common fields to readable names
+            if (errors.name) fields.push("Event Name");
+            if (errors.date) fields.push("Event Date");
+            if (errors.venue) fields.push("Venue");
+            if (errors.location) fields.push("Location");
+            if (errors.description) fields.push("Short Description");
+            if (errors.about) fields.push("Detailed 'About' section");
+            if (errors.mainImage) fields.push("Main Image Upload");
+            if (errors.tickets) fields.push("At least one Ticket Tier");
+
+            setMissingFields(fields);
+            setIsModalOpen(true);
+        } else {
+            // If perfectly valid, just submit
+            form.handleSubmit(onSubmit)();
+        }
+    }
+
+    async function onSubmit(data: any) {
+        if (!user) return;
         setIsPublishing(true);
-
         try {
             await createListing({ listingType: 'event', status: 'published', ...data }, user.uid);
             toast({
                 title: "Event Published!",
                 description: `Your event "${data.name}" is now live.`
             });
+            clearPersistence();
             router.push('/organizer/events');
         } catch (error) {
             console.error("Failed to publish event:", error);
@@ -171,6 +225,7 @@ export default function NewEventPage() {
             })
         } finally {
             setIsPublishing(false);
+            setIsModalOpen(false);
         }
     }
 
@@ -194,6 +249,7 @@ export default function NewEventPage() {
                 title: "Draft Saved",
                 description: `"${data.name}" has been saved to your drafts.`
             });
+            clearPersistence(); // Clear local storage once successfully saved to DB
             router.push('/organizer/events');
         } catch (error) {
             console.error("Failed to save draft:", error);
@@ -577,8 +633,9 @@ export default function NewEventPage() {
                             ) : 'Save as Draft'}
                         </Button>
                         <Button
-                            type="submit"
+                            type="button"
                             disabled={isPublishing || isSavingDraft}
+                            onClick={handlePublishAttempt}
                             className="h-12 px-8 rounded-xl bg-gold hover:bg-gold/90 text-obsidian font-bold uppercase tracking-widest text-xs"
                         >
                             {isPublishing ? (
@@ -587,6 +644,47 @@ export default function NewEventPage() {
                         </Button>
                     </div>
                 </form>
+
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                    <DialogContent className="max-w-md bg-obsidian border-gold/20 text-white">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-gold">
+                                <AlertTriangle className="h-5 w-5" />
+                                Missing Fields
+                            </DialogTitle>
+                            <DialogDescription className="text-white/70">
+                                Some required fields are missing or invalid. Do you want to continue editing or publish anyway?
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="py-4">
+                            <h4 className="text-sm font-semibold mb-2 text-white/90 uppercase tracking-wider text-xs">Missing/Invalid:</h4>
+                            <ul className="space-y-1">
+                                {missingFields.map((field, idx) => (
+                                    <li key={idx} className="text-sm text-white/60 flex items-center gap-2">
+                                        <span className="h-1 w-1 bg-gold rounded-full" />
+                                        {field}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <DialogFooter className="gap-2 sm:gap-0">
+                            <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="text-white hover:bg-white/10">
+                                Continue Editing
+                            </Button>
+                            <Button
+                                className="bg-gold hover:bg-gold/90 text-obsidian font-bold"
+                                onClick={() => onSubmit(form.getValues())}
+                                disabled={isPublishing}
+                            >
+                                {isPublishing ? (
+                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Publishing...</>
+                                ) : 'Publish Anyway'}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </Form>
         </div>
     );
