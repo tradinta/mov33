@@ -13,35 +13,6 @@ cloudinary.config({
     secure: true,
 });
 
-export async function createListing(formData: any, organizerId: string) {
-    const { listingType, ...data } = formData;
-    const collectionName = listingType === 'event' ? 'events' : 'tours';
-
-    try {
-        const docData = {
-            ...data,
-            organizerId,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        };
-
-        if (docData.date) {
-            const parsedDate = new Date(docData.date);
-            if (!isNaN(parsedDate.getTime())) {
-                docData.date = parsedDate;
-            } else {
-                delete docData.date;
-            }
-        }
-
-        await addDoc(collection(firestore, collectionName), docData);
-
-    } catch (error: any) {
-        console.error(`Error creating ${listingType}: `, error);
-        throw error;
-    }
-}
-
 
 export async function getSignature(folder: string) {
     const timestamp = Math.round(new Date().getTime() / 1000);

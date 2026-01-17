@@ -42,7 +42,15 @@ export default function OrganizerListingsPage() {
         const eventsRef = collection(firestore, 'events');
         const eq = query(eventsRef, where('organizerId', '==', profile.uid), orderBy('date', 'desc'));
         const eventSnap = await getDocs(eq);
-        const eventList = eventSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as EventListing));
+        const eventList = eventSnap.docs.map(doc => {
+          const data = doc.data();
+          // Convert Firebase Timestamp to string if necessary
+          let dateStr = data.date;
+          if (data.date && typeof data.date.toDate === 'function') {
+            dateStr = data.date.toDate().toLocaleDateString();
+          }
+          return { id: doc.id, ...data, date: dateStr } as EventListing;
+        });
         setEvents(eventList);
 
         // Fetch Tours

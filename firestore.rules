@@ -251,6 +251,21 @@ service cloud.firestore {
 
 
     // ============================================
+    // AUDIT LOGS COLLECTION
+    // ============================================
+    match /audit_logs/{logId} {
+      // Only super-admins can read audit logs
+      allow read: if isSuperAdmin();
+      
+      // Authenticated users can create audit logs
+      allow create: if isSignedIn();
+      
+      // Logs are immutable
+      allow update, delete: if false;
+    }
+
+
+    // ============================================
     // ANALYTICS PAGEVIEWS COLLECTION
     // ============================================
     match /analytics_pageviews/{viewId} {

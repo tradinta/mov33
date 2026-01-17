@@ -50,7 +50,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { TicketsSection } from '@/components/organizer/event-form/tickets-section';
-import { createListing } from '@/lib/actions';
+import { createListing } from '@/lib/listing-service';
 import { useUser } from '@/firebase/auth/use-user';
 import { useRouter } from 'next/navigation';
 import React from 'react';
