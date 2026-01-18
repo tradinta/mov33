@@ -1,164 +1,50 @@
-
 'use client';
 
 import * as React from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { LogOut, Settings, User, Menu } from 'lucide-react';
-import { Logo } from '@/components/logo';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useState } from 'react';
+import { OrganizerSidebar } from '@/components/organizer/organizer-sidebar';
+import { OrganizerTopbar } from '@/components/organizer/organizer-topbar';
 import { RoleGuard } from '@/components/auth/role-guard';
 import { useAuth } from '@/context/auth-context';
-import { auth } from '@/firebase';
-import { signOut } from 'firebase/auth';
-
-function OrganizerHeader() {
-  const pathname = usePathname();
-  const { profile } = useAuth();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    router.push('/login');
-  };
-
-  const navLinks = [
-    { href: '/organizer', label: 'Overview' },
-    { href: '/organizer/events', label: 'Listings' },
-    { href: '/organizer/attendance', label: 'Attendance' },
-    { href: '/organizer/promocodes', label: 'Promocodes' },
-    { href: '/organizer/payouts', label: 'Payouts' },
-    { href: '/organizer/guide', label: 'Guide' },
-    { href: '/organizer/profile', label: 'Profile' },
-  ];
-
-  return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
-        <Logo />
-        <NavigationMenu className="hidden md:flex mx-6">
-          <NavigationMenuList>
-            {navLinks.map((link) => (
-              <NavigationMenuItem key={link.href}>
-                <Link href={link.href} passHref>
-                  <NavigationMenuLink
-                    className={navigationMenuTriggerStyle()}
-                    active={pathname.startsWith(link.href) && (link.href !== '/organizer' || pathname === '/organizer')}
-                  >
-                    {link.label}
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
-
-        <div className="flex flex-1 items-center justify-end space-x-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="relative h-10 w-10 rounded-full"
-              >
-                <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src={profile?.photoURL || `https://picsum.photos/seed/${profile?.uid || 'org'}/100/100`}
-                    alt={profile?.displayName || 'Organizer'}
-                  />
-                  <AvatarFallback>{profile?.displayName?.slice(0, 2).toUpperCase() || 'OR'}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {profile?.displayName || 'Organizer'}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {profile?.email}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/organizer/profile" className="flex items-center w-full cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Organizer Profile</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/organizer/settings" className="flex items-center w-full cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle Menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <div className="flex flex-col h-full">
-                <div className="p-4 border-b">
-                  <Logo />
-                </div>
-                <nav className="flex flex-col gap-4 p-4 text-lg font-medium">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="font-poppins text-muted-foreground hover:text-foreground"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
-      </div>
-    </header>
-  );
-}
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function OrganizerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { logout } = useAuth();
+
   return (
     <RoleGuard allowedRoles={['organizer', 'admin', 'super-admin']}>
-      <div className="flex min-h-screen w-full flex-col bg-muted/40">
-        <OrganizerHeader />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+      <div className="flex h-screen w-full bg-muted/40 overflow-hidden">
+
+        {/* Desktop Sidebar (Hidden on Mobile) */}
+        <div className="hidden lg:block relative z-50">
+          <OrganizerSidebar
+            isCollapsed={isCollapsed}
+            toggleCollapse={() => setIsCollapsed(!isCollapsed)}
+            logout={logout}
+          />
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0">
+
+          {/* Topbar (Handles Mobile Sidebar Trigger) */}
+          <OrganizerTopbar />
+
+          {/* Page Content */}
+          <ScrollArea className="flex-1">
+            <main className="p-4 sm:p-6 lg:p-8 animate-in fade-in duration-500">
+              <div className="mx-auto max-w-7xl">
+                {children}
+              </div>
+            </main>
+          </ScrollArea>
+        </div>
+
       </div>
     </RoleGuard>
   );
