@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { notFound, useRouter } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { firestore } from '@/firebase';
 import { Event } from '@/lib/types';
 import ReactMarkdown from 'react-markdown';
@@ -73,15 +73,31 @@ export default function EventDetailsClient({ eventId, initialEvent }: EventDetai
 
         const fetchEvent = async () => {
             try {
+                // 1. Try finding by ID
                 const docRef = doc(firestore, 'events', eventId);
                 const docSnap = await getDoc(docRef);
+
                 if (docSnap.exists()) {
                     setEvent({ id: docSnap.id, ...docSnap.data() } as Event);
+                    return;
+                }
+
+                // 2. Fallback: Try finding by slug
+                // Only attempt if eventId looks like a slug (not exactly necessary but good hygiene)
+                const eventsRef = collection(firestore, 'events');
+                const q = query(eventsRef, where('slug', '==', eventId));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    const slugDoc = querySnapshot.docs[0];
+                    setEvent({ id: slugDoc.id, ...slugDoc.data() } as Event);
                 } else {
+                    console.log('Event not found by ID or Slug:', eventId);
                     setEvent(null);
                 }
             } catch (error) {
                 console.error("Error fetching event:", error);
+                setEvent(null);
             } finally {
                 setLoading(false);
             }

@@ -90,6 +90,13 @@ export default function ManageEventPage() {
             const isSuperAdmin = profile?.role === 'super-admin';
 
             let finalSlug = newSlug.trim();
+
+            // Auto-generate if empty
+            if (!finalSlug && event.title) {
+                finalSlug = generateSlug(event.title);
+            }
+
+            // Ensure uniqueness if it changed or was just generated
             if (finalSlug && finalSlug !== event.slug) {
                 finalSlug = await ensureUniqueSlug(finalSlug, 'events');
             }
