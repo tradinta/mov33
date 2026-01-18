@@ -24,6 +24,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from '@/context/auth-context';
+import { firestore } from '@/firebase';
+import { collection, getCountFromServer } from 'firebase/firestore';
 import {
   LineChart,
   Line,
@@ -36,30 +38,73 @@ import {
   Area
 } from 'recharts';
 
-const data = [
-  { name: 'Mon', value: 4000 },
-  { name: 'Tue', value: 3000 },
-  { name: 'Wed', value: 2000 },
-  { name: 'Thu', value: 2780 },
-  { name: 'Fri', value: 1890 },
-  { name: 'Sat', value: 2390 },
-  { name: 'Sun', value: 3490 },
-];
-
-const metrics = [
-  { title: 'Total Events', value: '124', trend: '+12%', icon: Ticket, color: 'text-gold' },
-  { title: 'Active Users', value: '1,847', trend: '+15.2%', icon: UsersIcon, color: 'text-kenyan-green' },
-  { title: 'Revenue (KES)', value: '1.2M', trend: '+8.4%', icon: TrendingUp, color: 'text-blue-500' },
-  { title: 'Avg. Load', value: '320ms', trend: '-10%', icon: Activity, color: 'text-purple-500' },
-];
-
 export default function AdminOverviewPage() {
   const { profile } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [loading, setLoading] = useState(true);
+
+  // Real Data State
+  const [stats, setStats] = useState({
+    totalEvents: 0,
+    activeUsers: 0,
+    totalRevenue: 0,
+    avgLoad: 0
+  });
+
+  const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const startTime = performance.now();
+      try {
+        // 1. Fetch Counts from Firestore
+        const eventsColl = collection(firestore, 'events');
+        const usersColl = collection(firestore, 'users');
+
+        const [eventsSnapshot, usersSnapshot] = await Promise.all([
+          getCountFromServer(eventsColl),
+          getCountFromServer(usersColl)
+        ]);
+
+        // 2. Fetch Analytics API
+        const response = await fetch('/api/analytics/aggregate?days=7');
+        const analyticsData = await response.json();
+
+        const endTime = performance.now();
+        const loadTime = Math.round(endTime - startTime);
+
+        if (analyticsData.success) {
+          setStats({
+            totalEvents: eventsSnapshot.data().count,
+            activeUsers: usersSnapshot.data().count,
+            totalRevenue: analyticsData.totals.totalRevenue,
+            avgLoad: loadTime
+          });
+
+          // Format chart data
+          const formattedChartData = analyticsData.dailyData.map((day: any) => ({
+            name: new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' }),
+            value: day.totalRevenue
+          })).reverse(); // API returns newest first usually, depending on implementation. 
+          // Wait, route.ts pushes in loop subDays(i), so i=0 is today, i=29 is 29 days ago.
+          // It pushes 0, then 1... so [Today, Yesterday, ...]
+          // We need to reverse it for the chart (Oldest -> Newest).
+          setChartData(formattedChartData.reverse());
+        }
+
+      } catch (error) {
+        console.error("Failed to fetch dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const greeting = () => {
@@ -68,6 +113,37 @@ export default function AdminOverviewPage() {
     if (hour < 18) return "Good afternoon";
     return "Good evening";
   };
+
+  const metrics = [
+    {
+      title: 'Total Events',
+      value: stats.totalEvents.toLocaleString(),
+      trend: 'Live',
+      icon: Ticket,
+      color: 'text-gold'
+    },
+    {
+      title: 'Active Users',
+      value: stats.activeUsers.toLocaleString(),
+      trend: 'Registered',
+      icon: UsersIcon,
+      color: 'text-kenyan-green'
+    },
+    {
+      title: 'Revenue (KES)',
+      value: stats.totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+      trend: 'Last 7 Days',
+      icon: TrendingUp,
+      color: 'text-blue-500'
+    },
+    {
+      title: 'Avg. Load',
+      value: `${stats.avgLoad}ms`,
+      trend: 'Real-time',
+      icon: Activity,
+      color: 'text-purple-500'
+    },
+  ];
 
   return (
     <div className="space-y-10 pb-20">
@@ -89,7 +165,7 @@ export default function AdminOverviewPage() {
         <div className="flex items-center gap-3">
           <Button variant="outline" className="h-11 px-6 rounded-2xl border-border/50 bg-background/50 backdrop-blur-xl font-bold uppercase tracking-widest text-[10px] gap-2">
             <CalendarIcon className="h-4 w-4" />
-            This Month
+            This Week
           </Button>
           <Button className="h-11 px-6 rounded-2xl bg-foreground dark:bg-white text-background dark:text-obsidian font-bold uppercase tracking-widest text-[10px] gap-2 shadow-xl shadow-foreground/10 hover:scale-[1.02] transition-transform">
             <Download className="h-4 w-4" />
@@ -176,7 +252,7 @@ export default function AdminOverviewPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
               <span className="text-muted-foreground">Server Load</span>
-              <span className="text-foreground">Minimal</span>
+              <span className="text-foreground">Normal</span>
             </div>
             <Progress value={20} className="h-2 bg-muted/50 rounded-full" />
           </div>
@@ -203,7 +279,9 @@ export default function AdminOverviewPage() {
             </div>
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">{metric.title}</p>
-              <p className="text-3xl font-black text-foreground tracking-tighter">{metric.value}</p>
+              <p className="text-3xl font-black text-foreground tracking-tighter">
+                {loading ? "..." : metric.value}
+              </p>
             </div>
           </motion.div>
         ))}
@@ -227,7 +305,7 @@ export default function AdminOverviewPage() {
 
           <div className="h-[350px] w-full mt-6">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3} />

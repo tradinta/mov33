@@ -58,7 +58,7 @@ export default function AdminSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    const isAuthorized = profile?.role === 'admin' || profile?.role === 'super-admin';
+    const isAuthorized = profile?.role === 'super-admin';
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -110,7 +110,7 @@ export default function AdminSettingsPage() {
                     <Shield className="h-16 w-16 mx-auto mb-4 text-red-400" />
                     <h2 className="text-2xl font-black">Access Denied</h2>
                     <p className="text-muted-foreground mt-2">
-                        Only admins can access platform settings.
+                        Only super-admins can access platform settings.
                     </p>
                 </GlassCard>
             </div>

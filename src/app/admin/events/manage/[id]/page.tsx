@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { doc, getDoc, updateDoc, Timestamp, deleteDoc, collection, getDocs, setDoc, addDoc } from 'firebase/firestore';
+import { useRouter, useParams } from 'next/navigation';
+import { doc, getDoc, updateDoc, Timestamp, deleteDoc } from 'firebase/firestore';
 import { firestore } from '@/firebase';
+import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,44 +14,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import {
-    ArrowLeft, Save, Trash2, ExternalLink, RefreshCw, Star,
-    Crown, AlertTriangle, Users, Ticket, BarChart3, Mail, Download, Search, CheckCircle2
+    ArrowLeft, Save, Trash2, ExternalLink, RefreshCw,
+    Users, Ticket, BarChart3, Download, Search, Plus, X
 } from 'lucide-react';
 import { generateSlug, ensureUniqueSlug } from '@/lib/slug';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 import {
-    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-
-import { useParams } from 'next/navigation';
-
-interface ManageEventPageProps {
-    params: { id: string };
-}
-
-// Mock Data for Analytics
-const SALES_DATA = [
-    { name: 'Day 1', sales: 4000 },
-    { name: 'Day 2', sales: 3000 },
-    { name: 'Day 3', sales: 5000 },
-    { name: 'Day 4', sales: 2780 },
-    { name: 'Day 5', sales: 1890 },
-    { name: 'Day 6', sales: 2390 },
-    { name: 'Today', sales: 3490 },
-];
-const TICKET_TYPES_DATA = [
-    { name: 'Regular', value: 400, color: '#00FA9A' }, // Kenyan Green
-    { name: 'VIP', value: 100, color: '#FFD700' }, // Gold
-    { name: 'VVIP', value: 50, color: '#8884d8' },
-];
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'; // Kept for Attendees tab structure
 
 export default function ManageEventPage() {
     const router = useRouter();
     const params = useParams<{ id: string }>();
-    const id = params?.id; // Safe access
+    const id = params?.id;
+    const { user, profile } = useAuth();
+
+    // Auth State
+    const [isAuthorized, setIsAuthorized] = useState(false);
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -63,36 +45,28 @@ export default function ManageEventPage() {
     const [tickets, setTickets] = useState<any[]>([]); // Ticket Configuration
 
     const fetchEvent = useCallback(async () => {
-        if (!id) return;
+        if (!id || !user) return;
         try {
             const docRef = doc(firestore, 'events', id);
             const snap = await getDoc(docRef);
+
             if (snap.exists()) {
                 const data = { id: snap.id, ...snap.data() };
+
+                // Permission Check
+                const isOwner = data.organizerId === user.uid;
+                const isSuperAdmin = profile?.role === 'super-admin';
+
+                if (!isOwner && !isSuperAdmin) {
+                    toast.error("Unauthorized access");
+                    router.push('/admin/events');
+                    return;
+                }
+                setIsAuthorized(true);
+
                 setEvent(data);
                 setNewSlug(data.slug || '');
-            } else if (id === 'jwTDVMTYo4J8AWRUw9tw') {
-                // Auto-seed this requested ID if missing
-                const mockEvent = {
-                    title: "Nairobi Tech Week 2026",
-                    description: "The biggest tech convergence in East Africa. Join thousands of developers, founders, and investors.",
-                    date: Timestamp.fromDate(new Date('2026-06-15T09:00:00')),
-                    location: "Sarit Centre",
-                    price: 1500,
-                    capacity: 2000,
-                    ticketsSold: 583,
-                    status: 'published',
-                    imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80",
-                    isPremium: true,
-                    isFeatured: true,
-                    slug: 'nairobi-tech-week-2026',
-                    revenue: 425000,
-                    views: 12503
-                };
-                await setDoc(docRef, mockEvent);
-                setEvent({ id, ...mockEvent });
-                setNewSlug(mockEvent.slug);
-                toast.success("Demo Event Created!");
+                setTickets(data.ticketTiers || []);
             } else {
                 toast.error("Event not found");
                 router.push('/admin/events');
@@ -103,38 +77,51 @@ export default function ManageEventPage() {
         } finally {
             setLoading(false);
         }
-    }, [id, router]);
+    }, [id, user, profile, router]);
 
     useEffect(() => {
-        fetchEvent();
-        // Simulate fetching attendees if real data implementation existed
-        // For now, we seed some mock attendees if empty list just for the UI demo
-        setAttendees([
-            { id: '1', name: 'John Doe', email: 'john@example.com', ticketType: 'VIP', status: 'checked-in', purchaseDate: new Date() },
-            { id: '2', name: 'Jane Smith', email: 'jane@test.com', ticketType: 'Regular', status: 'pending', purchaseDate: new Date() },
-            { id: '3', name: 'Alice Johnson', email: 'alice@corp.co', ticketType: 'Regular', status: 'pending', purchaseDate: new Date() },
-        ]);
-    }, [fetchEvent]);
+        if (user) fetchEvent();
+    }, [user, fetchEvent]);
 
     const handleSave = async () => {
         setSaving(true);
         try {
             const docRef = doc(firestore, 'events', params.id);
+            const isSuperAdmin = profile?.role === 'super-admin';
 
             let finalSlug = newSlug.trim();
             if (finalSlug && finalSlug !== event.slug) {
                 finalSlug = await ensureUniqueSlug(finalSlug, 'events');
             }
 
-            await updateDoc(docRef, {
+            // Workflow Logic
+            const updates: any = {
                 ...event,
+                ticketTiers: tickets,
                 slug: finalSlug,
                 updatedAt: Timestamp.now(),
                 price: Number(event.price),
                 capacity: Number(event.capacity),
-            });
+            };
 
-            setEvent(prev => ({ ...prev, slug: finalSlug }));
+            // Workflow: Organizers can only submit for approval
+            if (!isSuperAdmin) {
+                updates.moderationStatus = 'pending';
+                // If they changed visible fields, maybe reset to draft or pending?
+                // For now, let's keep status as is but queue it.
+                if (event.status === 'published') {
+                    toast.info("Changes submitted for approval.");
+                }
+            } else {
+                // Super admin can auto-approve
+                if (event.moderationStatus === 'pending') {
+                    updates.moderationStatus = 'approved';
+                }
+            }
+
+            await updateDoc(docRef, updates);
+
+            setEvent(prev => ({ ...prev, slug: finalSlug, ticketTiers: tickets, moderationStatus: updates.moderationStatus }));
             setNewSlug(finalSlug);
             toast.success("Event updated successfully");
         } catch (e) {
@@ -149,9 +136,33 @@ export default function ManageEventPage() {
         if (event.title) setNewSlug(generateSlug(event.title));
     };
 
-    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+    // Ticket Management
+    const addTicketTier = () => {
+        setTickets([...tickets, { tier: 'New Tier', price: 0, status: 'Available', description: '', perks: [] }]);
+    };
+
+    const removeTicketTier = (index: number) => {
+        const newTickets = [...tickets];
+        newTickets.splice(index, 1);
+        setTickets(newTickets);
+    };
+
+    const updateTicketTier = (index: number, field: string, value: any) => {
+        const newTickets = [...tickets];
+        newTickets[index] = { ...newTickets[index], [field]: value };
+        setTickets(newTickets);
+    };
 
     if (loading) return <div className="h-screen flex items-center justify-center bg-obsidian text-gold"><Loader2 className="animate-spin h-10 w-10" /></div>;
+    if (!isAuthorized) return null;
+
+    const isSuperAdmin = profile?.role === 'super-admin';
+
+    // Derived Analytics (Real Data from Event Object)
+    const revenue = event.revenue || 0;
+    const ticketsSold = event.ticketsSold || 0;
+    const capacity = event.capacity || 0;
+    const views = event.views || 0;
 
     return (
         <div className="min-h-screen pb-20 space-y-8">
@@ -169,6 +180,9 @@ export default function ManageEventPage() {
                             <Badge variant={event.status === 'published' ? 'default' : 'secondary'} className={event.status === 'published' ? 'bg-kenyan-green' : ''}>
                                 {event.status?.toUpperCase()}
                             </Badge>
+                            <Badge variant="outline" className={event.moderationStatus === 'approved' ? 'text-kenyan-green border-kenyan-green' : 'text-orange-500 border-orange-500'}>
+                                {event.moderationStatus?.toUpperCase() || 'PENDING'}
+                            </Badge>
                         </div>
                     </div>
                 </div>
@@ -178,7 +192,7 @@ export default function ManageEventPage() {
                     </Button>
                     <Button onClick={handleSave} disabled={saving} className="bg-gold text-obsidian font-bold">
                         {saving ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                        Save Changes
+                        {isSuperAdmin ? 'Save Changes' : 'Submit for Approval'}
                     </Button>
                 </div>
             </div>
@@ -187,8 +201,8 @@ export default function ManageEventPage() {
                 <TabsList className="bg-muted p-1">
                     <TabsTrigger value="overview" className="gap-2"><BarChart3 className="h-4 w-4" /> Overview</TabsTrigger>
                     <TabsTrigger value="details" className="gap-2"><Save className="h-4 w-4" /> Edit Details</TabsTrigger>
-                    <TabsTrigger value="attendees" className="gap-2"><Users className="h-4 w-4" /> Attendees</TabsTrigger>
                     <TabsTrigger value="tickets" className="gap-2"><Ticket className="h-4 w-4" /> Tickets</TabsTrigger>
+                    <TabsTrigger value="attendees" className="gap-2"><Users className="h-4 w-4" /> Attendees</TabsTrigger>
                 </TabsList>
 
                 {/* OVERVIEW / ANALYTICS TAB */}
@@ -196,79 +210,24 @@ export default function ManageEventPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <Card>
                             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle></CardHeader>
-                            <CardContent><div className="text-3xl font-black text-kenyan-green">KES 425,000</div></CardContent>
+                            <CardContent><div className="text-3xl font-black text-kenyan-green">KES {revenue.toLocaleString()}</div></CardContent>
                         </Card>
                         <Card>
                             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Tickets Sold</CardTitle></CardHeader>
-                            <CardContent><div className="text-3xl font-black">583 <span className="text-sm font-normal text-muted-foreground">/ {event.capacity || 1000}</span></div></CardContent>
+                            <CardContent><div className="text-3xl font-black">{ticketsSold} <span className="text-sm font-normal text-muted-foreground">/ {capacity}</span></div></CardContent>
                         </Card>
                         <Card>
                             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Check-ins</CardTitle></CardHeader>
-                            <CardContent><div className="text-3xl font-black">102 <span className="text-sm font-normal text-muted-foreground text-gold">(18%)</span></div></CardContent>
+                            <CardContent><div className="text-3xl font-black">-- <span className="text-sm font-normal text-muted-foreground text-gold">(--%)</span></div></CardContent>
                         </Card>
                         <Card>
                             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Page Views</CardTitle></CardHeader>
-                            <CardContent><div className="text-3xl font-black">{event.views || 0}</div></CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
-                        {/* Main Chart */}
-                        <Card className="col-span-4">
-                            <CardHeader>
-                                <CardTitle>Sales Velocity</CardTitle>
-                                <CardDescription>Ticket sales over the last 7 days.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={SALES_DATA}>
-                                        <defs>
-                                            <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#FFD700" stopOpacity={0.8} />
-                                                <stop offset="95%" stopColor="#FFD700" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                                        <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                        <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `K${value}`} />
-                                        <Tooltip contentStyle={{ backgroundColor: '#111', borderColor: '#333' }} />
-                                        <Area type="monotone" dataKey="sales" stroke="#FFD700" fillOpacity={1} fill="url(#colorSales)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </CardContent>
-                        </Card>
-
-                        {/* Donut Chart */}
-                        <Card className="col-span-3">
-                            <CardHeader>
-                                <CardTitle>Ticket Distribution</CardTitle>
-                                <CardDescription>Sales by Ticket Type.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="h-[300px] flex items-center justify-center">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={TICKET_TYPES_DATA}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={60}
-                                            outerRadius={80}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                        >
-                                            {TICKET_TYPES_DATA.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </CardContent>
+                            <CardContent><div className="text-3xl font-black">{views.toLocaleString()}</div></CardContent>
                         </Card>
                     </div>
                 </TabsContent>
 
-                {/* EDIT DETAILS TAB (Previous Form) */}
+                {/* EDIT DETAILS TAB */}
                 <TabsContent value="details" className="space-y-6 animate-in slide-in-from-bottom-4 fade-in">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div className="md:col-span-2 space-y-8">
@@ -319,12 +278,21 @@ export default function ManageEventPage() {
 
                         <div className="space-y-6">
                             <Card>
-                                <CardHeader><CardTitle>Visibility</CardTitle></CardHeader>
+                                <CardHeader><CardTitle>Visibility & Status</CardTitle></CardHeader>
                                 <CardContent className="space-y-4">
+                                    {/* Only Super Admin can change Status directly */}
                                     <div className="flex items-center justify-between">
                                         <Label>Published</Label>
-                                        <Switch checked={event.status === 'published'} onCheckedChange={(c) => setEvent({ ...event, status: c ? 'published' : 'draft' })} />
+                                        <Switch
+                                            checked={event.status === 'published'}
+                                            onCheckedChange={(c) => setEvent({ ...event, status: c ? 'published' : 'draft' })}
+                                            disabled={!isSuperAdmin}
+                                        />
                                     </div>
+                                    {!isSuperAdmin && (
+                                        <p className="text-xs text-muted-foreground">Only Admins can publish events.</p>
+                                    )}
+
                                     <div className="flex items-center justify-between">
                                         <Label>Premium</Label>
                                         <Switch checked={event.isPremium} onCheckedChange={(c) => setEvent({ ...event, isPremium: c })} />
@@ -342,80 +310,86 @@ export default function ManageEventPage() {
                     </div>
                 </TabsContent>
 
-                {/* ATTENDEES TAB */}
-                <TabsContent value="attendees" className="space-y-6 animate-in slide-in-from-bottom-4 fade-in">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <div>
-                                <CardTitle>Guest List</CardTitle>
-                                <CardDescription>Manage your attendees and check-ins.</CardDescription>
-                            </div>
-                            <div className="flex gap-2">
-                                <div className="relative w-64">
-                                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input placeholder="Search guests..." className="pl-8" />
-                                </div>
-                                <Button variant="outline"><Download className="mr-2 h-4 w-4" /> Export CSV</Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Guest</TableHead>
-                                        <TableHead>Ticket Type</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {attendees.map((attendee) => (
-                                        <TableRow key={attendee.id}>
-                                            <TableCell>
-                                                <div className="font-bold">{attendee.name}</div>
-                                                <div className="text-xs text-muted-foreground">{attendee.email}</div>
-                                            </TableCell>
-                                            <TableCell><Badge variant="outline" className="border-gold/30 text-gold">{attendee.ticketType}</Badge></TableCell>
-                                            <TableCell>
-                                                {attendee.status === 'checked-in' ? (
-                                                    <Badge className="bg-kenyan-green hover:bg-kenyan-green">Checked In</Badge>
-                                                ) : (
-                                                    <Badge variant="secondary">Pending</Badge>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <Button size="sm" variant="ghost">Details</Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
                 {/* TICKETS TAB */}
                 <TabsContent value="tickets" className="space-y-6 animate-in slide-in-from-bottom-4 fade-in">
                     <div className="flex justify-between items-center">
                         <h2 className="text-xl font-bold">Ticket Tiers</h2>
-                        <Button><Ticket className="mr-2 h-4 w-4" /> Create Ticket Type</Button>
+                        <Button onClick={addTicketTier}><Plus className="mr-2 h-4 w-4" /> Add Tier</Button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {['Early Bird', 'Regular', 'VIP'].map((tier) => (
-                            <Card key={tier}>
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-lg">{tier}</CardTitle>
-                                    <Badge variant="outline">On Sale</Badge>
+
+                    <div className="grid gap-4">
+                        {tickets.map((tier, index) => (
+                            <Card key={index} className="relative">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-2 right-2 text-destructive hover:bg-destructive/10"
+                                    onClick={() => removeTicketTier(index)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                                <CardHeader className="pb-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mr-8">
+                                        <div>
+                                            <Label>Tier Name</Label>
+                                            <Input
+                                                value={tier.tier}
+                                                onChange={(e) => updateTicketTier(index, 'tier', e.target.value)}
+                                                placeholder="e.g. VIP, Early Bird"
+                                                className="font-bold"
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label>Price (KES)</Label>
+                                            <Input
+                                                type="number"
+                                                value={tier.price}
+                                                onChange={(e) => updateTicketTier(index, 'price', Number(e.target.value))}
+                                            />
+                                        </div>
+                                    </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">KES 1,500</div>
-                                    <p className="text-muted-foreground text-sm">50/200 Sold</p>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <Label>Description</Label>
+                                            <Input
+                                                value={tier.description || ''}
+                                                onChange={(e) => updateTicketTier(index, 'description', e.target.value)}
+                                                placeholder="What's included in this ticket?"
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-1/3">
+                                                <Label>Status</Label>
+                                                <select
+                                                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    value={tier.status}
+                                                    onChange={(e) => updateTicketTier(index, 'status', e.target.value)}
+                                                >
+                                                    <option value="Available">Available</option>
+                                                    <option value="Sold Out">Sold Out</option>
+                                                    <option value="Almost Gone">Almost Gone</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </CardContent>
-                                <CardFooter>
-                                    <Button variant="ghost" size="sm" className="w-full">Edit Configuration</Button>
-                                </CardFooter>
                             </Card>
                         ))}
+                        {tickets.length === 0 && (
+                            <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl">
+                                No ticket tiers configured. Add one to start selling.
+                            </div>
+                        )}
+                    </div>
+                </TabsContent>
+
+                {/* ATTENDEES TAB (Simplified View) */}
+                <TabsContent value="attendees">
+                    <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl">
+                        Guest list management available in Organizer Dashboard. <br />
+                        <Button variant="link" onClick={() => router.push(`/organizer/events/${id}`)}>Go to Organizer View</Button>
                     </div>
                 </TabsContent>
 

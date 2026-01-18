@@ -93,7 +93,7 @@ export function EventGrid({ filters }: EventGridProps) {
       if (profile && profile.vibeCheckCompleted) {
         const score = (ev: Event) => {
           let s = 0;
-          const eTags = (ev.tags || []).map(t => t.toLowerCase());
+          const eTags = (Array.isArray(ev.tags) ? ev.tags : []).map(t => t.toLowerCase());
           const ePersonas = (ev.personaTags || '').split(',').map(t => t.trim().toLowerCase());
           const eVibes = (ev.vibeTags || '').split(',').map(t => t.trim().toLowerCase());
 
