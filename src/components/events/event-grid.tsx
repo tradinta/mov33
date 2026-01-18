@@ -9,6 +9,7 @@ import { EventFilters } from './event-filter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/button';
 import { FilterX, Sparkles } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
 
 interface EventGridProps {
   filters: EventFilters;
@@ -48,6 +49,8 @@ export function EventGrid({ filters }: EventGridProps) {
     fetchEvents();
   }, [filters.category]); // Re-fetch only when category change, others can be client-side for speed
 
+  const { profile } = useAuth();
+
   // Client-side filtering for high interactivity
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
@@ -85,9 +88,42 @@ export function EventGrid({ filters }: EventGridProps) {
         const db = b.date?.toDate ? b.date.toDate().getTime() : 0;
         return da - db;
       }
-      return 0; // Default (Recommended/Date)
+
+      // Recommended / Default Sorting
+      if (profile && profile.vibeCheckCompleted) {
+        const score = (ev: Event) => {
+          let s = 0;
+          const eTags = (ev.tags || []).map(t => t.toLowerCase());
+          const ePersonas = (ev.personaTags || '').split(',').map(t => t.trim().toLowerCase());
+          const eVibes = (ev.vibeTags || '').split(',').map(t => t.trim().toLowerCase());
+
+          // Genre matches (high weight)
+          profile.preferredGenres?.forEach(g => {
+            if (eTags.includes(g.toLowerCase()) || eVibes.includes(g.toLowerCase())) s += 10;
+          });
+
+          // Persona matches (medium weight)
+          profile.preferredPersonas?.forEach(p => {
+            if (ePersonas.includes(p.toLowerCase())) s += 5;
+          });
+
+          // Location matches (low weight)
+          profile.preferredLocations?.forEach(l => {
+            if ((ev.location || '').toLowerCase().includes(l.toLowerCase())) s += 2;
+          });
+
+          return s;
+        };
+
+        return score(b) - score(a);
+      }
+
+      // Fallback to date sorting for non-logged in or no vibe check
+      const da = a.date?.toDate ? a.date.toDate().getTime() : 0;
+      const db = b.date?.toDate ? b.date.toDate().getTime() : 0;
+      return da - db;
     });
-  }, [events, filters]);
+  }, [events, filters, profile]);
 
   if (loading) {
     return (
@@ -113,9 +149,9 @@ export function EventGrid({ filters }: EventGridProps) {
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="font-headline text-2xl font-black uppercase italic tracking-tighter text-white">No matches found</h3>
-          <p className="text-muted-foreground font-poppins text-sm max-w-xs">
-            We couldn't find any events matching your current filters. Try expanding your search.
+          <h3 className="font-headline text-2xl font-black uppercase italic tracking-tighter text-white">No vibes here yet</h3>
+          <p className="text-muted-foreground font-poppins text-sm max-w-xs mx-auto">
+            We couldn't find any events matching your criteria. Be the first to host one or try changing your filters!
           </p>
         </div>
         <Button

@@ -61,7 +61,6 @@ export function UpgradeCard() {
                         <p className="text-muted-foreground dark:text-white/60 font-poppins text-sm md:text-base max-w-xl leading-relaxed">
                             Join the elite circle of mov33+ and transform how you experience Kenya. From the best prices to the best seats, you're always first in line.
                         </p>
-                        drum
                     </div>
 
                     <div className="flex flex-col items-center gap-4 bg-muted/50 dark:bg-white/5 backdrop-blur-xl p-8 rounded-3xl border border-black/10 dark:border-white/10 min-w-[280px]">
@@ -72,8 +71,6 @@ export function UpgradeCard() {
                                 <span className="text-muted-foreground dark:text-white/40 text-[10px] font-black uppercase tracking-widest mb-1">/yr</span>
                             </div>
                         </div>
-                        drum
-                        drum
                         <Button
                             onClick={() => router.push('/membership')}
                             className="w-full h-14 bg-gold hover:bg-gold/90 text-obsidian font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-gold/20 transition-all hover:scale-[1.02] active:scale-[0.98]"

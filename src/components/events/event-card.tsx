@@ -80,9 +80,26 @@ export function EventCard({ event }: { event: Event }) {
               <span className="truncate">{event.location}</span>
             </div>
 
-            {/* Price */}
-            <div className="text-orange-500 font-bold text-lg">
-              {price === 0 ? 'KES Free' : `KES ${price.toLocaleString()}`}
+            {/* Price & Social Proof */}
+            <div className="flex items-center justify-between mt-auto">
+              <div className="text-orange-500 font-black text-xl tracking-tighter italic">
+                {price === 0 ? 'FREE' : `KES ${price.toLocaleString()}`}
+              </div>
+
+              {event.ticketsSold > 0 && (
+                <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+                  <div className="flex -space-x-2">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-4 w-4 rounded-full border border-obsidian bg-zinc-800 overflow-hidden">
+                        <div className="w-full h-full bg-gradient-to-br from-gold/50 to-orange-500/50" />
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-[9px] font-black text-white/90 uppercase tracking-widest">
+                    +{event.ticketsSold} going
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

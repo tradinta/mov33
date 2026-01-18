@@ -7,6 +7,8 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useCart } from '@/context/cart-context';
+import { useAuth } from '@/context/auth-context';
+import { useMarketingConfig } from '@/hooks/use-marketing-config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -16,7 +18,7 @@ import { Lock, ParkingCircle, ShieldCheck, Smartphone, Send, CreditCard, Loader2
 import { GlassCard } from '@/components/ui/glass-card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { firestore } from '@/firebase';
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Promocode } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -42,7 +44,14 @@ const checkoutSchema = z.object({
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 type PaymentGateway = 'card' | 'mpesa';
-type PaymentStep = 'details' | 'gateway' | 'processing';
+type PaymentStep = 'info' | 'addons' | 'gateway' | 'processing' | 'success';
+
+const STEPS = [
+    { id: 'info', label: 'Contact', icon: Smartphone },
+    { id: 'addons', label: 'Extras', icon: ParkingCircle },
+    { id: 'gateway', label: 'Payment', icon: CreditCard },
+    { id: 'processing', label: 'Processing', icon: Loader2 },
+];
 
 const ADD_ON_PRICES = {
     parking: 500,
@@ -56,7 +65,7 @@ function CheckoutPage() {
     const [promoCode, setPromoCode] = useState('');
     const [appliedPromo, setAppliedPromo] = useState<Promocode | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [paymentStep, setPaymentStep] = useState<PaymentStep>('details');
+    const [paymentStep, setPaymentStep] = useState<PaymentStep>('info');
     const [paymentGateway, setPaymentGateway] = useState<PaymentGateway>('card');
     const [processingMessage, setProcessingMessage] = useState('');
     const [checkoutId, setCheckoutId] = useState<string | null>(null);
@@ -90,6 +99,47 @@ function CheckoutPage() {
 
     const watchedAddOns = form.watch('addOns');
 
+    const [leadId, setLeadId] = useState<string | null>(null);
+    const watchedContact = form.watch(['contactName', 'contactEmail', 'contactPhone']);
+    const { config } = useMarketingConfig();
+
+    // Ghost Lead Capture (Abandoned Checkout Recovery)
+    useEffect(() => {
+        if (config?.ghostLead?.enabled === false) return;
+
+        const [name, email, phone] = watchedContact;
+        if (!name && !email && (phone === '254' || !phone)) return;
+
+        const timer = setTimeout(async () => {
+            try {
+                const leadData = {
+                    name,
+                    email,
+                    phone,
+                    cartItems,
+                    total: finalTotal,
+                    updatedAt: serverTimestamp(),
+                    status: 'abandoned',
+                    source: 'checkout'
+                };
+
+                if (leadId) {
+                    await updateDoc(doc(firestore, 'leads', leadId), leadData);
+                } else {
+                    const docRef = await addDoc(collection(firestore, 'leads'), {
+                        ...leadData,
+                        createdAt: serverTimestamp()
+                    });
+                    setLeadId(docRef.id);
+                }
+            } catch (error) {
+                console.error("Lead capture failed:", error);
+            }
+        }, config?.ghostLead?.saveDelayMs || 30000);
+
+        return () => clearTimeout(timer);
+    }, [watchedContact, cartItems, finalTotal, leadId, config]);
+
     // Cleanup polling on unmount
     useEffect(() => {
         return () => {
@@ -107,20 +157,25 @@ function CheckoutPage() {
     const handleApplyPromo = async () => {
         if (!promoCode) return;
         try {
-            const q = query(collection(firestore, 'promocodes'), where('code', '==', promoCode.toUpperCase()), where('active', '==', true));
-            const snap = await getDocs(q);
+            const response = await fetch('/api/promo/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: promoCode })
+            });
 
-            if (snap.empty) {
+            const result = await response.json();
+
+            if (!response.ok) {
                 toast({
                     title: "Invalid Code",
-                    description: "This promo code doesn't exist or is inactive.",
+                    description: result.error || "This promo code doesn't exist or is inactive.",
                     variant: "destructive"
                 });
                 setAppliedPromo(null);
                 return;
             }
 
-            const promoData = { id: snap.docs[0].id, ...snap.docs[0].data() } as Promocode;
+            const promoData = result as Promocode;
             setAppliedPromo(promoData);
             toast({
                 title: "Code Applied!",
@@ -151,8 +206,13 @@ function CheckoutPage() {
 
     const finalTotal = totalBeforeDiscount - discountAmount;
 
-    const onSubmit = (data: CheckoutFormValues) => {
-        setPaymentStep('gateway');
+    const onSubmit = async (data: CheckoutFormValues) => {
+        if (paymentStep === 'info') {
+            const isValid = await form.trigger(['contactName', 'contactEmail', 'contactPhone']);
+            if (isValid) setPaymentStep('addons');
+        } else if (paymentStep === 'addons') {
+            setPaymentStep('gateway');
+        }
     };
 
     const startPolling = (id: string) => {
@@ -190,22 +250,54 @@ function CheckoutPage() {
         }, 2000);
     };
 
+    const createSecureOrder = async () => {
+        const formData = form.getValues();
+        const response = await fetch('/api/orders/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contactName: formData.contactName,
+                contactEmail: formData.contactEmail,
+                contactPhone: formData.contactPhone,
+                cartItems: cartItems.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity,
+                    variant: item.variant
+                })),
+                ticketHolders: formData.ticketHolders,
+                addOns: formData.addOns,
+                promoCode: appliedPromo?.code || null
+            })
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to create order');
+        }
+        return result; // contains { orderId, total }
+    };
+
     const handleMpesaPay = async () => {
         setIsProcessing(true);
         setPaymentStep('processing');
-        setProcessingMessage('Sending STK Push to your phone...');
+        setProcessingMessage('Securing your order...');
 
         try {
+            // 1. Create secure order first
+            const { orderId } = await createSecureOrder();
+
             const formData = form.getValues();
             const reference = `MOV-${Date.now().toString().slice(-8)}`;
 
-            // 1. Initiate STK Push
+            setProcessingMessage('Sending STK Push to your phone...');
+
+            // 2. Initiate STK Push with orderId
             const response = await fetch('/api/payments/stkpush', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     phoneNumber: formData.contactPhone,
-                    amount: Math.round(finalTotal),
+                    orderId,
                     reference
                 })
             });
@@ -216,25 +308,10 @@ function CheckoutPage() {
                 throw new Error(result.error || 'Failed to trigger M-Pesa push');
             }
 
-            // 2. Create Order in Firestore
-            await addDoc(collection(firestore, 'orders'), {
-                contactName: formData.contactName,
-                contactEmail: formData.contactEmail,
-                contactPhone: formData.contactPhone,
-                items: cartItems,
-                ticketHolders: formData.ticketHolders,
-                subtotal,
-                addOnTotal,
-                discountAmount,
-                total: finalTotal,
-                status: 'pending',
-                paymentGateway: 'mpesa',
-                promoCode: appliedPromo?.code || null,
-                promocodeId: appliedPromo?.id || null,
-                influencerId: appliedPromo?.influencerId || null,
-                checkoutRequestId: result.checkoutRequestId,
-                createdAt: serverTimestamp()
-            });
+            // 3. Update order with checkoutRequestId
+            // Actually, we should probably do this on the server in stkpush
+            // But for now, we'll keep the client logic if necessary or move it.
+            // MOVING TO SERVER in stkpush if needed, but stkpush is already calling initiateStkPush.
 
             setProcessingMessage('Waiting for you to enter your PIN...');
             toast({
@@ -249,7 +326,7 @@ function CheckoutPage() {
             setIsProcessing(false);
             setPaymentStep('gateway');
             toast({
-                title: "Payment Failed",
+                title: "Payment Error",
                 description: error.message || "An error occurred. Please try again.",
                 variant: "destructive"
             });
@@ -259,41 +336,25 @@ function CheckoutPage() {
     const handlePaystackPay = async () => {
         setIsProcessing(true);
         setPaymentStep('processing');
-        setProcessingMessage('Initializing secure payment...');
+        setProcessingMessage('Securing your order...');
 
         try {
+            // 1. Create secure order first
+            const { orderId } = await createSecureOrder();
+
             const formData = form.getValues();
             const reference = `MOV-${Date.now().toString().slice(-8)}`;
 
-            // 1. Create Order in Firestore first
-            const orderRef = await addDoc(collection(firestore, 'orders'), {
-                contactName: formData.contactName,
-                contactEmail: formData.contactEmail,
-                contactPhone: formData.contactPhone,
-                items: cartItems,
-                ticketHolders: formData.ticketHolders,
-                subtotal,
-                addOnTotal,
-                discountAmount,
-                total: finalTotal,
-                status: 'pending',
-                paymentGateway: 'paystack',
-                promoCode: appliedPromo?.code || null,
-                promocodeId: appliedPromo?.id || null,
-                influencerId: appliedPromo?.influencerId || null,
-                paystackReference: reference,
-                createdAt: serverTimestamp()
-            });
+            setProcessingMessage('Initializing secure payment...');
 
-            // 2. Initialize Paystack transaction
+            // 2. Initialize Paystack transaction with orderId
             const response = await fetch('/api/payments/paystack/initialize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: formData.contactEmail,
-                    amount: Math.round(finalTotal),
                     reference,
-                    orderId: orderRef.id,
+                    orderId
                 })
             });
 
@@ -312,7 +373,7 @@ function CheckoutPage() {
             setIsProcessing(false);
             setPaymentStep('gateway');
             toast({
-                title: "Payment Failed",
+                title: "Payment Error",
                 description: error.message || "An error occurred. Please try again.",
                 variant: "destructive"
             });
@@ -336,15 +397,59 @@ function CheckoutPage() {
                     </div>
                 </motion.div>
 
+                {/* Stepper UI */}
+                <div className="flex items-center justify-center mb-16 px-4">
+                    <div className="flex items-center w-full max-w-2xl">
+                        {STEPS.map((step, idx) => {
+                            const Icon = step.icon;
+                            const isActive = paymentStep === step.id;
+                            const isCompleted = STEPS.findIndex(s => s.id === paymentStep) > idx;
+
+                            return (
+                                <React.Fragment key={step.id}>
+                                    <div className="flex flex-col items-center relative z-10">
+                                        <div
+                                            className={cn(
+                                                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500",
+                                                isActive ? "bg-gold text-obsidian shadow-lg shadow-gold/20 scale-110" :
+                                                    isCompleted ? "bg-kenyan-green text-white" : "bg-white/5 text-muted-foreground"
+                                            )}
+                                        >
+                                            {isCompleted ? <CheckCircle2 className="h-6 w-6" /> : <Icon className="h-6 w-6" />}
+                                        </div>
+                                        <span className={cn(
+                                            "absolute -bottom-7 text-[10px] whitespace-nowrap font-black uppercase tracking-widest transition-colors duration-500",
+                                            isActive ? "text-gold" : isCompleted ? "text-kenyan-green" : "text-muted-foreground/40"
+                                        )}>
+                                            {step.label}
+                                        </span>
+                                    </div>
+                                    {idx < STEPS.length - 1 && (
+                                        <div className="flex-1 h-[2px] mx-4 bg-white/5 relative overflow-hidden">
+                                            <motion.div
+                                                className="absolute inset-0 bg-gold"
+                                                initial={{ scaleX: 0 }}
+                                                animate={{ scaleX: isCompleted ? 1 : 0 }}
+                                                transition={{ duration: 0.5 }}
+                                                style={{ originX: 0 }}
+                                            />
+                                        </div>
+                                    )}
+                                </React.Fragment>
+                            );
+                        })}
+                    </div>
+                </div>
+
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
                         {/* Left side: Form */}
                         <div className="order-2 lg:order-1 space-y-10">
                             <AnimatePresence mode="wait">
-                                {paymentStep === 'details' && (
+                                {paymentStep === 'info' && (
                                     <motion.div
-                                        key="details"
+                                        key="info"
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: 20 }}
@@ -358,14 +463,61 @@ function CheckoutPage() {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-poppins">
                                                 <FormField control={form.control} name="contactName" render={({ field }) => (<FormItem><FormLabel className="text-muted-foreground uppercase text-[10px] font-black tracking-widest">Full Name</FormLabel><FormControl><Input className="bg-white/5 border-white/5 h-12 rounded-xl focus:border-gold/50" {...field} /></FormControl><FormMessage /></FormItem>)} />
                                                 <FormField control={form.control} name="contactEmail" render={({ field }) => (<FormItem><FormLabel className="text-muted-foreground uppercase text-[10px] font-black tracking-widest">Email Address</FormLabel><FormControl><Input type="email" className="bg-white/5 border-white/5 h-12 rounded-xl focus:border-gold/50" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                                <FormField control={form.control} name="contactPhone" render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel className="text-muted-foreground uppercase text-[10px] font-black tracking-widest">Phone Number</FormLabel><FormControl><Input type="tel" className="bg-white/5 border-white/5 h-12 rounded-xl focus:border-gold/50 text-xl font-black tracking-tighter" {...field} /></FormControl><FormDescription className="text-[10px] italic">Required for M-Pesa and order updates.</FormDescription><FormMessage /></FormItem>)} />
+                                                <FormField control={form.control} name="contactPhone" render={({ field }) => (
+                                                    <FormItem className="md:col-span-2">
+                                                        <FormLabel className="text-muted-foreground uppercase text-[10px] font-black tracking-widest">Phone Number</FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                type="tel"
+                                                                className="bg-white/5 border-white/5 h-12 rounded-xl focus:border-gold/50 text-xl font-black tracking-tighter"
+                                                                placeholder="254 712 345 678"
+                                                                {...field}
+                                                                onChange={(e) => {
+                                                                    let val = e.target.value.replace(/\D/g, '');
+                                                                    if (val.length > 12) val = val.slice(0, 12);
+                                                                    // Format: 254 7XX XXX XXX
+                                                                    let formatted = val;
+                                                                    if (val.length > 3) formatted = val.slice(0, 3) + ' ' + val.slice(3);
+                                                                    if (val.length > 6) formatted = formatted.slice(0, 7) + ' ' + formatted.slice(7);
+                                                                    if (val.length > 9) formatted = formatted.slice(0, 11) + ' ' + formatted.slice(11);
+
+                                                                    e.target.value = formatted;
+                                                                    field.onChange(e);
+                                                                }}
+                                                            />
+                                                        </FormControl>
+                                                        <FormDescription className="text-[10px] italic">Required for M-Pesa and order updates.</FormDescription>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )} />
                                             </div>
                                         </GlassCard>
 
+
+                                        <Button type="submit" className="w-full bg-kenyan-green hover:bg-kenyan-green/90 text-white font-black text-xl h-20 rounded-3xl shadow-2xl shadow-kenyan-green/20 group uppercase tracking-tight">
+                                            Continue to Extras
+                                            <Send className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
+                                        </Button>
+                                    </motion.div>
+                                )}
+
+                                {paymentStep === 'addons' && (
+                                    <motion.div
+                                        key="addons"
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className="space-y-10"
+                                    >
                                         <GlassCard className="p-8 border-white/5">
-                                            <div className="flex items-center gap-3 mb-6">
-                                                <div className="h-2 w-6 bg-gold rounded-full" />
-                                                <h2 className="text-xl font-bold uppercase tracking-widest italic">Add-ons & Extras</h2>
+                                            <div className="flex items-center justify-between mb-8">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-2 w-6 bg-gold rounded-full" />
+                                                    <h2 className="text-xl font-bold uppercase tracking-widest italic">Add-ons & Extras</h2>
+                                                </div>
+                                                <button type="button" onClick={() => setPaymentStep('info')} className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground hover:text-white">
+                                                    Back
+                                                </button>
                                             </div>
                                             <div className="space-y-4">
                                                 <FormField control={form.control} name="addOns.parking" render={({ field }) => (
@@ -389,8 +541,8 @@ function CheckoutPage() {
                                         </GlassCard>
 
                                         <Button type="submit" className="w-full bg-kenyan-green hover:bg-kenyan-green/90 text-white font-black text-xl h-20 rounded-3xl shadow-2xl shadow-kenyan-green/20 group uppercase tracking-tight">
+                                            Secure Checkout - KES {finalTotal.toLocaleString()}
                                             <Lock className="mr-3 h-6 w-6" />
-                                            Continue to Payment - KES {finalTotal.toLocaleString()}
                                         </Button>
                                     </motion.div>
                                 )}
@@ -409,7 +561,7 @@ function CheckoutPage() {
                                                     <div className="h-2 w-6 bg-gold rounded-full" />
                                                     <h2 className="text-xl font-bold uppercase tracking-widest italic">Choose Payment Method</h2>
                                                 </div>
-                                                <button type="button" onClick={() => setPaymentStep('details')} className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground hover:text-white">
+                                                <button type="button" onClick={() => setPaymentStep('addons')} className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground hover:text-white">
                                                     Back
                                                 </button>
                                             </div>
@@ -619,7 +771,7 @@ function CheckoutPage() {
                     </form>
                 </Form>
             </div>
-        </div>
+        </div >
     )
 }
 

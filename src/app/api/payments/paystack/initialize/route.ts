@@ -1,15 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initializePaystackTransaction } from '@/lib/paystack';
+import { adminFirestore } from '@/lib/firebase-admin';
 
 export async function POST(req: NextRequest) {
     try {
-        const { email, amount, reference, orderId, metadata } = await req.json();
+        const { email, reference, orderId, metadata } = await req.json();
 
-        if (!email || !amount || !reference) {
+        if (!email || !orderId || !reference) {
             return NextResponse.json(
-                { error: 'Missing required fields: email, amount, reference' },
+                { error: 'Missing required fields: email, orderId, reference' },
                 { status: 400 }
             );
+        }
+
+        if (!adminFirestore) {
+            return NextResponse.json({ error: 'Firestore not initialized' }, { status: 500 });
+        }
+
+        // Fetch order to get verified amount
+        const orderDoc = await adminFirestore.collection('orders').doc(orderId).get();
+        if (!orderDoc.exists) {
+            return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        }
+
+        const orderData = orderDoc.data();
+        const amount = Math.round(orderData?.total || 0);
+
+        if (amount <= 0) {
+            return NextResponse.json({ error: 'Invalid order amount' }, { status: 400 });
         }
 
         // Construct callback URL
@@ -28,6 +46,12 @@ export async function POST(req: NextRequest) {
         );
 
         if (result.status && result.data) {
+            // Update order with paystack reference
+            await adminFirestore.collection('orders').doc(orderId).update({
+                paystackReference: reference,
+                paymentGateway: 'paystack'
+            });
+
             return NextResponse.json({
                 success: true,
                 authorizationUrl: result.data.authorization_url,

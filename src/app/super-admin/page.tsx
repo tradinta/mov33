@@ -43,8 +43,13 @@ export default function SuperAdminDashboard() {
         const ticketsSnap = await getDocs(collection(firestore, 'tickets'));
         const tickets = ticketsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-        // Fetch Analytics for Unique Visitors
-        const pageviewsSnap = await getDocs(collection(firestore, 'analytics_pageviews'));
+        // Fetch Analytics for Unique Visitors (Last 30 days)
+        const thirtyDaysAgo = subDays(new Date(), 30);
+        const pageviewsQuery = query(
+          collection(firestore, 'analytics_pageviews'),
+          where('timestamp', '>=', Timestamp.fromDate(thirtyDaysAgo))
+        );
+        const pageviewsSnap = await getDocs(pageviewsQuery);
         const pageviews = pageviewsSnap.docs.map(d => d.data());
 
         // Calculate Unique Anonymous Visitors

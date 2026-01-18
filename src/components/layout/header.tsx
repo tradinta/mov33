@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { Award, Menu, Search, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 import { usePathname, useRouter } from 'next/navigation';
+import { useMarketingConfig } from '@/hooks/use-marketing-config';
 import { Cart } from '@/components/cart/cart';
 import {
   DropdownMenu,
@@ -21,6 +23,7 @@ import { ThemeToggle } from '../theme-toggle';
 import { useUser } from '@/firebase/auth/use-user';
 import { useAuth } from '@/context/auth-context';
 import { getAuth, signOut } from 'firebase/auth';
+import { NotificationCenter } from '../navigation/notification-center';
 
 const navLinks = [
   { href: '/events', label: 'Events' },
@@ -127,6 +130,7 @@ function UserNav() {
 export function Header() {
   const pathname = usePathname();
   const { profile } = useAuth();
+  const { config } = useMarketingConfig();
 
   // Hide header on login/signup/dashboard pages
   if (pathname === '/login' || pathname === '/signup' || pathname.startsWith('/admin') || pathname.startsWith('/super-admin') || pathname.startsWith('/organizer') || pathname.startsWith('/influencer')) {
@@ -136,8 +140,25 @@ export function Header() {
   // Get dashboard link for user's role (for mobile menu)
   const dashboardLink = profile?.role ? roleToDashboard[profile.role] : null;
 
+  const [scrolled, setScrolled] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const isGlassEnabled = config?.aesthetics?.glassHeaderEnabled !== false;
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 h-[65px]">
+    <header className={cn(
+      "fixed top-0 z-50 w-full transition-all duration-500",
+      scrolled && isGlassEnabled
+        ? "bg-obsidian/80 backdrop-blur-xl border-b border-white/5 py-4 shadow-2xl"
+        : "bg-transparent py-8"
+    )}>
       <div className="container flex h-full items-center">
         <Logo />
 
@@ -172,6 +193,7 @@ export function Header() {
           </Button>
           <ThemeToggle />
           <Cart />
+          <NotificationCenter />
           <UserNav />
 
           {/* Mobile Menu */}

@@ -24,6 +24,10 @@ export interface UserProfile {
     isSuspended?: boolean;
     mov33Plus?: boolean;
     mov33PlusExpiry?: Timestamp;
+    vibeCheckCompleted?: boolean;
+    preferredGenres?: string[];
+    preferredLocations?: string[];
+    preferredPersonas?: string[];
 }
 
 export interface Event {
@@ -53,6 +57,9 @@ export interface Event {
         status: 'Available' | 'Sold Out' | 'Almost Gone';
         remaining?: number;
         discount?: string;
+        // Early Bird / Dynamic Pricing
+        earlyBirdPrice?: number;
+        earlyBirdDeadline?: Timestamp;
     }[];
     status: 'draft' | 'published' | 'cancelled';
     isPrivate: boolean;
@@ -62,6 +69,8 @@ export interface Event {
     reportedCount?: number;
     moderationStatus?: 'pending' | 'approved' | 'rejected';
     slug?: string;
+    dealCode?: string;
+    dealDescription?: string;
 }
 
 export interface Payout {
@@ -173,5 +182,16 @@ export interface Report {
     reporterId: string;
     reason: string;
     status: 'pending' | 'resolved' | 'dismissed';
+    createdAt: Timestamp;
+}
+
+export interface Notification {
+    id: string;
+    userId: string;
+    title: string;
+    message: string;
+    type: 'order' | 'deal' | 'event' | 'system';
+    read: boolean;
+    link?: string;
     createdAt: Timestamp;
 }

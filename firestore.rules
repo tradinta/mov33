@@ -133,13 +133,26 @@ service cloud.firestore {
                     );
       
       // Anyone can create an order (checkout flow, including guests)
-      allow create: if true;
+      // Hardening: Only allow 'pending' status on creation
+      allow create: if request.resource.data.status == 'pending';
       
       // Only admins/callbacks can update orders (payment status)
       allow update: if isAdmin();
       
       // Only super-admins can delete orders
       allow delete: if isSuperAdmin();
+    }
+
+
+    // ============================================
+    // LEADS COLLECTION (Abandoned Checkout Recovery)
+    // ============================================
+    match /leads/{leadId} {
+      // Anyone can save a lead (ghost lead capture)
+      allow create, update: if true;
+      
+      // Only admins can read/manage leads
+      allow read, delete: if isAdmin();
     }
 
 
@@ -180,8 +193,9 @@ service cloud.firestore {
     // PROMOCODES COLLECTION
     // ============================================
     match /promocodes/{codeId} {
-      // Public read needed for checkout validation
-      allow read: if true;
+      // Disable public read to prevent enumeration. 
+      // Validation must happen via /api/promo/validate
+      allow read: if false;
       
       // Organizers can create promo codes
       allow create: if isOrganizer() || isAdmin();
@@ -328,6 +342,26 @@ service cloud.firestore {
     // ============================================
     match /config/{configId} {
       allow read, write: if isSuperAdmin();
+    }
+
+    match /marketing_config/{docId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+
+    // ============================================
+    // NOTIFICATIONS COLLECTION
+    // ============================================
+    match /notifications/{notifId} {
+      allow read, update: if isSignedIn() && (
+                          resource.data.userId == request.auth.uid
+                          || isAdmin()
+                        );
+      
+      // Notifications are created server-side or by system logic
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
     }
 
 

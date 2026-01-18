@@ -5,6 +5,8 @@ import { notFound, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
 import { firestore } from '@/firebase';
 import { Event } from '@/lib/types';
+import ReactMarkdown from 'react-markdown';
+import DOMPurify from 'isomorphic-dompurify';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +44,11 @@ import { useToast } from '@/hooks/use-toast';
 import { EventViewTracker } from '@/components/analytics/event-view-tracker';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { WhosGoing } from '@/components/events/whos-going';
+import { EarlyBirdBadge } from '@/components/events/early-bird-timer';
+import { UnlockDeal } from '@/components/engagement/unlock-deal';
+import { useMarketingConfig } from '@/hooks/use-marketing-config';
+import { AddToCalendar } from '@/components/events/add-to-calendar';
 
 type EventDetailsClientProps = {
     eventId: string;
@@ -86,6 +93,7 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
     const { addToCart } = useCart();
     const { toast } = useToast();
     const router = useRouter();
+    const { config, loading: configLoading } = useMarketingConfig();
 
     const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
 
@@ -196,6 +204,15 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
     // JSON-LD is now handled in the Server Component, but we keep the structure here just in case specific client-side updates are needed eventually.
     // Integrating the Schema directly in the page header via Metadata is cleaner.
 
+    // Recently Viewed Logic
+    React.useEffect(() => {
+        const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+        if (!recentlyViewed.includes(event.id)) {
+            const newList = [event.id, ...recentlyViewed].slice(0, 5);
+            localStorage.setItem('recentlyViewed', JSON.stringify(newList));
+        }
+    }, [event.id]);
+
     return (
         <div className="bg-obsidian min-h-screen text-white pt-20">
             <EventViewTracker eventId={event.id} organizerId={event.organizerId} />
@@ -242,7 +259,13 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                                     </div>
                                     <div>
                                         <div className="text-[10px] font-black uppercase text-white/30 tracking-widest">Date & Time</div>
-                                        <div className="font-bold text-sm">{format(eventDate, 'EEEE, d MMM yyyy')} • 18:00</div>
+                                        <div className="font-bold text-sm mb-2">{format(eventDate, 'EEEE, d MMM yyyy')} • 18:00</div>
+                                        <AddToCalendar
+                                            title={event.title}
+                                            description={event.description}
+                                            location={event.location}
+                                            startDate={eventDate}
+                                        />
                                     </div>
                                 </div>
 
@@ -264,6 +287,26 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                                 <ShareModal />
                             </div>
                         </header>
+
+                        {/* Social Proof Section */}
+                        {(event.ticketsSold > 0 || event.capacity > 0) && (
+                            <section id="social-proof" className="scroll-mt-32">
+                                <WhosGoing
+                                    ticketsSold={event.ticketsSold || 0}
+                                    capacity={event.capacity || 0}
+                                />
+                            </section>
+                        )}
+
+                        {/* Unlock Deal Section */}
+                        {config?.unlockDeal?.enabled && (event.dealCode || config?.unlockDeal?.couponCode) && (
+                            <section id="exclusive-deal" className="scroll-mt-32">
+                                <UnlockDeal
+                                    code={event.dealCode || config.unlockDeal.couponCode}
+                                    discountDetails={event.dealDescription || 'Unlock an exclusive discount for this event.'}
+                                />
+                            </section>
+                        )}
 
                         {/* Ticket Booking Section */}
                         <section id="tickets" className="scroll-mt-32">
@@ -290,32 +333,54 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                                         </div>
 
                                         <div className="space-y-4">
-                                            {event.ticketTiers?.map(ticket => (
-                                                <div key={ticket.id} className="group bg-white/5 border border-white/5 rounded-3xl p-6 transition-all hover:bg-white/[0.08] hover:border-white/10 flex flex-col sm:flex-row justify-between sm:items-center gap-6">
-                                                    <div className="flex-1 space-y-2">
-                                                        <div className="flex items-center justify-between">
-                                                            <h4 className="font-black text-lg uppercase italic tracking-tight text-white group-hover:text-gold transition-colors">{ticket.tier}</h4>
-                                                            <div className="text-2xl font-black text-white font-headline italic tracking-tighter">KES {ticket.price.toLocaleString()}</div>
-                                                        </div>
-                                                        <p className="text-xs text-white/40 font-poppins max-w-sm">{ticket.description}</p>
-                                                        <div className="flex flex-wrap gap-2 pt-2">
-                                                            {ticket.status === 'Sold Out' && <Badge className="bg-red-500/20 text-red-400 border-none text-[8px] uppercase font-black">Sold Out</Badge>}
-                                                            {ticket.remaining && ticket.remaining < 20 && ticket.status !== 'Sold Out' && <Badge className="bg-orange-500/20 text-orange-400 border-none text-[8px] uppercase font-black">Only {ticket.remaining} left</Badge>}
-                                                            {ticket.discount && <Badge className="bg-kenyan-green/20 text-kenyan-green border-none text-[8px] uppercase font-black">{ticket.discount}</Badge>}
-                                                        </div>
-                                                    </div>
+                                            {event.ticketTiers?.map(ticket => {
+                                                const hasEarlyBird = ticket.earlyBirdPrice && ticket.earlyBirdDeadline;
+                                                const earlyBirdDeadline = ticket.earlyBirdDeadline?.toDate ? ticket.earlyBirdDeadline.toDate() : null;
+                                                const isEarlyBirdActive = earlyBirdDeadline && earlyBirdDeadline > new Date();
+                                                const displayPrice = isEarlyBirdActive && ticket.earlyBirdPrice ? ticket.earlyBirdPrice : ticket.price;
+                                                const savingsPercent = isEarlyBirdActive && ticket.earlyBirdPrice
+                                                    ? Math.round(((ticket.price - ticket.earlyBirdPrice) / ticket.price) * 100)
+                                                    : 0;
 
-                                                    <div className="flex items-center gap-4 bg-obsidian py-2 px-4 rounded-2xl border border-white/10">
-                                                        <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-white hover:bg-white/10' onClick={() => handleQuantityChange(ticket.id, -1)} disabled={ticket.status === 'Sold Out'}>
-                                                            <Minus className="h-4 w-4" />
-                                                        </Button>
-                                                        <span className='text-xl font-black w-6 text-center text-white'>{ticketQuantities[ticket.id] || 0}</span>
-                                                        <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-white hover:bg-white/10' onClick={() => handleQuantityChange(ticket.id, 1)} disabled={ticket.status === 'Sold Out' || (ticket.remaining !== undefined && ticket.remaining <= (ticketQuantities[ticket.id] || 0))}>
-                                                            <Plus className="h-4 w-4" />
-                                                        </Button>
+                                                return (
+                                                    <div key={ticket.id} className="group bg-white/5 border border-white/5 rounded-3xl p-6 transition-all hover:bg-white/[0.08] hover:border-white/10 flex flex-col sm:flex-row justify-between sm:items-center gap-6">
+                                                        <div className="flex-1 space-y-2">
+                                                            <div className="flex items-center justify-between">
+                                                                <h4 className="font-black text-lg uppercase italic tracking-tight text-white group-hover:text-gold transition-colors">{ticket.tier}</h4>
+                                                                <div className="text-right">
+                                                                    <div className="text-2xl font-black text-white font-headline italic tracking-tighter">
+                                                                        KES {displayPrice.toLocaleString()}
+                                                                    </div>
+                                                                    {isEarlyBirdActive && (
+                                                                        <div className="text-sm text-white/30 line-through">
+                                                                            KES {ticket.price.toLocaleString()}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-xs text-white/40 font-poppins max-w-sm">{ticket.description}</p>
+                                                            <div className="flex flex-wrap gap-2 pt-2">
+                                                                {isEarlyBirdActive && earlyBirdDeadline && (
+                                                                    <EarlyBirdBadge deadline={earlyBirdDeadline} discountPercent={savingsPercent} />
+                                                                )}
+                                                                {ticket.status === 'Sold Out' && <Badge className="bg-red-500/20 text-red-400 border-none text-[8px] uppercase font-black">Sold Out</Badge>}
+                                                                {ticket.remaining && ticket.remaining < 20 && ticket.status !== 'Sold Out' && <Badge className="bg-orange-500/20 text-orange-400 border-none text-[8px] uppercase font-black">Only {ticket.remaining} left</Badge>}
+                                                                {ticket.discount && <Badge className="bg-kenyan-green/20 text-kenyan-green border-none text-[8px] uppercase font-black">{ticket.discount}</Badge>}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-4 bg-obsidian py-2 px-4 rounded-2xl border border-white/10">
+                                                            <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-white hover:bg-white/10' onClick={() => handleQuantityChange(ticket.id, -1)} disabled={ticket.status === 'Sold Out'}>
+                                                                <Minus className="h-4 w-4" />
+                                                            </Button>
+                                                            <span className='text-xl font-black w-6 text-center text-white'>{ticketQuantities[ticket.id] || 0}</span>
+                                                            <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-white hover:bg-white/10' onClick={() => handleQuantityChange(ticket.id, 1)} disabled={ticket.status === 'Sold Out' || (ticket.remaining !== undefined && ticket.remaining <= (ticketQuantities[ticket.id] || 0))}>
+                                                                <Plus className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                )
+                                            })}
                                         </div>
 
                                         <div className="flex flex-col sm:flex-row gap-4">
@@ -340,7 +405,9 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                                 Experience Details
                             </h2>
                             <div className="prose prose-invert max-w-none text-white/60 font-poppins leading-relaxed">
-                                <p>{event.description}</p>
+                                <ReactMarkdown>
+                                    {DOMPurify.sanitize(event.description || '')}
+                                </ReactMarkdown>
                             </div>
                         </section>
 

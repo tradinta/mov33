@@ -111,7 +111,6 @@ export default function ProfilePage() {
                     </div>
                   )}
                 </div>
-                drum
                 {isPremium && (
                   <div className="absolute -bottom-3 -right-3">
                     <PlusBadge className="px-2" showText={false} />

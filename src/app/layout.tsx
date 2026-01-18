@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import { Toaster } from "@/components/ui/toaster";
 import './globals.css';
 import { CartProvider } from '@/context/cart-context';
@@ -6,6 +7,9 @@ import { ParticleBackground } from '@/components/ui/particle-background';
 import { ThemeProvider } from '@/components/theme-provider';
 import FirebaseClientProvider from '@/firebase/client-provider';
 import { AnalyticsTracker } from '@/components/analytics/analytics-tracker';
+import { EngagementManager } from '@/components/engagement/engagement-manager';
+import { Footer } from '@/components/layout/footer';
+import { SupportWidget } from '@/components/support/support-widget';
 
 export const metadata: Metadata = {
   title: {
@@ -66,8 +70,10 @@ export default function RootLayout({
             <div className="relative z-10">
               <CartProvider>
                 <AnalyticsTracker />
+                <EngagementManager />
                 {children}
                 <Toaster />
+                <SupportWidget />
               </CartProvider>
             </div>
           </FirebaseClientProvider>

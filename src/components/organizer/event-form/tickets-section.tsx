@@ -34,7 +34,7 @@ export function TicketsSection() {
                 </div>
                 <div className="space-y-4">
                     {fields.map((field, index) => (
-                        <TicketCard key={field.id} index={index} remove={remove} isAdvanced={isAdvanced} />
+                        <TicketCard key={field.id} index={index} remove={remove} append={append} isAdvanced={isAdvanced} />
                     ))}
                 </div>
                 <Button

@@ -7,7 +7,8 @@ import { RoleGuard } from '@/components/auth/role-guard';
 import {
   LayoutDashboard, Users, Calendar, Map,
   CreditCard, Settings, ShieldAlert, FileText, Activity,
-  ChevronDown, LogOut, Search, UserPlus, Flag, Menu, X
+  ChevronDown, LogOut, Search, UserPlus, Flag, Menu, X,
+  Megaphone
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,6 +26,7 @@ const navItems = [
   { icon: Flag, label: 'Partner Applications', href: '/super-admin/partners' },
   { icon: CreditCard, label: 'Finance & Payouts', href: '/super-admin/finance' },
   { icon: ShieldAlert, label: 'Moderation', href: '/super-admin/moderation' },
+  { icon: Megaphone, label: 'Marketing & Conversion', href: '/super-admin/marketing' },
   { icon: Settings, label: 'System Settings', href: '/super-admin/settings' },
 ];
 

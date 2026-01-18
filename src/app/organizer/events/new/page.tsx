@@ -55,6 +55,10 @@ import { useUser } from '@/firebase/auth/use-user';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { ImageUploader } from '@/components/organizer/image-uploader';
+import { Eye, TrendingUp } from 'lucide-react';
+import { NotificationEstimate } from '@/components/organizer/notification-estimate';
+import { EventCard } from '@/components/events/event-card';
+import { Timestamp } from 'firebase/firestore';
 
 
 const ticketDiscountSchema = z.object({
@@ -79,6 +83,14 @@ const formSchema = z.object({
     about: z.string().min(50, 'The "About" section must be at least 50 characters.'),
     tags: z.string().min(1, 'Please enter at least one tag, separated by commas.'),
     mainImage: z.string().url('Please upload a main image for the event.'),
+
+    // Personalization tags
+    personaTags: z.string().optional(),
+    vibeTags: z.string().optional(),
+
+    // Engagement fields
+    dealCode: z.string().optional(),
+    dealDescription: z.string().optional(),
 
     tickets: z.array(ticketSchema).min(1, 'You must add at least one ticket tier.'),
 
@@ -127,6 +139,10 @@ export default function NewEventPage() {
             about: '',
             tags: '',
             mainImage: '',
+            personaTags: '',
+            vibeTags: '',
+            dealCode: '',
+            dealDescription: '',
             tickets: [{ tier: 'Regular', price: 0, perks: 'General Access', description: '' }],
             schedule: [{ day: 'Day 1', items: [{ time: '06:00 PM', title: 'Doors Open' }] }],
             artists: [],
@@ -143,6 +159,10 @@ export default function NewEventPage() {
         control: form.control,
         name: 'artists',
     });
+
+    const watchedPersonaTags = form.watch('personaTags');
+    const watchedVibeTags = form.watch('vibeTags');
+    const watchedCategory = form.watch('tags'); // Assuming category is derived from tags for now
     const { fields: galleryFields, append: appendGallery, remove: removeGallery } = useFieldArray({
         control: form.control,
         name: 'gallery',
@@ -154,6 +174,7 @@ export default function NewEventPage() {
 
     const [missingFields, setMissingFields] = React.useState<string[]>([]);
     const [isModalOpen, setIsModalOpen] = React.useState(false);
+    const [isPreviewOpen, setIsPreviewOpen] = React.useState(false);
 
     // Persistence: Load from localStorage
     React.useEffect(() => {
@@ -458,6 +479,86 @@ export default function NewEventPage() {
                             </Card>
                         </AccordionItem>
 
+                        {/* Personalization & Engagement */}
+                        <AccordionItem value="item-personalization" className="border-b-0">
+                            <Card>
+                                <AccordionTrigger className="p-6 font-headline text-lg data-[state=closed]:rounded-lg data-[state=open]:rounded-t-lg hover:no-underline bg-muted/50">
+                                    Personalization & Engagement
+                                </AccordionTrigger>
+                                <AccordionContent className="p-6 pt-0 space-y-6">
+                                    <NotificationEstimate
+                                        category={watchedCategory}
+                                        personaTags={watchedPersonaTags?.split(',').map(s => s.trim())}
+                                        vibeTags={watchedVibeTags?.split(',').map(s => s.trim())}
+                                    />
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <FormField
+                                            control={form.control}
+                                            name="personaTags"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Persona Tags</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="e.g., socialite, raver, explorer" {...field} />
+                                                    </FormControl>
+                                                    <FormDescription>Identify target personas for this event.</FormDescription>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="vibeTags"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Vibe Tags</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="e.g., chill, high-energy, boutique" {...field} />
+                                                    </FormControl>
+                                                    <FormDescription>Describe the event vibe (comma separated).</FormDescription>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+
+                                    <div className="pt-4 border-t border-white/5 space-y-6">
+                                        <h4 className="text-sm font-bold uppercase tracking-widest text-gold/60">Flash Deal (Optional)</h4>
+                                        <div className="grid md:grid-cols-2 gap-6">
+                                            <FormField
+                                                control={form.control}
+                                                name="dealCode"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Deal Code</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="e.g., FLASH20" {...field} />
+                                                        </FormControl>
+                                                        <FormDescription>Code for the gamified reveal.</FormDescription>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="dealDescription"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Deal Hook</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="e.g., Get 20% off if you book now!" {...field} />
+                                                        </FormControl>
+                                                        <FormDescription>Catchy description for the unlock.</FormDescription>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+                                </AccordionContent>
+                            </Card>
+                        </AccordionItem>
+
                         <AccordionItem value="item-3" className="border-b-0">
                             <TicketsSection />
                         </AccordionItem>
@@ -625,12 +726,31 @@ export default function NewEventPage() {
                             variant="outline"
                             type="button"
                             disabled={isPublishing || isSavingDraft}
+                            onClick={() => setIsPreviewOpen(true)}
+                            className="h-12 px-8 rounded-xl font-bold uppercase tracking-widest text-xs border-white/10"
+                        >
+                            <Eye className="mr-2 h-4 w-4" /> Preview
+                        </Button>
+                        <Button
+                            variant="outline"
+                            type="button"
+                            disabled={isPublishing || isSavingDraft}
                             onClick={handleSaveDraft}
                             className="h-12 px-8 rounded-xl font-bold uppercase tracking-widest text-xs"
                         >
                             {isSavingDraft ? (
                                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
                             ) : 'Save as Draft'}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={isPublishing || isSavingDraft}
+                            onClick={() => setIsPreviewOpen(true)}
+                            className="h-12 px-6 rounded-xl font-bold uppercase tracking-widest text-xs border-gold/30 text-gold hover:bg-gold/10"
+                        >
+                            <Eye className="mr-2 h-4 w-4" />
+                            Preview
                         </Button>
                         <Button
                             type="button"
@@ -683,6 +803,54 @@ export default function NewEventPage() {
                                 ) : 'Publish Anyway'}
                             </Button>
                         </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+                    <DialogContent className="max-w-4xl bg-obsidian border-white/5 text-white p-0 overflow-hidden">
+                        <div className="grid md:grid-cols-2">
+                            <div className="p-8 bg-black/40 border-r border-white/5">
+                                <h3 className="text-xl font-headline font-black uppercase italic tracking-tighter mb-6 text-gold">Card Preview</h3>
+                                <div className="max-w-xs mx-auto">
+                                    <EventCard event={{
+                                        ...form.getValues(),
+                                        id: 'preview',
+                                        date: Timestamp.fromDate(form.getValues('date') || new Date()),
+                                        imageUrl: form.getValues('mainImage'),
+                                        title: form.getValues('name'),
+                                        price: Math.min(...(form.getValues('tickets')?.map(t => t.price) || [0])),
+                                        ticketsSold: 0,
+                                        capacity: 100,
+                                        organizerId: user?.uid || '',
+                                        status: 'published',
+                                        tags: form.getValues('tags').split(',').map(t => t.trim()),
+                                        isPrivate: false,
+                                    } as any} />
+                                </div>
+                            </div>
+                            <div className="p-8 space-y-6">
+                                <h3 className="text-xl font-headline font-black uppercase italic tracking-tighter text-white/40">Quick Stats</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                                        <div className="text-[10px] uppercase font-black text-muted-foreground mb-1">Price Range</div>
+                                        <div className="text-xl font-black italic text-gold">
+                                            KES {Math.min(...(form.getValues('tickets')?.map(t => t.price) || [0]))} - {Math.max(...(form.getValues('tickets')?.map(t => t.price) || [0]))}
+                                        </div>
+                                    </div>
+                                    <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                                        <div className="text-[10px] uppercase font-black text-muted-foreground mb-1">Ticket Types</div>
+                                        <div className="text-xl font-black italic text-white">{form.getValues('tickets')?.length || 0} Tiers</div>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="text-[10px] uppercase font-black text-white/40 tracking-widest">About Preview</div>
+                                    <p className="text-sm text-muted-foreground">This is how your event will appear in the main feed. Make sure your title and image are catchy!</p>
+                                </div>
+                                <Button onClick={() => setIsPreviewOpen(false)} className="w-full bg-white/5 hover:bg-white/10 text-white font-bold uppercase tracking-widest text-xs h-12 rounded-xl mt-8">
+                                    Continue Editing
+                                </Button>
+                            </div>
+                        </div>
                     </DialogContent>
                 </Dialog>
             </Form>

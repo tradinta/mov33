@@ -49,7 +49,20 @@ export async function generateMetadata(
     }
 
     const previousImages = (await parent).openGraph?.images || [];
-    const ogImages = event.imageUrl ? [event.imageUrl, ...previousImages] : previousImages;
+
+    // Generate dynamic OG image URL
+    const eventDate = event.date?.toDate ? event.date.toDate() : new Date();
+    const formattedDate = eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const ogImageUrl = new URL('/api/og', process.env.NEXT_PUBLIC_BASE_URL || 'https://mov33.com');
+    ogImageUrl.searchParams.set('title', event.title);
+    ogImageUrl.searchParams.set('date', formattedDate);
+    ogImageUrl.searchParams.set('location', `${event.venue}, ${event.location}`);
+    ogImageUrl.searchParams.set('price', event.price?.toString() || 'FREE');
+    ogImageUrl.searchParams.set('ticketsSold', event.ticketsSold?.toString() || '0');
+    if (event.imageUrl) ogImageUrl.searchParams.set('image', event.imageUrl);
+
+    const dynamicOgImage = ogImageUrl.toString();
+    const ogImages = [dynamicOgImage, ...previousImages];
 
     return {
         title: `${event.title} | Mov33 Tickets`,
