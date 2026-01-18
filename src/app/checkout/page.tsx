@@ -1,5 +1,8 @@
 'use client';
 
+// Skip static generation - this page requires client-side cart context
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -8,7 +11,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
-import { useMarketingConfig } from '@/hooks/use-marketing-config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -98,47 +100,6 @@ function CheckoutPage() {
     });
 
     const watchedAddOns = form.watch('addOns');
-
-    const [leadId, setLeadId] = useState<string | null>(null);
-    const watchedContact = form.watch(['contactName', 'contactEmail', 'contactPhone']);
-    const { config } = useMarketingConfig();
-
-    // Ghost Lead Capture (Abandoned Checkout Recovery)
-    useEffect(() => {
-        if (config?.ghostLead?.enabled === false) return;
-
-        const [name, email, phone] = watchedContact;
-        if (!name && !email && (phone === '254' || !phone)) return;
-
-        const timer = setTimeout(async () => {
-            try {
-                const leadData = {
-                    name,
-                    email,
-                    phone,
-                    cartItems,
-                    total: finalTotal,
-                    updatedAt: serverTimestamp(),
-                    status: 'abandoned',
-                    source: 'checkout'
-                };
-
-                if (leadId) {
-                    await updateDoc(doc(firestore, 'leads', leadId), leadData);
-                } else {
-                    const docRef = await addDoc(collection(firestore, 'leads'), {
-                        ...leadData,
-                        createdAt: serverTimestamp()
-                    });
-                    setLeadId(docRef.id);
-                }
-            } catch (error) {
-                console.error("Lead capture failed:", error);
-            }
-        }, config?.ghostLead?.saveDelayMs || 30000);
-
-        return () => clearTimeout(timer);
-    }, [watchedContact, cartItems, finalTotal, leadId, config]);
 
     // Cleanup polling on unmount
     useEffect(() => {

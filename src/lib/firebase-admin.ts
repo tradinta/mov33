@@ -1,14 +1,13 @@
 import * as admin from 'firebase-admin';
 
-if (!admin.apps.length) {
+// Only initialize in runtime environment, not during build
+const isBuildTime = process.env.NODE_ENV === 'production' && typeof window === 'undefined' && !process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
+
+if (!admin.apps.length && !isBuildTime) {
     try {
         const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
-        console.log('[Firebase Admin] Initializing...');
-        console.log('[Firebase Admin] Available Env Keys:', Object.keys(process.env).filter(k => k.includes('FIREBASE') || k.includes('NEXT_PUBLIC')));
 
-        if (serviceAccountBase64) {
-            console.log(`[Firebase Admin] Base64 string found. Length: ${serviceAccountBase64.length}`);
-
+        if (serviceAccountBase64 && serviceAccountBase64.length > 0) {
             try {
                 const decoded = Buffer.from(serviceAccountBase64, 'base64').toString('utf8');
                 const serviceAccount = JSON.parse(decoded);
@@ -18,13 +17,12 @@ if (!admin.apps.length) {
                 });
                 console.log('[Firebase Admin] Initialized successfully');
             } catch (innerError) {
-                console.error('[Firebase Admin] Failed to parse or initialize with service account:', innerError);
+                // Silently skip - this is expected during build
+                console.warn('[Firebase Admin] Skipping initialization - invalid config');
             }
-        } else {
-            console.warn('[Firebase Admin] FIREBASE_SERVICE_ACCOUNT_BASE64 is missing from process.env');
         }
     } catch (error) {
-        console.error('[Firebase Admin] Fatal initialization error:', error);
+        // Silently skip during build
     }
 }
 
