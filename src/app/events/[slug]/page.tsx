@@ -99,7 +99,7 @@ export default async function EventPage({ params }: Props) {
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                 />
             )}
-            <EventDetailsClient eventId={event?.id || params.slug} />
+            <EventDetailsClient eventId={event?.id || params.slug} initialEvent={event} />
         </>
     );
 }

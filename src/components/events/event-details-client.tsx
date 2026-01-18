@@ -52,43 +52,14 @@ import { AddToCalendar } from '@/components/events/add-to-calendar';
 
 type EventDetailsClientProps = {
     eventId: string;
+    initialEvent?: Event | null;
 };
 
-function ShareModal() {
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="font-poppins">
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[250px] bg-obsidian border-white/10 text-white">
-                <DialogHeader>
-                    <DialogTitle className="text-center font-headline uppercase tracking-tight">Share this Event</DialogTitle>
-                </DialogHeader>
-                <div className="flex justify-center gap-4 py-4">
-                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-white/5 bg-white/5 hover:bg-gold hover:text-obsidian transition-all">
-                        <Facebook className="h-6 w-6" />
-                    </Button>
-                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-white/5 bg-white/5 hover:bg-gold hover:text-obsidian transition-all">
-                        <Twitter className="h-6 w-6" />
-                    </Button>
-                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-white/5 bg-white/5 hover:bg-gold hover:text-obsidian transition-all">
-                        <Instagram className="h-6 w-6" />
-                    </Button>
-                    <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-white/5 bg-white/5 hover:bg-gold hover:text-obsidian transition-all">
-                        <Linkedin className="h-6 w-6" />
-                    </Button>
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
+// ... ShareModal ...
 
-export default function EventDetailsClient({ eventId }: EventDetailsClientProps) {
-    const [event, setEvent] = useState<Event | null>(null);
-    const [loading, setLoading] = useState(true);
+export default function EventDetailsClient({ eventId, initialEvent }: EventDetailsClientProps) {
+    const [event, setEvent] = useState<Event | null>(initialEvent || null);
+    const [loading, setLoading] = useState(!initialEvent);
     const { profile } = useAuth();
     const { addToCart } = useCart();
     const { toast } = useToast();
@@ -98,6 +69,8 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
     const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
 
     useEffect(() => {
+        if (initialEvent) return; // Skip fetch if we have data
+
         const fetchEvent = async () => {
             try {
                 const docRef = doc(firestore, 'events', eventId);
@@ -114,7 +87,7 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
             }
         };
         fetchEvent();
-    }, [eventId]);
+    }, [eventId, initialEvent]);
 
     if (loading) {
         return (

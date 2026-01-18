@@ -27,6 +27,7 @@ const navItems = [
   { icon: CreditCard, label: 'Finance & Payouts', href: '/super-admin/finance' },
   { icon: ShieldAlert, label: 'Moderation', href: '/super-admin/moderation' },
   { icon: Megaphone, label: 'Marketing & Conversion', href: '/super-admin/marketing' },
+  { icon: FileText, label: 'Static Pages', href: '/super-admin/pages' },
   { icon: Settings, label: 'System Settings', href: '/super-admin/settings' },
 ];
 

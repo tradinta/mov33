@@ -20,7 +20,7 @@ export function EventCard({ event }: { event: Event }) {
   const price = event.price || 0;
 
   return (
-    <Link href={`/events/${event.id}`} className="block h-full group">
+    <Link href={`/events/${event.slug || event.id}`} className="block h-full group">
       <Card className="h-full overflow-hidden bg-white dark:bg-zinc-900 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border-0">
         {/* Image Container */}
         <div className="relative aspect-[4/5] overflow-hidden">
