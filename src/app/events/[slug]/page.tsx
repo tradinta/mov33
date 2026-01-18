@@ -6,6 +6,7 @@ import { firestore } from '@/firebase';
 import { Event } from '@/lib/types';
 import EventDetailsClient from '@/components/events/event-details-client';
 import { generateEventJsonLd } from '@/lib/seo';
+import { serializeEvent } from '@/lib/events';
 
 type Props = {
     params: { slug: string };
@@ -21,14 +22,16 @@ async function getEvent(slugOrId: string): Promise<{ event: Event | null, isRedi
 
         if (!querySnapshot.empty) {
             const docSnap = querySnapshot.docs[0];
-            return { event: { id: docSnap.id, ...docSnap.data() } as Event, isRedirect: false };
+            const eventData = { id: docSnap.id, ...docSnap.data() } as any;
+            return { event: serializeEvent(eventData), isRedirect: false };
         }
 
         // 2. Try finding by ID
         const docRef = doc(firestore, 'events', slugOrId);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            return { event: { id: docSnap.id, ...docSnap.data() } as Event, isRedirect: true };
+            const eventData = { id: docSnap.id, ...docSnap.data() } as any;
+            return { event: serializeEvent(eventData), isRedirect: true };
         }
     } catch (e) {
         console.error('Error fetching event for SEO:', e);
@@ -36,11 +39,14 @@ async function getEvent(slugOrId: string): Promise<{ event: Event | null, isRedi
     return { event: null, isRedirect: false };
 }
 
+// serializeEvent moved to @/lib/events
+
 export async function generateMetadata(
     { params }: Props,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
-    const { event } = await getEvent(params.slug);
+    const resolvedParams = await params;
+    const { event } = await getEvent(resolvedParams.slug);
 
     if (!event) {
         return {
@@ -51,7 +57,17 @@ export async function generateMetadata(
     const previousImages = (await parent).openGraph?.images || [];
 
     // Generate dynamic OG image URL
-    const eventDate = event.date?.toDate ? event.date.toDate() : new Date();
+    let eventDate = new Date();
+    if (event.date) {
+        if (typeof event.date === 'string') {
+            eventDate = new Date(event.date);
+        } else if (typeof event.date.toDate === 'function') {
+            eventDate = event.date.toDate();
+        } else if (event.date.seconds) {
+            eventDate = new Date(event.date.seconds * 1000);
+        }
+    }
+
     const formattedDate = eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     const ogImageUrl = new URL('/api/og', process.env.NEXT_PUBLIC_BASE_URL || 'https://mov33.com');
     ogImageUrl.searchParams.set('title', event.title);
@@ -83,7 +99,8 @@ export async function generateMetadata(
 }
 
 export default async function EventPage({ params }: Props) {
-    const { event, isRedirect } = await getEvent(params.slug);
+    const resolvedParams = await params;
+    const { event, isRedirect } = await getEvent(resolvedParams.slug);
 
     if (isRedirect && event?.slug) {
         redirect(`/events/${event.slug}`);
@@ -99,7 +116,7 @@ export default async function EventPage({ params }: Props) {
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                 />
             )}
-            <EventDetailsClient eventId={event?.id || params.slug} initialEvent={event} />
+            <EventDetailsClient eventId={event?.id || resolvedParams.slug} initialEvent={event} />
         </>
     );
 }

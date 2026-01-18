@@ -60,6 +60,7 @@ export interface Event {
         // Early Bird / Dynamic Pricing
         earlyBirdPrice?: number;
         earlyBirdDeadline?: Timestamp;
+        quantityDiscount?: { target: number; discountPercentage: number };
     }[];
     status: 'draft' | 'published' | 'cancelled';
     isPrivate: boolean;
@@ -71,6 +72,11 @@ export interface Event {
     slug?: string;
     dealCode?: string;
     dealDescription?: string;
+    // New Fields for V2
+    lineup?: { name: string; role: string; image?: string }[];
+    updates?: { date: Timestamp; content: string; type: 'info' | 'alert' | 'found' }[];
+    postEventGallery?: string[];
+    archived?: boolean;
 }
 
 export interface Payout {

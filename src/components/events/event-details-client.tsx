@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog"
 import { ImageGallery } from '@/components/events/image-gallery';
 import Link from 'next/link';
+import { ShareModal } from '@/components/events/share-modal';
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -53,12 +54,36 @@ import { AddToCalendar } from '@/components/events/add-to-calendar';
 type EventDetailsClientProps = {
     eventId: string;
     initialEvent?: Event | null;
+    isArchived?: boolean;
 };
 
 // ... ShareModal ...
 
-export default function EventDetailsClient({ eventId, initialEvent }: EventDetailsClientProps) {
+export default function EventDetailsClient({ eventId, initialEvent, isArchived = false }: EventDetailsClientProps) {
     const [event, setEvent] = useState<Event | null>(initialEvent || null);
+    // ... existing hooks ...
+
+    // ... existing useEffect ...
+
+    // ... logic ...
+
+    // Modify rendering based on isArchived
+
+    // In Header:
+    // If isArchived, show "Event Ended" badge instead of Date/Time? Or keep date/time but add badge.
+
+    // In Tickets Section:
+    // If isArchived, hide "Proceed to Checkout" / "Add to Cart" and show "This event has ended."
+
+    // In Updates:
+    // Still show updates.
+
+    // Logic:
+
+    const showTickets = !isArchived && (event?.ticketTiers?.length ?? 0) > 0;
+
+    // ... existing code ...
+
     const [loading, setLoading] = useState(!initialEvent);
     const { profile } = useAuth();
     const { addToCart } = useCart();
@@ -68,35 +93,51 @@ export default function EventDetailsClient({ eventId, initialEvent }: EventDetai
 
     const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
 
+    const [fetchError, setFetchError] = useState<string | null>(null);
+
     useEffect(() => {
         if (initialEvent) return; // Skip fetch if we have data
+        if (!eventId) {
+            console.warn("EventDetailsClient: No eventId provided");
+            setFetchError("Invalid Event ID");
+            setLoading(false);
+            return;
+        }
 
         const fetchEvent = async () => {
             try {
                 // 1. Try finding by ID
                 const docRef = doc(firestore, 'events', eventId);
-                const docSnap = await getDoc(docRef);
+                let docSnap;
+                try {
+                    docSnap = await getDoc(docRef);
+                } catch (err) {
+                    // Ignore error here (likely invalid ID format), try slug next
+                    console.log("ID fetch failed, trying slug...", err);
+                }
 
-                if (docSnap.exists()) {
-                    setEvent({ id: docSnap.id, ...docSnap.data() } as Event);
+                if (docSnap && docSnap.exists()) {
+                    const data = docSnap.data();
+                    setEvent({ id: docSnap.id, ...data, tags: data.tags || [] } as Event);
                     return;
                 }
 
                 // 2. Fallback: Try finding by slug
-                // Only attempt if eventId looks like a slug (not exactly necessary but good hygiene)
                 const eventsRef = collection(firestore, 'events');
                 const q = query(eventsRef, where('slug', '==', eventId));
                 const querySnapshot = await getDocs(q);
 
                 if (!querySnapshot.empty) {
                     const slugDoc = querySnapshot.docs[0];
-                    setEvent({ id: slugDoc.id, ...slugDoc.data() } as Event);
+                    const data = slugDoc.data();
+                    setEvent({ id: slugDoc.id, ...data, tags: data.tags || [] } as Event);
                 } else {
                     console.log('Event not found by ID or Slug:', eventId);
                     setEvent(null);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Error fetching event:", error);
+                setFetchError(error.message || "Failed to load event data.");
                 setEvent(null);
             } finally {
                 setLoading(false);
@@ -114,15 +155,61 @@ export default function EventDetailsClient({ eventId, initialEvent }: EventDetai
         );
     }
 
-    if (!event) {
-        notFound();
+    if (fetchError) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+                <div className="h-20 w-20 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-500 mb-4">
+                    <Minus className="h-10 w-10" />
+                </div>
+                <h1 className="text-3xl font-black uppercase italic tracking-tighter text-white">Something went wrong</h1>
+                <p className="text-white/60 font-poppins max-w-md bg-red-950/30 p-4 rounded-xl border border-red-500/20 font-mono text-xs text-red-200">
+                    Error Log: {fetchError}
+                </p>
+                <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
+                    Try Again
+                </Button>
+            </div>
+        );
     }
 
-    const isVipEvent = event.tags.includes("VIP") || event.isPremium;
+    if (!event) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center px-4">
+                <div className="h-20 w-20 rounded-3xl bg-white/5 flex items-center justify-center text-white/20 mb-4">
+                    <Calendar className="h-10 w-10" />
+                </div>
+                <h1 className="text-4xl font-black uppercase italic tracking-tighter text-white">Event Not Found</h1>
+                <p className="text-white/40 font-poppins max-w-md">
+                    We couldn't find an event with the ID or Slug: <span className="text-gold font-mono">{eventId}</span>.
+                </p>
+                <div className="flex gap-4">
+                    <Button onClick={() => router.push('/events')} className="bg-gold text-obsidian font-bold">
+                        Browse Events
+                    </Button>
+                    <Button onClick={() => router.back()} variant="outline">
+                        Go Back
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    const tags = event.tags || [];
+    const isVipEvent = tags.includes("VIP") || event.isPremium;
     const hasPremiumAccess = profile?.mov33Plus || false;
     const showUpgradeGate = isVipEvent && !hasPremiumAccess;
 
-    const eventDate = event.date?.toDate ? event.date.toDate() : new Date();
+
+    const getSafeDate = (dateVal: any): Date | null => {
+        if (!dateVal) return null;
+        if (dateVal instanceof Date) return dateVal;
+        if (typeof dateVal === 'string') return new Date(dateVal);
+        if (typeof dateVal.toDate === 'function') return dateVal.toDate(); // Firestore Timestamp
+        if (dateVal.seconds) return new Date(dateVal.seconds * 1000);
+        return null;
+    };
+
+    const eventDate = getSafeDate(event.date) || new Date();
 
     const handleQuantityChange = (ticketId: string, change: number) => {
         setTicketQuantities(prev => {
@@ -143,13 +230,25 @@ export default function EventDetailsClient({ eventId, initialEvent }: EventDetai
             if (quantity > 0) {
                 const ticketInfo = event.ticketTiers?.find(t => t.id === ticketId);
                 if (ticketInfo) {
+                    // Check for Quantity Discount
+                    let finalPrice = ticketInfo.price;
+                    let discountApplied = false;
+
+                    if (ticketInfo.quantityDiscount && quantity >= ticketInfo.quantityDiscount.target) {
+                        const discountAmount = (ticketInfo.price * ticketInfo.quantityDiscount.discountPercentage) / 100;
+                        finalPrice = ticketInfo.price - discountAmount;
+                        discountApplied = true;
+                    }
+
                     addToCart({
                         id: `${event.id}-${ticketId}`,
                         name: event.title,
-                        price: ticketInfo.price,
+                        price: finalPrice,
                         image: event.imageUrl || '',
                         quantity,
-                        variant: { name: ticketInfo.tier },
+                        variant: {
+                            name: ticketInfo.tier + (discountApplied ? ` (Bulk Discount Applied)` : '')
+                        },
                     });
                     itemsAdded += quantity;
                 }
@@ -190,9 +289,6 @@ export default function EventDetailsClient({ eventId, initialEvent }: EventDetai
 
     const totalSelectedTickets = Object.values(ticketQuantities).reduce((sum, qty) => sum + qty, 0);
 
-    // JSON-LD is now handled in the Server Component, but we keep the structure here just in case specific client-side updates are needed eventually.
-    // Integrating the Schema directly in the page header via Metadata is cleaner.
-
     // Recently Viewed Logic
     React.useEffect(() => {
         const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
@@ -206,27 +302,37 @@ export default function EventDetailsClient({ eventId, initialEvent }: EventDetai
         <div className="bg-obsidian min-h-screen text-white pt-20">
             <EventViewTracker eventId={event.id} organizerId={event.organizerId} />
 
+            {/* Main Image - Fixed Scaling (Aspect Ratio based) */}
             {event.gallery && event.gallery.length > 0 ? (
-                <ImageGallery gallery={event.gallery} />
+                <div className="relative w-full max-w-[1920px] mx-auto aspect-[4/5] md:aspect-[16/10] max-h-[90vh] overflow-hidden shadow-2xl">
+                    <ImageGallery gallery={event.gallery.map(img => ({
+                        id: img.id,
+                        imageUrl: img.imageUrl,
+                        description: img.description || 'Event Gallery Image',
+                        imageHint: img.description || 'Event Image'
+                    }))} />
+                </div>
             ) : (
-                <div className="h-[40vh] md:h-[60vh] relative overflow-hidden">
+                <div className="relative w-full max-w-[1920px] mx-auto aspect-[4/5] md:aspect-[16/10] max-h-[90vh] overflow-hidden shadow-2xl group">
                     <Image
                         src={event.imageUrl || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30'}
                         fill
                         alt={event.title}
-                        className="object-cover"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        priority
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/20 to-transparent" />
                 </div>
             )}
 
-            <div className="container mx-auto px-4 py-12">
-                <main className="max-w-4xl mx-auto space-y-16">
-                    <div className="space-y-10">
-                        {/* Event Header */}
+            <div className="container mx-auto px-4 py-12 relative z-10 -mt-20 md:-mt-32">
+                <main className="max-w-5xl mx-auto space-y-16">
+
+                    {/* Event Header Card */}
+                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 p-6 md:p-10 rounded-[2.5rem] shadow-2xl space-y-8">
                         <header className="space-y-6">
                             <div className="flex flex-wrap items-center gap-3">
-                                {event.tags.map(tag => (
+                                {tags.map(tag => (
                                     <Badge key={tag} className={cn(
                                         tag === 'VIP' || event.isPremium ? 'bg-gold text-obsidian' : 'bg-white/10 text-white/60 border-white/5',
                                         'font-black uppercase tracking-widest text-[9px] py-1 px-3 rounded-full'
@@ -237,18 +343,18 @@ export default function EventDetailsClient({ eventId, initialEvent }: EventDetai
                                 ))}
                             </div>
 
-                            <h1 className="font-headline text-5xl md:text-7xl font-black text-white italic tracking-tighter uppercase leading-[0.9]">
+                            <h1 className="font-headline text-4xl md:text-7xl font-black text-white italic tracking-tighter uppercase leading-[0.9]">
                                 {event.title}
                             </h1>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
-                                    <div className="h-10 w-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
-                                        <Calendar className="h-5 w-5" />
+                                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
+                                    <div className="h-12 w-12 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
+                                        <Calendar className="h-6 w-6" />
                                     </div>
                                     <div>
                                         <div className="text-[10px] font-black uppercase text-white/30 tracking-widest">Date & Time</div>
-                                        <div className="font-bold text-sm mb-2">{format(eventDate, 'EEEE, d MMM yyyy')} • 18:00</div>
+                                        <div className="font-bold text-lg">{format(eventDate, 'EEEE, d MMM yyyy')} • 18:00</div>
                                         <AddToCalendar
                                             title={event.title}
                                             description={event.description}
@@ -258,13 +364,13 @@ export default function EventDetailsClient({ eventId, initialEvent }: EventDetai
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
-                                    <div className="h-10 w-10 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
-                                        <MapPin className="h-5 w-5" />
+                                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
+                                    <div className="h-12 w-12 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
+                                        <MapPin className="h-6 w-6" />
                                     </div>
                                     <div>
                                         <div className="text-[10px] font-black uppercase text-white/30 tracking-widest">Location</div>
-                                        <div className="font-bold text-sm">{event.venue}, {event.location}</div>
+                                        <div className="font-bold text-lg">{event.venue}, {event.location}</div>
                                     </div>
                                 </div>
                             </div>
@@ -276,226 +382,325 @@ export default function EventDetailsClient({ eventId, initialEvent }: EventDetai
                                 <ShareModal />
                             </div>
                         </header>
+                    </div>
 
-                        {/* Social Proof Section */}
-                        {(event.ticketsSold > 0 || event.capacity > 0) && (
-                            <section id="social-proof" className="scroll-mt-32">
-                                <WhosGoing
-                                    ticketsSold={event.ticketsSold || 0}
-                                    capacity={event.capacity || 0}
-                                />
-                            </section>
-                        )}
-
-                        {/* Unlock Deal Section */}
-                        {config?.unlockDeal?.enabled && (event.dealCode || config?.unlockDeal?.couponCode) && (
-                            <section id="exclusive-deal" className="scroll-mt-32">
-                                <UnlockDeal
-                                    code={event.dealCode || config.unlockDeal.couponCode}
-                                    discountDetails={event.dealDescription || 'Unlock an exclusive discount for this event.'}
-                                />
-                            </section>
-                        )}
-
-                        {/* Ticket Booking Section */}
-                        <section id="tickets" className="scroll-mt-32">
-                            {showUpgradeGate ? (
-                                <div className="bg-gradient-to-br from-gold/10 via-gold/5 to-transparent border border-gold/20 p-8 rounded-[2.5rem] relative overflow-hidden">
-                                    <div className="relative z-10">
-                                        <div className="h-12 w-12 rounded-2xl bg-gold text-obsidian flex items-center justify-center mb-6">
-                                            <Award className="h-6 w-6" />
-                                        </div>
-                                        <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-4">Members Only Experience</h3>
-                                        <p className="text-white/60 font-poppins max-w-md mb-8">This is an exclusive event for mov33+ members. Join the elite circle to unlock access and member pricing.</p>
-                                        <Button onClick={() => router.push('/profile')} className="bg-gold text-obsidian font-black uppercase tracking-widest px-10 h-14 rounded-2xl shadow-xl shadow-gold/20">Upgrade to mov33+</Button>
-                                    </div>
-                                    <div className="absolute -top-20 -right-20 h-64 w-64 bg-gold/20 rounded-full blur-[100px]" />
-                                </div>
-                            ) : (
-                                <Card className="bg-white/[0.03] border-white/5 rounded-[3rem] p-8 md:p-12 overflow-hidden relative">
-                                    <div className="relative z-10 space-y-10">
-                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                            <div>
-                                                <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">Discovery Passes</h2>
-                                                <p className="text-white/40 text-sm font-poppins mt-2">Secure your spot for this premium experience.</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-4">
-                                            {event.ticketTiers?.map(ticket => {
-                                                const hasEarlyBird = ticket.earlyBirdPrice && ticket.earlyBirdDeadline;
-                                                const earlyBirdDeadline = ticket.earlyBirdDeadline?.toDate ? ticket.earlyBirdDeadline.toDate() : null;
-                                                const isEarlyBirdActive = earlyBirdDeadline && earlyBirdDeadline > new Date();
-                                                const displayPrice = isEarlyBirdActive && ticket.earlyBirdPrice ? ticket.earlyBirdPrice : ticket.price;
-                                                const savingsPercent = isEarlyBirdActive && ticket.earlyBirdPrice
-                                                    ? Math.round(((ticket.price - ticket.earlyBirdPrice) / ticket.price) * 100)
-                                                    : 0;
-
-                                                return (
-                                                    <div key={ticket.id} className="group bg-white/5 border border-white/5 rounded-3xl p-6 transition-all hover:bg-white/[0.08] hover:border-white/10 flex flex-col sm:flex-row justify-between sm:items-center gap-6">
-                                                        <div className="flex-1 space-y-2">
-                                                            <div className="flex items-center justify-between">
-                                                                <h4 className="font-black text-lg uppercase italic tracking-tight text-white group-hover:text-gold transition-colors">{ticket.tier}</h4>
-                                                                <div className="text-right">
-                                                                    <div className="text-2xl font-black text-white font-headline italic tracking-tighter">
-                                                                        KES {displayPrice.toLocaleString()}
-                                                                    </div>
-                                                                    {isEarlyBirdActive && (
-                                                                        <div className="text-sm text-white/30 line-through">
-                                                                            KES {ticket.price.toLocaleString()}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                            <p className="text-xs text-white/40 font-poppins max-w-sm">{ticket.description}</p>
-                                                            <div className="flex flex-wrap gap-2 pt-2">
-                                                                {isEarlyBirdActive && earlyBirdDeadline && (
-                                                                    <EarlyBirdBadge deadline={earlyBirdDeadline} discountPercent={savingsPercent} />
-                                                                )}
-                                                                {ticket.status === 'Sold Out' && <Badge className="bg-red-500/20 text-red-400 border-none text-[8px] uppercase font-black">Sold Out</Badge>}
-                                                                {ticket.remaining && ticket.remaining < 20 && ticket.status !== 'Sold Out' && <Badge className="bg-orange-500/20 text-orange-400 border-none text-[8px] uppercase font-black">Only {ticket.remaining} left</Badge>}
-                                                                {ticket.discount && <Badge className="bg-kenyan-green/20 text-kenyan-green border-none text-[8px] uppercase font-black">{ticket.discount}</Badge>}
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="flex items-center gap-4 bg-obsidian py-2 px-4 rounded-2xl border border-white/10">
-                                                            <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-white hover:bg-white/10' onClick={() => handleQuantityChange(ticket.id, -1)} disabled={ticket.status === 'Sold Out'}>
-                                                                <Minus className="h-4 w-4" />
-                                                            </Button>
-                                                            <span className='text-xl font-black w-6 text-center text-white'>{ticketQuantities[ticket.id] || 0}</span>
-                                                            <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-white hover:bg-white/10' onClick={() => handleQuantityChange(ticket.id, 1)} disabled={ticket.status === 'Sold Out' || (ticket.remaining !== undefined && ticket.remaining <= (ticketQuantities[ticket.id] || 0))}>
-                                                                <Plus className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-
-                                        <div className="flex flex-col sm:flex-row gap-4">
-                                            <Button size="lg" className="w-full sm:flex-1 h-16 bg-gold text-obsidian font-black uppercase tracking-widest text-sm rounded-2xl shadow-2xl shadow-gold/20 transition-all hover:scale-[1.02] active:scale-[0.98]" onClick={handleProceedToCheckout} disabled={totalSelectedTickets === 0}>
-                                                Proceed to Checkout
-                                            </Button>
-                                            <Button size="lg" variant="outline" className="w-full sm:w-auto h-16 rounded-2xl border-white/10 bg-white/5 font-black uppercase text-[10px] tracking-widest px-10 hover:bg-white/10" onClick={handleAddToCart} disabled={totalSelectedTickets === 0}>
-                                                <ShoppingCart className="mr-3 h-5 w-5" />
-                                                Add ({totalSelectedTickets})
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-gold/5 rounded-full blur-[100px]" />
-                                </Card>
-                            )}
-                        </section>
-
-                        {/* About Section */}
-                        <section id="about" className="space-y-6">
+                    {/* Event Updates Timeline */}
+                    {event.updates && event.updates.length > 0 && (
+                        <section id="updates" className="space-y-6">
                             <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
                                 <div className="h-1 w-6 bg-gold rounded-full" />
-                                Experience Details
+                                Live Updates
                             </h2>
-                            <div className="prose prose-invert max-w-none text-white/60 font-poppins leading-relaxed">
-                                <ReactMarkdown>
-                                    {DOMPurify.sanitize(event.description || '')}
-                                </ReactMarkdown>
+                            <div className="relative border-l-2 border-white/10 ml-3 md:ml-6 space-y-8 pl-8 md:pl-12 py-2">
+                                {event.updates.map((update, idx) => {
+                                    const updateDate = getSafeDate(update.date);
+                                    return (
+                                        <div key={idx} className="relative">
+                                            <div className="absolute -left-[41px] md:-left-[58px] h-5 w-5 rounded-full bg-obsidian border-4 border-gold" />
+                                            <div className="bg-white/5 border border-white/5 p-6 rounded-2xl backdrop-blur-sm">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className={cn(
+                                                        "text-[10px] uppercase font-black px-2 py-0.5 rounded",
+                                                        update.type === 'alert' ? 'bg-red-500/20 text-red-500' :
+                                                            update.type === 'found' ? 'bg-blue-500/20 text-blue-500' : 'bg-gold/20 text-gold'
+                                                    )}>
+                                                        {update.type}
+                                                    </span>
+                                                    <span className="text-xs text-white/40 font-mono">
+                                                        {updateDate ? format(updateDate, 'MMM d, h:mm a') : ''}
+                                                    </span>
+                                                </div>
+                                                <p className="text-white/80 font-medium">{update.content}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </section>
+                    )}
 
-                        {/* Schedule Section */}
-                        {event.schedule && event.schedule.length > 0 && (
-                            <section id="schedule" className="space-y-6">
-                                <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
-                                    <div className="h-1 w-6 bg-gold rounded-full" />
-                                    The Itinerary
-                                </h2>
-                                <Accordion type="single" collapsible className="w-full space-y-4">
-                                    {event.schedule.map((day, index) => (
-                                        <AccordionItem value={`item-${index}`} key={day.day} className="border-white/5 bg-white/[0.02] rounded-3xl px-6">
-                                            <AccordionTrigger className="font-black uppercase text-sm italic tracking-tight hover:no-underline hover:text-gold">
-                                                {day.day}
-                                            </AccordionTrigger>
-                                            <AccordionContent>
-                                                <ul className="space-y-6 pt-4 pb-2">
-                                                    {day.items.map((item, i) => (
-                                                        <li key={i} className="flex items-start gap-6 group">
-                                                            <p className="font-black text-gold text-xs w-20 shrink-0 pt-0.5">{item.time}</p>
-                                                            <p className="text-white/60 text-sm font-medium group-hover:text-white transition-colors">{item.title}</p>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    ))}
-                                </Accordion>
-                            </section>
-                        )}
+                    {/* Social Proof Section */}
+                    {(event.ticketsSold > 0 || event.capacity > 0) && (
+                        <section id="social-proof" className="scroll-mt-32">
+                            <WhosGoing
+                                ticketsSold={event.ticketsSold || 0}
+                                capacity={event.capacity || 0}
+                            />
+                        </section>
+                    )}
 
-                        {/* Organizer Section */}
-                        <section id="organizer" className="space-y-6">
-                            <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
-                                <div className="h-1 w-6 bg-gold rounded-full" />
-                                The Curator
-                            </h2>
-                            <Link href={`/organizers/${event.organizerId}`} className="block group">
-                                <Card className="bg-white/5 border border-white/5 p-8 rounded-[2.5rem] transition-all group-hover:border-gold/30">
-                                    <div className="flex items-center gap-6">
-                                        <Avatar className="h-20 w-20 border-2 border-white/10 group-hover:border-gold/50 transition-all duration-500">
-                                            <AvatarImage src={event.organizerLogoUrl} alt={event.organizerName} className="object-cover" />
-                                            <AvatarFallback className="bg-white/5 font-black text-gold">{event.organizerName?.[0] || 'O'}</AvatarFallback>
-                                        </Avatar>
+                    {/* Unlock Deal Section */}
+                    {config?.unlockDeal?.enabled && (event.dealCode || config?.unlockDeal?.couponCode) && (
+                        <section id="exclusive-deal" className="scroll-mt-32">
+                            <UnlockDeal
+                                code={event.dealCode || config.unlockDeal.couponCode}
+                                discountDetails={event.dealDescription || 'Unlock an exclusive discount for this event.'}
+                            />
+                        </section>
+                    )}
+
+                    {/* Ticket Booking Section */}
+                    <section id="tickets" className="scroll-mt-32">
+                        {showUpgradeGate ? (
+                            <div className="bg-gradient-to-br from-gold/10 via-gold/5 to-transparent border border-gold/20 p-8 rounded-[2.5rem] relative overflow-hidden">
+                                <div className="relative z-10">
+                                    <div className="h-12 w-12 rounded-2xl bg-gold text-obsidian flex items-center justify-center mb-6">
+                                        <Award className="h-6 w-6" />
+                                    </div>
+                                    <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-4">Members Only Experience</h3>
+                                    <p className="text-white/60 font-poppins max-w-md mb-8">This is an exclusive event for mov33+ members. Join the elite circle to unlock access and member pricing.</p>
+                                    <Button onClick={() => router.push('/profile')} className="bg-gold text-obsidian font-black uppercase tracking-widest px-10 h-14 rounded-2xl shadow-xl shadow-gold/20">Upgrade to mov33+</Button>
+                                </div>
+                                <div className="absolute -top-20 -right-20 h-64 w-64 bg-gold/20 rounded-full blur-[100px]" />
+                            </div>
+                        ) : (
+                            <Card className="bg-white/[0.03] border-white/5 rounded-[3rem] p-8 md:p-12 overflow-hidden relative">
+                                <div className="relative z-10 space-y-10">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                         <div>
-                                            <h3 className="font-black text-2xl uppercase italic tracking-tighter text-white group-hover:text-gold transition-colors">{event.organizerName || 'Mov33 Partner'}</h3>
-                                            <p className="text-sm text-white/40 font-poppins">Official Curator & Event Organizer</p>
-                                            <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gold opacity-60 group-hover:opacity-100 italic">
-                                                View Discovery Catalog <ChevronRight className="h-3 w-3" />
-                                            </div>
+                                            <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">Discovery Passes</h2>
+                                            <p className="text-white/40 text-sm font-poppins mt-2">Secure your spot for this premium experience.</p>
                                         </div>
                                     </div>
-                                </Card>
-                            </Link>
+
+                                    <div className="space-y-4">
+                                        {event.ticketTiers?.map(ticket => {
+                                            const hasEarlyBird = ticket.earlyBirdPrice && ticket.earlyBirdDeadline;
+                                            const earlyBirdDeadline = getSafeDate(ticket.earlyBirdDeadline);
+                                            const isEarlyBirdActive = earlyBirdDeadline && earlyBirdDeadline > new Date();
+                                            const displayPrice = isEarlyBirdActive && ticket.earlyBirdPrice ? ticket.earlyBirdPrice : ticket.price;
+                                            const savingsPercent = isEarlyBirdActive && ticket.earlyBirdPrice
+                                                ? Math.round(((ticket.price - ticket.earlyBirdPrice) / ticket.price) * 100)
+                                                : 0;
+
+                                            // Discount Logic
+                                            const quantity = ticketQuantities[ticket.id] || 0;
+                                            const hasBulkDiscount = ticket.quantityDiscount && ticket.quantityDiscount.target > 1;
+                                            const discountUnlocked = hasBulkDiscount && quantity >= ticket.quantityDiscount!.target;
+
+                                            return (
+                                                <div key={ticket.id} className={cn(
+                                                    "group border rounded-3xl p-6 transition-all flex flex-col sm:flex-row justify-between sm:items-center gap-6 relative overflow-hidden",
+                                                    discountUnlocked ? "bg-gold/5 border-gold/30" : "bg-white/5 border-white/5 hover:bg-white/[0.08] hover:border-white/10"
+                                                )}>
+                                                    {/* Bulk Discount Badge */}
+                                                    {hasBulkDiscount && (
+                                                        <div className={cn(
+                                                            "absolute top-0 right-0 px-3 py-1 text-[8px] font-black uppercase tracking-widest rounded-bl-xl",
+                                                            discountUnlocked ? "bg-gold text-obsidian" : "bg-white/10 text-white/40"
+                                                        )}>
+                                                            {discountUnlocked ? `Unlocked: ${ticket.quantityDiscount!.discountPercentage}% OFF` : `Buy ${ticket.quantityDiscount!.target}+ for ${ticket.quantityDiscount!.discountPercentage}% OFF`}
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex-1 space-y-2">
+                                                        <div className="flex items-center justify-between">
+                                                            <h4 className="font-black text-lg uppercase italic tracking-tight text-white group-hover:text-gold transition-colors">{ticket.tier}</h4>
+                                                            <div className="text-right">
+                                                                <div className="text-2xl font-black text-white font-headline italic tracking-tighter flex flex-col items-end">
+                                                                    <span>KES {discountUnlocked
+                                                                        ? (displayPrice * (1 - ticket.quantityDiscount!.discountPercentage / 100)).toLocaleString()
+                                                                        : displayPrice.toLocaleString()}
+                                                                    </span>
+                                                                    {discountUnlocked && <span className="text-xs text-white/40 line-through">KES {displayPrice.toLocaleString()}</span>}
+                                                                </div>
+                                                                {isEarlyBirdActive && !discountUnlocked && (
+                                                                    <div className="text-sm text-white/30 line-through">
+                                                                        KES {ticket.price.toLocaleString()}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-xs text-white/40 font-poppins max-w-sm">{ticket.description}</p>
+                                                        <div className="flex flex-wrap gap-2 pt-2">
+                                                            {isEarlyBirdActive && earlyBirdDeadline && (
+                                                                <EarlyBirdBadge deadline={earlyBirdDeadline} discountPercent={savingsPercent} />
+                                                            )}
+                                                            {ticket.status === 'Sold Out' && <Badge className="bg-red-500/20 text-red-400 border-none text-[8px] uppercase font-black">Sold Out</Badge>}
+                                                            {ticket.remaining && ticket.remaining < 20 && ticket.status !== 'Sold Out' && <Badge className="bg-orange-500/20 text-orange-400 border-none text-[8px] uppercase font-black">Only {ticket.remaining} left</Badge>}
+                                                            {ticket.discount && <Badge className="bg-kenyan-green/20 text-kenyan-green border-none text-[8px] uppercase font-black">{ticket.discount}</Badge>}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-4 bg-obsidian py-2 px-4 rounded-2xl border border-white/10">
+                                                        <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-white hover:bg-white/10' onClick={() => handleQuantityChange(ticket.id, -1)} disabled={ticket.status === 'Sold Out'}>
+                                                            <Minus className="h-4 w-4" />
+                                                        </Button>
+                                                        <span className={cn('text-xl font-black w-6 text-center', discountUnlocked ? "text-gold" : "text-white")}>{ticketQuantities[ticket.id] || 0}</span>
+                                                        <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-white hover:bg-white/10' onClick={() => handleQuantityChange(ticket.id, 1)} disabled={ticket.status === 'Sold Out' || (ticket.remaining !== undefined && ticket.remaining <= (ticketQuantities[ticket.id] || 0))}>
+                                                            <Plus className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row gap-4">
+                                        <Button size="lg" className="w-full sm:flex-1 h-16 bg-gold text-obsidian font-black uppercase tracking-widest text-sm rounded-2xl shadow-2xl shadow-gold/20 transition-all hover:scale-[1.02] active:scale-[0.98]" onClick={handleProceedToCheckout} disabled={totalSelectedTickets === 0}>
+                                            Proceed to Checkout
+                                        </Button>
+                                        <Button size="lg" variant="outline" className="w-full sm:w-auto h-16 rounded-2xl border-white/10 bg-white/5 font-black uppercase text-[10px] tracking-widest px-10 hover:bg-white/10" onClick={handleAddToCart} disabled={totalSelectedTickets === 0}>
+                                            <ShoppingCart className="mr-3 h-5 w-5" />
+                                            Add ({totalSelectedTickets})
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-gold/5 rounded-full blur-[100px]" />
+                            </Card>
+                        )}
+                    </section>
+
+                    {/* Artist Lineup */}
+                    {event.lineup && event.lineup.length > 0 && (
+                        <section id="lineup" className="space-y-6">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                                <div className="h-1 w-6 bg-gold rounded-full" />
+                                The Lineup
+                            </h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                {event.lineup.map((artist, i) => (
+                                    <div key={i} className="text-center group">
+                                        <div className="relative h-32 w-32 md:h-40 md:w-40 mx-auto rounded-full overflow-hidden border-2 border-white/10 group-hover:border-gold transition-colors mb-4">
+                                            <Image
+                                                src={artist.image || `https://ui-avatars.com/api/?name=${artist.name}&background=random`}
+                                                fill
+                                                className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                                                alt={artist.name}
+                                            />
+                                        </div>
+                                        <h3 className="font-black uppercase text-lg text-white group-hover:text-gold transition-colors">{artist.name}</h3>
+                                        <p className="text-white/40 text-xs font-mono uppercase tracking-widest">{artist.role}</p>
+                                    </div>
+                                ))}
+                            </div>
                         </section>
+                    )}
 
-                        {/* FAQs */}
-                        {event.faqs && event.faqs.length > 0 && (
-                            <section id="faq" className="space-y-6">
-                                <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
-                                    <div className="h-1 w-6 bg-gold rounded-full" />
-                                    Common Inquiries
-                                </h2>
-                                <Accordion type="single" collapsible className="w-full space-y-4">
-                                    {event.faqs.map((faq, index) => (
-                                        <AccordionItem value={`faq-${index}`} key={index} className="border-white/5 bg-white/[0.02] rounded-3xl px-6">
-                                            <AccordionTrigger className="text-left font-bold text-sm text-white/80 hover:no-underline hover:text-gold">
-                                                {faq.q}
-                                            </AccordionTrigger>
-                                            <AccordionContent className="text-white/40 font-poppins leading-relaxed">
-                                                {faq.a}
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    ))}
-                                </Accordion>
-                            </section>
-                        )}
+                    {/* About Section */}
+                    <section id="about" className="space-y-6">
+                        <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                            <div className="h-1 w-6 bg-gold rounded-full" />
+                            Experience Details
+                        </h2>
+                        <div className="prose prose-invert max-w-none text-white/60 font-poppins leading-relaxed">
+                            <ReactMarkdown>
+                                {DOMPurify.sanitize(event.description || '')}
+                            </ReactMarkdown>
+                        </div>
+                    </section>
 
-                        {/* Lost & Found Section */}
-                        {event.lostAndFound && (
-                            <section id="lost-and-found">
-                                <Card className="bg-white/5 border-dashed border-white/10 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-                                    <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center text-white/20">
-                                        <Locate className="h-8 w-8" />
+                    {/* Post Event Gallery (Official Photos) */}
+                    {event.postEventGallery && event.postEventGallery.length > 0 && (
+                        <section id="official-photos" className="space-y-6">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                                <div className="h-1 w-6 bg-gold rounded-full" />
+                                Official Event Photos
+                            </h2>
+                            <ImageGallery gallery={event.postEventGallery.map(url => ({
+                                id: url,
+                                imageUrl: url,
+                                description: 'Official Photo',
+                                imageHint: 'Official Event Photo'
+                            }))} />
+                        </section>
+                    )}
+
+                    {/* Schedule Section */}
+                    {event.schedule && event.schedule.length > 0 && (
+                        <section id="schedule" className="space-y-6">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                                <div className="h-1 w-6 bg-gold rounded-full" />
+                                The Itinerary
+                            </h2>
+                            <Accordion type="single" collapsible className="w-full space-y-4">
+                                {event.schedule.map((day, index) => (
+                                    <AccordionItem value={`item-${index}`} key={day.day} className="border-white/5 bg-white/[0.02] rounded-3xl px-6">
+                                        <AccordionTrigger className="font-black uppercase text-sm italic tracking-tight hover:no-underline hover:text-gold">
+                                            {day.day}
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            <ul className="space-y-6 pt-4 pb-2">
+                                                {day.items.map((item, i) => (
+                                                    <li key={i} className="flex items-start gap-6 group">
+                                                        <p className="font-black text-gold text-xs w-20 shrink-0 pt-0.5">{item.time}</p>
+                                                        <p className="text-white/60 text-sm font-medium group-hover:text-white transition-colors">{item.title}</p>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        </section>
+                    )}
+
+                    {/* Organizer Section */}
+                    <section id="organizer" className="space-y-6">
+                        <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                            <div className="h-1 w-6 bg-gold rounded-full" />
+                            The Curator
+                        </h2>
+                        <Link href={`/organizers/${event.organizerId}`} className="block group">
+                            <Card className="bg-white/5 border border-white/5 p-8 rounded-[2.5rem] transition-all group-hover:border-gold/30">
+                                <div className="flex items-center gap-6">
+                                    <Avatar className="h-20 w-20 border-2 border-white/10 group-hover:border-gold/50 transition-all duration-500">
+                                        <AvatarImage src={event.organizerLogoUrl} alt={event.organizerName} className="object-cover" />
+                                        <AvatarFallback className="bg-white/5 font-black text-gold">{event.organizerName?.[0] || 'O'}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <h3 className="font-black text-2xl uppercase italic tracking-tighter text-white group-hover:text-gold transition-colors">{event.organizerName || 'Mov33 Partner'}</h3>
+                                        <p className="text-sm text-white/40 font-poppins">Official Curator & Event Organizer</p>
+                                        <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gold opacity-60 group-hover:opacity-100 italic">
+                                            View Discovery Catalog <ChevronRight className="h-3 w-3" />
+                                        </div>
                                     </div>
-                                    <div className="flex-1 space-y-2">
-                                        <h4 className="text-lg font-black uppercase italic tracking-tight text-white">Lost & Found Presence</h4>
-                                        <p className="text-white/40 text-sm font-poppins">
-                                            The curator has reported <strong className="text-gold font-black">{event.lostAndFound.itemsFound} found items</strong>. If you are missing something, we're here to help.
-                                        </p>
-                                    </div>
-                                    <Button asChild className="bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest text-[10px] h-14 rounded-2xl px-8 border border-white/5">
-                                        <a href={`mailto:${event.lostAndFound.contact}`}>Contact Curator</a>
-                                    </Button>
-                                </Card>
-                            </section>
-                        )}
-                    </div>
+                                </div>
+                            </Card>
+                        </Link>
+                    </section>
+
+                    {/* FAQs */}
+                    {event.faqs && event.faqs.length > 0 && (
+                        <section id="faq" className="space-y-6">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                                <div className="h-1 w-6 bg-gold rounded-full" />
+                                Common Inquiries
+                            </h2>
+                            <Accordion type="single" collapsible className="w-full space-y-4">
+                                {event.faqs.map((faq, index) => (
+                                    <AccordionItem value={`faq-${index}`} key={index} className="border-white/5 bg-white/[0.02] rounded-3xl px-6">
+                                        <AccordionTrigger className="text-left font-bold text-sm text-white/80 hover:no-underline hover:text-gold">
+                                            {faq.q}
+                                        </AccordionTrigger>
+                                        <AccordionContent className="text-white/40 font-poppins leading-relaxed">
+                                            {faq.a}
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                        </section>
+                    )}
+
+                    {/* Lost & Found Section */}
+                    {event.lostAndFound && (
+                        <section id="lost-and-found">
+                            <Card className="bg-white/5 border-dashed border-white/10 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
+                                <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center text-white/20">
+                                    <Locate className="h-8 w-8" />
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                    <h4 className="text-lg font-black uppercase italic tracking-tight text-white">Lost & Found Presence</h4>
+                                    <p className="text-white/40 text-sm font-poppins">
+                                        The curator has reported <strong className="text-gold font-black">{event.lostAndFound.itemsFound} found items</strong>. If you are missing something, we're here to help.
+                                    </p>
+                                </div>
+                                <Button asChild className="bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest text-[10px] h-14 rounded-2xl px-8 border border-white/5">
+                                    <a href={`mailto:${event.lostAndFound.contact}`}>Contact Curator</a>
+                                </Button>
+                            </Card>
+                        </section>
+                    )}
                 </main>
             </div>
         </div>
