@@ -11,6 +11,7 @@ import { EngagementManager } from '@/components/engagement/engagement-manager';
 import { Footer } from '@/components/layout/footer';
 import { SupportWidget } from '@/components/support/support-widget';
 import { CookieConsent } from '@/components/ui/cookie-consent';
+import { SettingsProvider } from '@/context/settings-context';
 
 export const metadata: Metadata = {
   title: {
@@ -69,14 +70,18 @@ export default function RootLayout({
           <FirebaseClientProvider>
             <ParticleBackground className="fixed top-0 left-0 w-full h-full z-0" />
             <div className="relative z-10">
-              <CartProvider>
-                <AnalyticsTracker />
-                <EngagementManager />
-                <CookieConsent />
-                {children}
-                <Toaster />
-                <SupportWidget />
-              </CartProvider>
+              <AuthProvider>
+                <CartProvider>
+                  <SettingsProvider>
+                    <AnalyticsTracker />
+                    <EngagementManager />
+                    <CookieConsent />
+                    {children}
+                    <Toaster />
+                    <SupportWidget />
+                  </SettingsProvider>
+                </CartProvider>
+              </AuthProvider>
             </div>
           </FirebaseClientProvider>
         </ThemeProvider>

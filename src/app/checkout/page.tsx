@@ -11,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useCart } from '@/context/cart-context';
 import { useAuth } from '@/context/auth-context';
+import { useSettings } from '@/context/settings-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -152,20 +153,30 @@ function CheckoutPage() {
         }
     };
 
+    const { settings } = useSettings();
+    const platformFeePercentage = (settings?.platformFee || 0) / 100;
+
     const subtotal = totalPrice;
     const addOnTotal = (watchedAddOns?.parking ? ADD_ON_PRICES.parking : 0) + (watchedAddOns?.tshirt ? ADD_ON_PRICES.tshirt : 0);
-    const totalBeforeDiscount = subtotal + addOnTotal;
+    const platformFee = Math.round(subtotal * platformFeePercentage);
+
+    // Calculate total before discount but INCLUDE platform fee? Usually fees are added on top.
+    // Let's assume: (Subtotal + Addons + Fee) - Discount
+    // OR: (Subtotal + Addons) - Discount + Fee? 
+    // Usually fees are on the subtotal. Let's do: (Subtotal + Addons) - Discount + Fee.
+
+    const totalBeforeFees = subtotal + addOnTotal;
 
     let discountAmount = 0;
     if (appliedPromo) {
         if (appliedPromo.discountType === 'percentage') {
-            discountAmount = totalBeforeDiscount * (appliedPromo.discountValue / 100);
+            discountAmount = totalBeforeFees * (appliedPromo.discountValue / 100);
         } else {
             discountAmount = appliedPromo.discountValue;
         }
     }
 
-    const finalTotal = totalBeforeDiscount - discountAmount;
+    const finalTotal = totalBeforeFees - discountAmount + platformFee;
 
     const onSubmit = async (data: CheckoutFormValues) => {
         if (paymentStep === 'info') {
@@ -716,6 +727,12 @@ function CheckoutPage() {
                                                 <div className="flex justify-between text-muted-foreground">
                                                     <span>Add-ons</span>
                                                     <span className="text-white">KES {addOnTotal.toLocaleString()}</span>
+                                                </div>
+                                            )}
+                                            {platformFee > 0 && (
+                                                <div className="flex justify-between text-muted-foreground">
+                                                    <span>Platform Fee ({settings?.platformFee}%)</span>
+                                                    <span className="text-white">KES {platformFee.toLocaleString()}</span>
                                                 </div>
                                             )}
                                             {appliedPromo && (
