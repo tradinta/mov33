@@ -448,7 +448,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                         <Award className="h-6 w-6" />
                                     </div>
                                     <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-4">Members Only Experience</h3>
-                                    <p className="text-white/60 font-poppins max-w-md mb-8">This is an exclusive event for mov33+ members. Join the elite circle to unlock access and member pricing.</p>>
+                                    <p className="text-white/60 font-poppins max-w-md mb-8">This is an exclusive event for mov33+ members. Join the elite circle to unlock access and member pricing.</p>
                                     <Button onClick={() => router.push('/profile')} className="bg-gold text-obsidian font-black uppercase tracking-widest px-10 h-14 rounded-2xl shadow-xl shadow-gold/20">Upgrade to mov33+</Button>
                                 </div>
                                 <div className="absolute -top-20 -right-20 h-64 w-64 bg-gold/20 rounded-full blur-[100px]" />
@@ -459,7 +459,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                         <div>
                                             <h2 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">Discovery Passes</h2>
-                                            <p className="text-muted-foreground text-sm font-poppins mt-2">Secure your spot for this premium experience.</p>>
+                                            <p className="text-muted-foreground text-sm font-poppins mt-2">Secure your spot for this premium experience.</p>
                                         </div>
                                     </div>
 
@@ -511,7 +511,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <p className="text-xs text-muted-foreground font-poppins max-w-sm">{ticket.description}</p>>
+                                                        <p className="text-xs text-muted-foreground font-poppins max-w-sm">{ticket.description}</p>
                                                         <div className="flex flex-wrap gap-2 pt-2">
                                                             {isEarlyBirdActive && earlyBirdDeadline && (
                                                                 <EarlyBirdBadge deadline={earlyBirdDeadline} discountPercent={savingsPercent} />
@@ -570,7 +570,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                             />
                                         </div>
                                         <h3 className="font-black uppercase text-lg text-foreground group-hover:text-gold transition-colors">{artist.name}</h3>
-                                        <p className="text-muted-foreground text-xs font-mono uppercase tracking-widest">{artist.role}</p>>
+                                        <p className="text-muted-foreground text-xs font-mono uppercase tracking-widest">{artist.role}</p>
                                     </div>
                                 ))}
                             </div>
@@ -624,7 +624,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                                 {day.items.map((item, i) => (
                                                     <li key={i} className="flex items-start gap-6 group">
                                                         <p className="font-black text-gold text-xs w-20 shrink-0 pt-0.5">{item.time}</p>
-                                                        <p className="text-muted-foreground text-sm font-medium group-hover:text-foreground transition-colors">{item.title}</p>>
+                                                        <p className="text-muted-foreground text-sm font-medium group-hover:text-foreground transition-colors">{item.title}</p>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -650,7 +650,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                     </Avatar>
                                     <div>
                                         <h3 className="font-black text-2xl uppercase italic tracking-tighter text-foreground group-hover:text-gold transition-colors">{event.organizerName || 'Mov33 Partner'}</h3>
-                                        <p className="text-sm text-muted-foreground font-poppins">Official Curator & Event Organizer</p>>
+                                        <p className="text-sm text-muted-foreground font-poppins">Official Curator & Event Organizer</p>
                                         <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gold opacity-60 group-hover:opacity-100 italic">
                                             View Discovery Catalog <ChevronRight className="h-3 w-3" />
                                         </div>
