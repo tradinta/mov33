@@ -94,9 +94,7 @@ export function EventsClient() {
                         </p>
                     </div>
 
-                    <div className="w-full md:w-96">
-                        <EventSearch onSearch={(q) => setActiveFilters(prev => ({ ...prev, searchQuery: q }))} />
-                    </div>
+
                 </motion.div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-12">
@@ -180,6 +178,10 @@ export function EventsClient() {
                                         View Archive
                                     </Link>
                                 </div>
+                            </div>
+
+                            <div className="mb-8 w-full max-w-xl mx-auto md:mx-0">
+                                <EventSearch onSearch={(q) => setActiveFilters(prev => ({ ...prev, searchQuery: q }))} />
                             </div>
 
                             <TabsContent value="all" className="mt-0 focus-visible:outline-none">

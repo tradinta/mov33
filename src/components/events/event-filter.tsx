@@ -81,7 +81,7 @@ export function EventFilter({ onFilterChange }: EventFilterProps) {
   }, [date, category, county, priceRange, sortBy, searchQuery]);
 
   return (
-    <GlassCard className="border-white/5 bg-obsidian/40 backdrop-blur-xl sticky top-24">
+    <GlassCard className="border-border/5 dark:border-white/5 bg-background/95 dark:bg-obsidian/95 backdrop-blur-xl sticky top-24 shadow-xl">
       <CardHeader className="flex flex-row items-center justify-between pb-6 border-b border-white/5">
         <CardTitle className="text-xl font-black uppercase tracking-tighter italic text-white flex items-center gap-2">
           <div className="h-2 w-6 bg-gold rounded-full" />

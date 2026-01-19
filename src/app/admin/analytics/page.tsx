@@ -26,6 +26,7 @@ import { firestore } from '@/firebase';
 import { Users, Eye, TrendingUp, Clock, Smartphone, Monitor, Globe, Loader2, Calendar, ArrowUpRight, ArrowDownRight, DollarSign, Ticket, Award, RefreshCw, Flame, Trophy, CreditCard, Banknote } from 'lucide-react';
 import { format, subDays, parseISO } from 'date-fns';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/context/auth-context';
 
 interface AnalyticsData {
   totalPageViews: number;
@@ -115,14 +116,24 @@ export default function AnalyticsDashboard() {
     return map[category] || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80";
   };
 
+  const { user } = useAuth();
+
   const handleSeedData = async () => {
-    if (!confirm("This will add sample data to Firestore. Continue?")) return;
+    if (!confirm("This will add sample data to Firestore linked to YOUR profile. Continue?")) return;
+    if (!user?.uid) {
+      alert("You must be logged in to seed data.");
+      return;
+    }
+
     setSeeding(true);
     try {
       const eventsCol = collection(firestore, 'events');
       for (const ev of sampleEvents) {
         await addDoc(eventsCol, {
           ...ev,
+          organizerId: user.uid, // Use actual user ID
+          organizerName: user.displayName || 'Mov33 Admin',
+          organizerLogoUrl: user.photoURL || '',
           date: Timestamp.fromDate(ev.date),
           createdAt: Timestamp.now(),
           updatedAt: Timestamp.now(),
@@ -135,6 +146,8 @@ export default function AnalyticsDashboard() {
       for (const tour of sampleTours) {
         await addDoc(toursCol, {
           ...tour,
+          organizerId: user.uid, // Use actual user ID
+          organizerName: user.displayName || 'Mov33 Admin',
           createdAt: Timestamp.now(),
           updatedAt: Timestamp.now(),
           tags: ['Featured', tour.category],
@@ -142,7 +155,7 @@ export default function AnalyticsDashboard() {
           itinerary: []
         });
       }
-      alert("Seed data added successfully!");
+      alert("Seed data added successfully! Events are now linked to your profile.");
     } catch (e) {
       console.error("Seeding error:", e);
       alert("Error seeding data.");

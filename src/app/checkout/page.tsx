@@ -26,8 +26,8 @@ import { Promocode } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const ticketHolderSchema = z.object({
-    fullName: z.string().min(1, 'Full name is required'),
-    email: z.string().email('Invalid email address'),
+    fullName: z.string().optional(),
+    email: z.string().email('Invalid email address').optional().or(z.literal('')),
 });
 
 const checkoutSchema = z.object({
@@ -455,7 +455,14 @@ function CheckoutPage() {
                                         </GlassCard>
 
 
-                                        <Button type="submit" className="w-full bg-kenyan-green hover:bg-kenyan-green/90 text-white font-black text-xl h-20 rounded-3xl shadow-2xl shadow-kenyan-green/20 group uppercase tracking-tight">
+                                        <Button
+                                            type="button"
+                                            onClick={async () => {
+                                                const isValid = await form.trigger(['contactName', 'contactEmail', 'contactPhone']);
+                                                if (isValid) setPaymentStep('addons');
+                                            }}
+                                            className="w-full bg-kenyan-green hover:bg-kenyan-green/90 text-white font-black text-xl h-20 rounded-3xl shadow-2xl shadow-kenyan-green/20 group uppercase tracking-tight"
+                                        >
                                             Continue to Extras
                                             <Send className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform" />
                                         </Button>
