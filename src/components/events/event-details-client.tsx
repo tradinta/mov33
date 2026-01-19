@@ -299,7 +299,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
     }, [event.id]);
 
     return (
-        <div className="bg-obsidian min-h-screen text-white pt-20">
+        <div className="bg-background min-h-screen text-foreground pt-20 transition-colors duration-300">
             <EventViewTracker eventId={event.id} organizerId={event.organizerId} />
 
             {/* Main Image - Fixed Scaling (Aspect Ratio based) */}
@@ -329,7 +329,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                 <main className="max-w-5xl mx-auto space-y-16">
 
                     {/* Event Header Card */}
-                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 p-6 md:p-10 rounded-[2.5rem] shadow-2xl space-y-8">
+                    <div className="bg-card/50 backdrop-blur-xl border border-border/50 p-6 md:p-10 rounded-[2.5rem] shadow-2xl space-y-8">
                         <header className="space-y-6">
                             <div className="flex flex-wrap items-center gap-3">
                                 {tags.map(tag => (
@@ -343,12 +343,12 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                 ))}
                             </div>
 
-                            <h1 className="font-headline text-4xl md:text-7xl font-black text-white italic tracking-tighter uppercase leading-[0.9]">
+                            <h1 className="font-headline text-4xl md:text-7xl font-black text-foreground italic tracking-tighter uppercase leading-[0.9]">
                                 {event.title}
                             </h1>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
+                                <div className="flex items-center gap-4 bg-muted/30 p-4 rounded-2xl border border-border/50 hover:bg-muted/50 transition-colors">
                                     <div className="h-12 w-12 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
                                         <Calendar className="h-6 w-6" />
                                     </div>
@@ -364,7 +364,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
+                                <div className="flex items-center gap-4 bg-muted/30 p-4 rounded-2xl border border-border/50 hover:bg-muted/50 transition-colors">
                                     <div className="h-12 w-12 rounded-xl bg-gold/10 flex items-center justify-center text-gold">
                                         <MapPin className="h-6 w-6" />
                                     </div>
@@ -396,8 +396,8 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                     const updateDate = getSafeDate(update.date);
                                     return (
                                         <div key={idx} className="relative">
-                                            <div className="absolute -left-[41px] md:-left-[58px] h-5 w-5 rounded-full bg-obsidian border-4 border-gold" />
-                                            <div className="bg-white/5 border border-white/5 p-6 rounded-2xl backdrop-blur-sm">
+                                            <div className="absolute -left-[41px] md:-left-[58px] h-5 w-5 rounded-full bg-background border-4 border-gold" />
+                                            <div className="bg-card border border-border p-6 rounded-2xl backdrop-blur-sm">
                                                 <div className="flex items-center justify-between mb-2">
                                                     <span className={cn(
                                                         "text-[10px] uppercase font-black px-2 py-0.5 rounded",
@@ -448,18 +448,18 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                         <Award className="h-6 w-6" />
                                     </div>
                                     <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-4">Members Only Experience</h3>
-                                    <p className="text-white/60 font-poppins max-w-md mb-8">This is an exclusive event for mov33+ members. Join the elite circle to unlock access and member pricing.</p>
+                                    <p className="text-white/60 font-poppins max-w-md mb-8">This is an exclusive event for mov33+ members. Join the elite circle to unlock access and member pricing.</p>>
                                     <Button onClick={() => router.push('/profile')} className="bg-gold text-obsidian font-black uppercase tracking-widest px-10 h-14 rounded-2xl shadow-xl shadow-gold/20">Upgrade to mov33+</Button>
                                 </div>
                                 <div className="absolute -top-20 -right-20 h-64 w-64 bg-gold/20 rounded-full blur-[100px]" />
                             </div>
                         ) : (
-                            <Card className="bg-white/[0.03] border-white/5 rounded-[3rem] p-8 md:p-12 overflow-hidden relative">
+                            <Card className="bg-black/[0.03] dark:bg-white/[0.03] border-border/50 rounded-[3rem] p-8 md:p-12 overflow-hidden relative">
                                 <div className="relative z-10 space-y-10">
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                         <div>
-                                            <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white">Discovery Passes</h2>
-                                            <p className="text-white/40 text-sm font-poppins mt-2">Secure your spot for this premium experience.</p>
+                                            <h2 className="text-3xl font-black uppercase italic tracking-tighter text-foreground">Discovery Passes</h2>
+                                            <p className="text-muted-foreground text-sm font-poppins mt-2">Secure your spot for this premium experience.</p>>
                                         </div>
                                     </div>
 
@@ -481,7 +481,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                             return (
                                                 <div key={ticket.id} className={cn(
                                                     "group border rounded-3xl p-6 transition-all flex flex-col sm:flex-row justify-between sm:items-center gap-6 relative overflow-hidden",
-                                                    discountUnlocked ? "bg-gold/5 border-gold/30" : "bg-white/5 border-white/5 hover:bg-white/[0.08] hover:border-white/10"
+                                                    discountUnlocked ? "bg-gold/5 border-gold/30" : "bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5 hover:bg-black/10 dark:hover:bg-white/10"
                                                 )}>
                                                     {/* Bulk Discount Badge */}
                                                     {hasBulkDiscount && (
@@ -495,14 +495,14 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
 
                                                     <div className="flex-1 space-y-2">
                                                         <div className="flex items-center justify-between">
-                                                            <h4 className="font-black text-lg uppercase italic tracking-tight text-white group-hover:text-gold transition-colors">{ticket.tier}</h4>
+                                                            <h4 className="font-black text-lg uppercase italic tracking-tight text-foreground group-hover:text-gold transition-colors">{ticket.tier}</h4>
                                                             <div className="text-right">
-                                                                <div className="text-2xl font-black text-white font-headline italic tracking-tighter flex flex-col items-end">
+                                                                <div className="text-2xl font-black text-foreground font-headline italic tracking-tighter flex flex-col items-end">
                                                                     <span>KES {discountUnlocked
                                                                         ? (displayPrice * (1 - ticket.quantityDiscount!.discountPercentage / 100)).toLocaleString()
                                                                         : displayPrice.toLocaleString()}
                                                                     </span>
-                                                                    {discountUnlocked && <span className="text-xs text-white/40 line-through">KES {displayPrice.toLocaleString()}</span>}
+                                                                    {discountUnlocked && <span className="text-xs text-muted-foreground line-through">KES {displayPrice.toLocaleString()}</span>}
                                                                 </div>
                                                                 {isEarlyBirdActive && !discountUnlocked && (
                                                                     <div className="text-sm text-white/30 line-through">
@@ -511,7 +511,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <p className="text-xs text-white/40 font-poppins max-w-sm">{ticket.description}</p>
+                                                        <p className="text-xs text-muted-foreground font-poppins max-w-sm">{ticket.description}</p>>
                                                         <div className="flex flex-wrap gap-2 pt-2">
                                                             {isEarlyBirdActive && earlyBirdDeadline && (
                                                                 <EarlyBirdBadge deadline={earlyBirdDeadline} discountPercent={savingsPercent} />
@@ -522,12 +522,12 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex items-center gap-4 bg-obsidian py-2 px-4 rounded-2xl border border-white/10">
-                                                        <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-white hover:bg-white/10' onClick={() => handleQuantityChange(ticket.id, -1)} disabled={ticket.status === 'Sold Out'}>
+                                                    <div className="flex items-center gap-4 bg-background py-2 px-4 rounded-2xl border border-border">
+                                                        <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-foreground hover:bg-muted' onClick={() => handleQuantityChange(ticket.id, -1)} disabled={ticket.status === 'Sold Out'}>
                                                             <Minus className="h-4 w-4" />
                                                         </Button>
-                                                        <span className={cn('text-xl font-black w-6 text-center', discountUnlocked ? "text-gold" : "text-white")}>{ticketQuantities[ticket.id] || 0}</span>
-                                                        <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-white hover:bg-white/10' onClick={() => handleQuantityChange(ticket.id, 1)} disabled={ticket.status === 'Sold Out' || (ticket.remaining !== undefined && ticket.remaining <= (ticketQuantities[ticket.id] || 0))}>
+                                                        <span className={cn('text-xl font-black w-6 text-center', discountUnlocked ? "text-gold" : "text-foreground")}>{ticketQuantities[ticket.id] || 0}</span>
+                                                        <Button variant="ghost" size="icon" className='h-8 w-8 rounded-xl text-foreground hover:bg-muted' onClick={() => handleQuantityChange(ticket.id, 1)} disabled={ticket.status === 'Sold Out' || (ticket.remaining !== undefined && ticket.remaining <= (ticketQuantities[ticket.id] || 0))}>
                                                             <Plus className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -540,7 +540,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                         <Button size="lg" className="w-full sm:flex-1 h-16 bg-gold text-obsidian font-black uppercase tracking-widest text-sm rounded-2xl shadow-2xl shadow-gold/20 transition-all hover:scale-[1.02] active:scale-[0.98]" onClick={handleProceedToCheckout} disabled={totalSelectedTickets === 0}>
                                             Proceed to Checkout
                                         </Button>
-                                        <Button size="lg" variant="outline" className="w-full sm:w-auto h-16 rounded-2xl border-white/10 bg-white/5 font-black uppercase text-[10px] tracking-widest px-10 hover:bg-white/10" onClick={handleAddToCart} disabled={totalSelectedTickets === 0}>
+                                        <Button size="lg" variant="outline" className="w-full sm:w-auto h-16 rounded-2xl border-border bg-card font-black uppercase text-[10px] tracking-widest px-10 hover:bg-muted" onClick={handleAddToCart} disabled={totalSelectedTickets === 0}>
                                             <ShoppingCart className="mr-3 h-5 w-5" />
                                             Add ({totalSelectedTickets})
                                         </Button>
@@ -554,7 +554,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                     {/* Artist Lineup */}
                     {event.lineup && event.lineup.length > 0 && (
                         <section id="lineup" className="space-y-6">
-                            <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-foreground flex items-center gap-3">
                                 <div className="h-1 w-6 bg-gold rounded-full" />
                                 The Lineup
                             </h2>
@@ -569,8 +569,8 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                                 alt={artist.name}
                                             />
                                         </div>
-                                        <h3 className="font-black uppercase text-lg text-white group-hover:text-gold transition-colors">{artist.name}</h3>
-                                        <p className="text-white/40 text-xs font-mono uppercase tracking-widest">{artist.role}</p>
+                                        <h3 className="font-black uppercase text-lg text-foreground group-hover:text-gold transition-colors">{artist.name}</h3>
+                                        <p className="text-muted-foreground text-xs font-mono uppercase tracking-widest">{artist.role}</p>>
                                     </div>
                                 ))}
                             </div>
@@ -579,11 +579,11 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
 
                     {/* About Section */}
                     <section id="about" className="space-y-6">
-                        <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                        <h2 className="text-xl font-black uppercase tracking-widest text-foreground flex items-center gap-3">
                             <div className="h-1 w-6 bg-gold rounded-full" />
                             Experience Details
                         </h2>
-                        <div className="prose prose-invert max-w-none text-white/60 font-poppins leading-relaxed">
+                        <div className="prose prose-invert max-w-none text-muted-foreground font-poppins leading-relaxed">
                             <ReactMarkdown>
                                 {DOMPurify.sanitize(event.description || '')}
                             </ReactMarkdown>
@@ -593,7 +593,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                     {/* Post Event Gallery (Official Photos) */}
                     {event.postEventGallery && event.postEventGallery.length > 0 && (
                         <section id="official-photos" className="space-y-6">
-                            <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-foreground flex items-center gap-3">
                                 <div className="h-1 w-6 bg-gold rounded-full" />
                                 Official Event Photos
                             </h2>
@@ -609,13 +609,13 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                     {/* Schedule Section */}
                     {event.schedule && event.schedule.length > 0 && (
                         <section id="schedule" className="space-y-6">
-                            <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-foreground flex items-center gap-3">
                                 <div className="h-1 w-6 bg-gold rounded-full" />
                                 The Itinerary
                             </h2>
                             <Accordion type="single" collapsible className="w-full space-y-4">
                                 {event.schedule.map((day, index) => (
-                                    <AccordionItem value={`item-${index}`} key={day.day} className="border-white/5 bg-white/[0.02] rounded-3xl px-6">
+                                    <AccordionItem value={`item-${index}`} key={day.day} className="border-border/50 bg-black/[0.02] dark:bg-white/[0.02] rounded-3xl px-6">
                                         <AccordionTrigger className="font-black uppercase text-sm italic tracking-tight hover:no-underline hover:text-gold">
                                             {day.day}
                                         </AccordionTrigger>
@@ -624,7 +624,7 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                                                 {day.items.map((item, i) => (
                                                     <li key={i} className="flex items-start gap-6 group">
                                                         <p className="font-black text-gold text-xs w-20 shrink-0 pt-0.5">{item.time}</p>
-                                                        <p className="text-white/60 text-sm font-medium group-hover:text-white transition-colors">{item.title}</p>
+                                                        <p className="text-muted-foreground text-sm font-medium group-hover:text-foreground transition-colors">{item.title}</p>>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -637,20 +637,20 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
 
                     {/* Organizer Section */}
                     <section id="organizer" className="space-y-6">
-                        <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                        <h2 className="text-xl font-black uppercase tracking-widest text-foreground flex items-center gap-3">
                             <div className="h-1 w-6 bg-gold rounded-full" />
                             The Curator
                         </h2>
                         <Link href={`/organizers/${event.organizerId}`} className="block group">
-                            <Card className="bg-white/5 border border-white/5 p-8 rounded-[2.5rem] transition-all group-hover:border-gold/30">
+                            <Card className="bg-card border border-border p-8 rounded-[2.5rem] transition-all group-hover:border-gold/30">
                                 <div className="flex items-center gap-6">
                                     <Avatar className="h-20 w-20 border-2 border-white/10 group-hover:border-gold/50 transition-all duration-500">
                                         <AvatarImage src={event.organizerLogoUrl} alt={event.organizerName} className="object-cover" />
                                         <AvatarFallback className="bg-white/5 font-black text-gold">{event.organizerName?.[0] || 'O'}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <h3 className="font-black text-2xl uppercase italic tracking-tighter text-white group-hover:text-gold transition-colors">{event.organizerName || 'Mov33 Partner'}</h3>
-                                        <p className="text-sm text-white/40 font-poppins">Official Curator & Event Organizer</p>
+                                        <h3 className="font-black text-2xl uppercase italic tracking-tighter text-foreground group-hover:text-gold transition-colors">{event.organizerName || 'Mov33 Partner'}</h3>
+                                        <p className="text-sm text-muted-foreground font-poppins">Official Curator & Event Organizer</p>>
                                         <div className="mt-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gold opacity-60 group-hover:opacity-100 italic">
                                             View Discovery Catalog <ChevronRight className="h-3 w-3" />
                                         </div>
@@ -663,17 +663,17 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                     {/* FAQs */}
                     {event.faqs && event.faqs.length > 0 && (
                         <section id="faq" className="space-y-6">
-                            <h2 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-foreground flex items-center gap-3">
                                 <div className="h-1 w-6 bg-gold rounded-full" />
                                 Common Inquiries
                             </h2>
                             <Accordion type="single" collapsible className="w-full space-y-4">
                                 {event.faqs.map((faq, index) => (
-                                    <AccordionItem value={`faq-${index}`} key={index} className="border-white/5 bg-white/[0.02] rounded-3xl px-6">
-                                        <AccordionTrigger className="text-left font-bold text-sm text-white/80 hover:no-underline hover:text-gold">
+                                    <AccordionItem value={`faq-${index}`} key={index} className="border-border/50 bg-black/[0.02] dark:bg-white/[0.02] rounded-3xl px-6">
+                                        <AccordionTrigger className="text-left font-bold text-sm text-muted-foreground hover:no-underline hover:text-gold">
                                             {faq.q}
                                         </AccordionTrigger>
-                                        <AccordionContent className="text-white/40 font-poppins leading-relaxed">
+                                        <AccordionContent className="text-muted-foreground/80 font-poppins leading-relaxed">
                                             {faq.a}
                                         </AccordionContent>
                                     </AccordionItem>
@@ -685,17 +685,17 @@ export default function EventDetailsClient({ eventId, initialEvent, isArchived =
                     {/* Lost & Found Section */}
                     {event.lostAndFound && (
                         <section id="lost-and-found">
-                            <Card className="bg-white/5 border-dashed border-white/10 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-                                <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center text-white/20">
+                            <Card className="bg-card border-dashed border-border rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
+                                <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground">
                                     <Locate className="h-8 w-8" />
                                 </div>
                                 <div className="flex-1 space-y-2">
-                                    <h4 className="text-lg font-black uppercase italic tracking-tight text-white">Lost & Found Presence</h4>
-                                    <p className="text-white/40 text-sm font-poppins">
+                                    <h4 className="text-lg font-black uppercase italic tracking-tight text-foreground">Lost & Found Presence</h4>
+                                    <p className="text-muted-foreground text-sm font-poppins">
                                         The curator has reported <strong className="text-gold font-black">{event.lostAndFound.itemsFound} found items</strong>. If you are missing something, we're here to help.
                                     </p>
                                 </div>
-                                <Button asChild className="bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest text-[10px] h-14 rounded-2xl px-8 border border-white/5">
+                                <Button asChild className="bg-muted hover:bg-muted/80 text-foreground font-black uppercase tracking-widest text-[10px] h-14 rounded-2xl px-8 border border-border">
                                     <a href={`mailto:${event.lostAndFound.contact}`}>Contact Curator</a>
                                 </Button>
                             </Card>

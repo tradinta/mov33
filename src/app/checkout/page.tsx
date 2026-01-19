@@ -200,10 +200,10 @@ function CheckoutPage() {
 
                 if (data.status === 'paid') {
                     clearInterval(pollingRef.current!);
-                    setProcessingMessage('Payment confirmed! Generating tickets...');
+                    setProcessingMessage('Payment confirmed! Configuring your tickets...');
                     await new Promise(r => setTimeout(r, 1500));
                     clearCart();
-                    router.push(`/order-success?orderId=${data.orderId}`);
+                    router.push('/tickets');
                 }
             } catch (error) {
                 console.error('Polling error:', error);
