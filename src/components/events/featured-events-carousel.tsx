@@ -85,7 +85,7 @@ export function FeaturedEventsCarousel() {
           {featuredEvents.map((event) => (
             <CarouselItem key={event.id}>
               <Card className="overflow-hidden border-none shadow-none rounded-3xl bg-transparent">
-                <CardContent className="relative p-0 h-[500px] md:h-[650px]">
+                <CardContent className="relative p-0 h-[350px] md:h-[460px]">
                   {event.imageUrl ? (
                     <Image
                       src={event.imageUrl}
