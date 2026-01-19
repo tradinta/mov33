@@ -10,6 +10,7 @@ import { AnalyticsTracker } from '@/components/analytics/analytics-tracker';
 import { EngagementManager } from '@/components/engagement/engagement-manager';
 import { Footer } from '@/components/layout/footer';
 import { SupportWidget } from '@/components/support/support-widget';
+import { CookieConsent } from '@/components/ui/cookie-consent';
 
 export const metadata: Metadata = {
   title: {
@@ -71,6 +72,7 @@ export default function RootLayout({
               <CartProvider>
                 <AnalyticsTracker />
                 <EngagementManager />
+                <CookieConsent />
                 {children}
                 <Toaster />
                 <SupportWidget />
